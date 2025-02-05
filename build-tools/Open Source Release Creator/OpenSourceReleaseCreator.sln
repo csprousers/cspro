@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35521.163 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSourceReleaseCreator", "OpenSourceReleaseCreator\OpenSourceReleaseCreator.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Debug|x86.ActiveCfg = Debug|Win32
+		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Debug|x86.Build.0 = Debug|Win32
+		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Release|x86.ActiveCfg = Release|Win32
+		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
