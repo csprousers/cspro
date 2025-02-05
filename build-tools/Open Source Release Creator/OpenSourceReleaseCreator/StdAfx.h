@@ -5,3 +5,4 @@
 
 #include "resource.h"
 #include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>

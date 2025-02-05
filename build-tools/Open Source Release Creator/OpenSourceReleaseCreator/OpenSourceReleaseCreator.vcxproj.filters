@@ -18,6 +18,9 @@
     <ClInclude Include="Creator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GitObjects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="OpenSourceReleaseCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -59,13 +59,22 @@ END
 // Dialog
 //
 
-IDD_CREATOR DIALOGEX 0, 0, 320, 200
+IDD_CREATOR DIALOGEX 0, 0, 677, 280
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "CSPro Open Source Release Creator"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Close",IDOK,135,179,50,14
+    DEFPUSHBUTTON   "Create",IDOK,110,131,50,14
+    GROUPBOX        "Select the commit to use for the release:",IDC_STATIC,7,7,256,62
+    LTEXT           "Tags:",IDC_STATIC,19,25,19,8
+    COMBOBOX        IDC_TAGS,55,23,197,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Commit:",IDC_STATIC,20,48,27,8
+    EDITTEXT        IDC_COMMIT,55,45,197,14,ES_AUTOHSCROLL
+    GROUPBOX        "Specify the directory for the open source output:",IDC_STATIC,7,78,256,45
+    EDITTEXT        IDC_OUTPUT_DIRECTORY,19,97,233,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_LOG,289,23,372,241,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    GROUPBOX        "Creation log:",IDC_STATIC,277,7,392,266
 END
 
 
@@ -80,9 +89,9 @@ BEGIN
     IDD_CREATOR, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 313
+        RIGHTMARGIN, 670
         TOPMARGIN, 7
-        BOTTOMMARGIN, 193
+        BOTTOMMARGIN, 273
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -96,7 +105,16 @@ END
 IDD_CREATOR AFX_DIALOG_LAYOUT
 BEGIN
     0,
-    50, 100, 0, 0
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 100, 100
 END
 
 #endif    // English (United States) resources
