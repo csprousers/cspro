@@ -515,7 +515,7 @@ bool RecycleFile(const InterfaceString file_path)
     {
         info.wFunc = FO_DELETE;
         info.pFrom = complete_file_path.get();
-        info.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION| FOF_FILESONLY;
+        info.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_FILESONLY;
         return ( SHFileOperation(&info) == 0 );
     }
 #endif

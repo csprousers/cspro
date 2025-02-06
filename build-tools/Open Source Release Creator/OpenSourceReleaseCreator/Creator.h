@@ -1,28 +1,34 @@
 ﻿#pragma once
 
+#include "GitBase.h"
 #include "GitObjects.h"
 #include <zUtilF/LoggingListBox.h>
 
 
-class Creator
+class Creator : public Git::Base
 {
 public:
-    Creator(LoggingListBox& logging_list_box);
+    Creator();
     ~Creator();
 
     std::vector<Git::Tag> GetTags() const;
 
-    void CreateRelease(cs::string_sz commit_string, const std::string& output_directory);
+    void CreateRelease(LoggingListBox& logging_list_box, cs::string_sz commit_string, const std::string& output_directory);
 
 private:
-    [[noreturn]] static void ThrowGitException();
-
     template<typename git_oidT>
     static std::string ObjectIdToString(const git_oidT* oid);
 
-private:
-    LoggingListBox& m_loggingListBox;
+    template<typename git_treeT>
+    void PopulateRepoPaths(const git_treeT* tree, const std::string& base_path);
 
+    void PruneRepoPaths();
+
+    void PrepareOutputDirectory();
+
+    void CopyFilesToOutputDirectory();
+
+private:
     struct Data;
     std::unique_ptr<Data> m_data;
 };

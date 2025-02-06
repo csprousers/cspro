@@ -3,7 +3,6 @@
 #include "Creator.h"
 #include <zUtilO/ResizableDlg.h>
 #include <zUtilO/SettingsDb.h>
-#include <zUtilF/LoggingListBox.h>
 
 
 class OpenSourceReleaseCreatorDlg : public ResizableDlg

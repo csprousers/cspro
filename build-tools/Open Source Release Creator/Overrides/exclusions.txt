@@ -1,0 +1,2 @@
+
+# this file, using gitignore syntax, lists files that should not be copied to the CSPro open source repository

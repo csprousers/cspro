@@ -42,7 +42,7 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
 
     try
     {
-        m_creator = std::make_unique<Creator>(m_loggingListBox);
+        m_creator = std::make_unique<Creator>();
     }
 
     catch( const CSProException& exception )
@@ -103,7 +103,7 @@ void OpenSourceReleaseCreatorDlg::OnOK()
         if( !PortableFunctions::FileIsDirectory(m_outputDirectory) )
             throw CSProException("Specify a valid output directory.");
 
-        m_creator->CreateRelease(m_commit, m_outputDirectory);
+        m_creator->CreateRelease(m_loggingListBox, m_commit, m_outputDirectory);
 
         m_settingsDb.Write<std::string>(OutputDirectoryKey_sv, m_outputDirectory);
 

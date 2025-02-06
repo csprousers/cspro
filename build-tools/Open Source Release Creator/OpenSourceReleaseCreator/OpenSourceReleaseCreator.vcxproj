@@ -97,6 +97,8 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Creator.h" />
+    <ClInclude Include="GitBase.h" />
+    <ClInclude Include="GitIgnoreEvaluator.h" />
     <ClInclude Include="GitObjects.h" />
     <ClInclude Include="OpenSourceReleaseCreator.h" />
     <ClInclude Include="OpenSourceReleaseCreatorDlg.h" />
@@ -105,6 +107,8 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Creator.cpp" />
+    <ClCompile Include="GitBase.cpp" />
+    <ClCompile Include="GitIgnoreEvaluator.cpp" />
     <ClCompile Include="OpenSourceReleaseCreator.cpp" />
     <ClCompile Include="OpenSourceReleaseCreatorDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
