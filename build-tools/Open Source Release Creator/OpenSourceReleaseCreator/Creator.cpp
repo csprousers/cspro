@@ -2,7 +2,9 @@
 #include "Creator.h"
 #include "GitIgnoreEvaluator.h"
 #include <zToolsO/DirectoryLister.h>
+#include <zJson/JsonSpecFile.h>
 #include <zUtilO/CSProExecutables.h>
+#include <zNetwork/CurlHttpConnection.h>
 
 
 struct Creator::Data
@@ -86,10 +88,6 @@ void Creator::CreateRelease(LoggingListBox& logging_list_box, const cs::string_s
 
     PopulateRepoPaths(tree, "");
 
-    git_tree_free(tree);
-
-    git_commit_free(commit);
-
     // remove files that should not be part of the open source release
     PruneRepoPaths();
 
@@ -98,6 +96,16 @@ void Creator::CreateRelease(LoggingListBox& logging_list_box, const cs::string_s
 
     // ...and then copy the current release files
     CopyFilesToOutputDirectory();
+
+    // copy dummy files for some sensitive files
+    CopyReplacementFiles();
+
+    // create a version of SQLite without the SQLite Encryption Extension (SEE)
+    CreateSqliteWithoutSEE(tree);
+
+    git_tree_free(tree);
+
+    git_commit_free(commit);
 }
 
 
@@ -283,4 +291,160 @@ void Creator::CopyFilesToOutputDirectory()
     }
 
     m_data->logging_list_box->AddText(FormatText("Copied bytes: " Formatter_uint64_t, total_content_size));
+}
+
+
+void Creator::CopyReplacementFiles()
+{
+    const std::string replacements_file_path = Path::Combine(m_data->overrides_directory, "replacements.json");
+
+    m_data->logging_list_box->AddText(SharableString());
+    m_data->logging_list_box->AddText(FormatText("Copying replacement files specified in: %s", replacements_file_path.c_str()));
+
+    const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(replacements_file_path);
+
+    for( const JsonNode& replacement_json_node : json_reader->GetArray() )
+    {
+        const std::string repo_path = Path::ToNativeSlash(replacement_json_node.Get<std::string>("repoPath"));
+        const std::string replacement_file_path = replacement_json_node.GetAbsolutePath("replacementPath");
+        const std::string output_file_path = Path::Combine(*m_data->output_directory, repo_path);
+
+        m_data->logging_list_box->AddText("Replacing: " + repo_path);
+
+        PortableFunctions::FileCopyWithExceptions(replacement_file_path, output_file_path, FileOverwriteFlag::Fail);
+    }
+}
+
+
+template<typename git_treeT>
+void Creator::CreateSqliteWithoutSEE(const git_treeT* const tree)
+{
+    m_data->logging_list_box->AddText(SharableString());
+    m_data->logging_list_box->AddText("Creating the non-SEE version of SQLite...");
+
+    const std::string sqlite_repo_path = "cspro/external/SQLite/";
+
+    git_tree_entry* tree_entry;
+    const int result = git_tree_entry_bypath(&tree_entry, tree, Path::Combine(sqlite_repo_path, "sqlite3.h").c_str());
+
+    if( result == GIT_ENOTFOUND )
+        throw CSProException("Could not find the SQLite header file.");
+
+    if( result < 0 )
+        ThrowGitException();
+
+    git_object* object;
+
+    if( git_tree_entry_to_object(&object, git_tree_owner(tree), tree_entry) < 0 )
+        ThrowGitException();
+
+    ASSERT(git_tree_entry_type(tree_entry) == GIT_OBJECT_BLOB);
+
+    const git_blob* const blob = reinterpret_cast<git_blob*>(object);
+
+    const std::string_view header_sv(static_cast<const char*>(git_blob_rawcontent(blob)),
+                                     static_cast<size_t>(git_blob_rawsize(blob)));
+
+    // find the version of SQLite that this release uses
+    constexpr std::string_view VersionPrefix_sv = "#define SQLITE_VERSION";
+    std::string full_version_line;
+    std::string version;
+
+    SO::ForeachLine(header_sv, false,
+        [&](std::string_view line_sv)
+        {
+            if( SO::StartsWith(line_sv, VersionPrefix_sv) )
+            {
+                full_version_line = line_sv;
+
+                line_sv.remove_prefix(VersionPrefix_sv.length());
+                SO::MakeTrim(line_sv);
+                SO::MakeTrim(line_sv, '\"');
+                version = line_sv;
+
+                return false;
+            }
+
+            return true;
+        });
+
+    if( version.empty() )
+        throw CSProException("Could not find the version in sqlite3.h.");
+
+    git_object_free(object);
+
+    git_tree_entry_free(tree_entry);
+
+    m_data->logging_list_box->AddText("Found SQLite version for this release: " + version);
+
+    // this repository hosts non-SEE SQLite amalgamations: https://github.com/rhuijben/sqlite-amalgamation/
+    constexpr const char* AmalgamationRepository = "rhuijben/sqlite-amalgamation";
+
+    CurlHttpConnection connection;
+
+    // find this commit with this version
+    std::string commit_sha;
+
+    for( int commit_page = 1; commit_sha.empty(); ++commit_page )
+    {
+        HeaderList headers;
+        headers.Add("User-Agent: CSPro Open Source Code Cleanup");
+        headers.Add_Accept_Json();
+
+        std::string url = FormatText("https://api.github.com/repos/%s/commits?page=%d", AmalgamationRepository, commit_page);
+
+        const HttpRequest request = HttpRequestBuilder(std::move(url), std::move(headers)).build();
+        HttpResponse response = connection.Request(request);
+
+        const JsonNode json_node = Json::Parse(response.body.ToString());
+        const JsonNodeArray commits_json_node_array = json_node.GetArray();
+
+        if( commits_json_node_array.empty() )
+            break;
+
+        for( const JsonNode& commit_json_node : commits_json_node_array )
+        {
+            const std::string commit_message = commit_json_node.Get("commit")
+                                                               .Get<std::string>("message");
+
+            if( commit_message.find(version) != std::string::npos )
+            {
+                if( !commit_sha.empty() )
+                    throw CSProException("Multiple SQLite amalgamations have a commit message containing: " + version);
+
+                commit_sha = commit_json_node.Get<std::string>("sha");
+            }
+        }
+    }
+
+    if( commit_sha.empty() )
+        throw CSProException("No SQLite amalgamation has a commit message containing: " + version);
+
+    m_data->logging_list_box->AddText(FormatText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str()));
+
+    // download the non-SEE versions
+    for( int i = 0; i < 2; ++i )
+    {
+        const bool is_header = ( i == 0 );
+        const char* const filename = is_header ? "sqlite3.h" : "sqlite3.c";
+
+        const std::string url = FormatText("https://raw.githubusercontent.com/%s/%s/%s", AmalgamationRepository, commit_sha.c_str(), filename);
+
+        const HttpRequest request = HttpRequestBuilder(std::move(url)).build();
+        HttpResponse response = connection.Request(request);
+
+        if( response.http_status != HttpResponse::Status_200_OK )
+            throw CSProException("Error accessing: " + url);
+
+        const std::string body = response.body.ToString();
+
+        if( is_header && body.find(full_version_line) == std::string::npos )
+            throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
+
+        const std::string output_file_path = Path::Combine(*m_data->output_directory, Path::ToNativeSlash(sqlite_repo_path), filename);
+
+        m_data->logging_list_box->AddText(FormatText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(body.size()), output_file_path.c_str()));
+
+        FileIO::WriteText(output_file_path, body, false);
+    }
 }

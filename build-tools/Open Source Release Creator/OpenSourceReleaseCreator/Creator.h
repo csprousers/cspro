@@ -28,6 +28,11 @@ private:
 
     void CopyFilesToOutputDirectory();
 
+    void CopyReplacementFiles();
+
+    template<typename git_treeT>
+    void CreateSqliteWithoutSEE(const git_treeT* tree);
+
 private:
     struct Data;
     std::unique_ptr<Data> m_data;

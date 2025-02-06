@@ -56,7 +56,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib;..\..\..\cspro\external\libgit2\lib\git2.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zJson.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib;..\..\..\cspro\$(Configuration)\lib\zNetwork.lib;..\..\..\cspro\external\libgit2\lib\git2.lib</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\$(Configuration)\bin\*.dll" "$(TargetDir)"
@@ -83,7 +83,7 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib;..\..\..\cspro\external\libgit2\lib\git2.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zJson.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib;..\..\..\cspro\$(Configuration)\lib\zNetwork.lib;..\..\..\cspro\external\libgit2\lib\git2.lib</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\$(Configuration)\bin\*.dll" "$(TargetDir)"

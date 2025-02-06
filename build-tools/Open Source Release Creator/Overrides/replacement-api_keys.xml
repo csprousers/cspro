@@ -1,0 +1,11 @@
+<resources>
+
+    <!-- Dropbox -->
+    <string name="dropbox_key" templateMergeStrategy="preserve" translatable="false">api_key_goes_here</string>
+    <string name="dropbox_auth_scheme" templateMergeStrategy="preserve" translatable="false">db-api_key_goes_here</string>
+
+
+    <!-- Google Maps -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">api_key_goes_here</string>
+
+</resources>
