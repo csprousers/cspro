@@ -106,6 +106,9 @@ void Creator::CreateRelease(LoggingListBox& logging_list_box, const cs::string_s
     git_tree_free(tree);
 
     git_commit_free(commit);
+
+    m_data->logging_list_box->AddText(SharableString());
+    m_data->logging_list_box->AddText("Successfully created the open source release.");
 }
 
 

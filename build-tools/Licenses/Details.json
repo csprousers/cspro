@@ -165,6 +165,12 @@
     "licenseUrl": "https://curl.haxx.se/docs/copyright.html"
   },
   {
+    "projectName": "libgit2",
+    "projectUrl": "https://github.com/libgit2/libgit2",
+    "licenseFilename": "COPYING",
+    "licenseUrl": "https://raw.githubusercontent.com/libgit2/libgit2/refs/heads/main/COPYING"
+  },
+  {
     "projectName": "librdata",
     "projectUrl": "https://github.com/WizardMac/librdata",
     "licenseFilename": "LICENSE",

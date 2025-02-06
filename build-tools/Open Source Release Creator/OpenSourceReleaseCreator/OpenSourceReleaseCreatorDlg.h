@@ -17,9 +17,17 @@ protected:
     void DoDataExchange(CDataExchange* pDX) override;
     BOOL OnInitDialog() override;
 
+    void OnCancel() override;
+
     void OnTagChange();
 
-    void OnOK() override;
+    void OnCreate();
+
+private:
+    void ConfirmCanClose();
+
+    void CreateWorker();
+    LRESULT OnCreateComplete(WPARAM wParam, LPARAM lParam);
 
 private:
     static constexpr std::string_view OutputDirectoryKey_sv = "output-directory";
@@ -33,4 +41,6 @@ private:
     std::string m_outputDirectory;
 
     LoggingListBox m_loggingListBox;
+
+    std::unique_ptr<std::thread> m_createThread;
 };

@@ -65,7 +65,7 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "CSPro Open Source Release Creator"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Create",IDOK,110,131,50,14
+    DEFPUSHBUTTON   "Create",IDC_CREATE,110,131,50,14
     GROUPBOX        "Select the commit to use for the release:",IDC_STATIC,7,7,256,62
     LTEXT           "Tags:",IDC_STATIC,19,25,19,8
     COMBOBOX        IDC_TAGS,55,23,197,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP

@@ -1,11 +1,14 @@
 ﻿#include "StdAfx.h"
 #include "OpenSourceReleaseCreatorDlg.h"
 #include <zUtilO/DataExchange.h>
+#include <zUtilO/UWMRanges.h>
 #include <zUtilO/WindowHelpers.h>
 
 
 BEGIN_MESSAGE_MAP(OpenSourceReleaseCreatorDlg, ResizableDlg)
     ON_CBN_SELCHANGE(IDC_TAGS, OnTagChange)
+    ON_COMMAND(IDC_CREATE, OnCreate)
+    ON_MESSAGE(UWM::Ranges::ExeStart, OnCreateComplete)
 END_MESSAGE_MAP()
 
 
@@ -73,6 +76,18 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
 }
 
 
+void OpenSourceReleaseCreatorDlg::OnCancel()
+{
+    if( !GetDlgItem(IDC_CREATE)->IsWindowEnabled() )
+    {
+        ErrorMessage::Display(L"You cannot exit while the creation is in progress.");
+        return;
+    }
+
+    __super::OnCancel();
+}
+
+
 void OpenSourceReleaseCreatorDlg::OnTagChange()
 {
     const size_t tag_index = static_cast<size_t>(m_tagsComboBox.GetCurSel());
@@ -91,7 +106,7 @@ void OpenSourceReleaseCreatorDlg::OnTagChange()
 }
 
 
-void OpenSourceReleaseCreatorDlg::OnOK()
+void OpenSourceReleaseCreatorDlg::OnCreate()
 {
     UpdateData(TRUE);
 
@@ -103,15 +118,47 @@ void OpenSourceReleaseCreatorDlg::OnOK()
         if( !PortableFunctions::FileIsDirectory(m_outputDirectory) )
             throw CSProException("Specify a valid output directory.");
 
-        m_creator->CreateRelease(m_loggingListBox, m_commit, m_outputDirectory);
-
         m_settingsDb.Write<std::string>(OutputDirectoryKey_sv, m_outputDirectory);
 
-        __super::OnOK();
+        // disable the Create button while the thread is running
+        GetDlgItem(IDC_CREATE)->EnableWindow(FALSE);
+
+        m_createThread = std::make_unique<std::thread>([&]() { CreateWorker(); });
     }
 
     catch( const CSProException& exception )
     {
         ErrorMessage::Display(exception);
     }
+}
+
+
+void OpenSourceReleaseCreatorDlg::CreateWorker()
+{
+    try
+    {
+        m_creator->CreateRelease(m_loggingListBox, m_commit, m_outputDirectory);
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
+
+    PostMessage(UWM::Ranges::ExeStart);
+}
+
+
+LRESULT OpenSourceReleaseCreatorDlg::OnCreateComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    ASSERT(m_createThread != nullptr);
+
+    if( m_createThread->joinable() )
+        m_createThread->join();
+
+    m_createThread.reset();
+
+    GetDlgItem(IDC_CREATE)->EnableWindow(TRUE);
+
+    return 1;
 }
