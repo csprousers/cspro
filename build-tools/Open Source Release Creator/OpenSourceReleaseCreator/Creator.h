@@ -33,6 +33,12 @@ private:
     template<typename git_treeT>
     void CreateSqliteWithoutSEE(const git_treeT* tree);
 
+    struct TagCommits;
+    std::vector<TagCommits> GetReleaseTags(std::string_view earliest_tag_sv);
+
+    template<typename git_oidT>
+    void CreateHistoryLog(const git_oidT* oid);
+
 private:
     struct Data;
     std::unique_ptr<Data> m_data;

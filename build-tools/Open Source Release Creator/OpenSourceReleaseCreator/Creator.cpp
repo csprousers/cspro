@@ -2,6 +2,7 @@
 #include "Creator.h"
 #include "GitIgnoreEvaluator.h"
 #include <zToolsO/DirectoryLister.h>
+#include <zToolsO/File.h>
 #include <zJson/JsonSpecFile.h>
 #include <zUtilO/CSProExecutables.h>
 #include <zNetwork/CurlHttpConnection.h>
@@ -47,7 +48,7 @@ std::vector<Git::Tag> Creator::GetTags() const
             auto tags = reinterpret_cast<std::vector<Git::Tag>*>(payload);
             tags->emplace_back(Git::Tag { ObjectIdToString(oid), name });
             return 0;
-        };
+        }
     };
 
     git_tag_foreach(m_data->repo, CB::func, &tags);
@@ -102,6 +103,9 @@ void Creator::CreateRelease(LoggingListBox& logging_list_box, const cs::string_s
 
     // create a version of SQLite without the SQLite Encryption Extension (SEE)
     CreateSqliteWithoutSEE(tree);
+
+    // create a log showing the history of pull requests
+    CreateHistoryLog(&oid);
 
     git_tree_free(tree);
 
@@ -288,7 +292,7 @@ void Creator::CopyFilesToOutputDirectory()
 
         if( percent >= next_percent_for_reporting )
         {
-            m_data->logging_list_box->AddText(FormatText("Copy percent: %d", static_cast<int>(100 * percent)));
+            m_data->logging_list_box->AddText(FormatText("Copy percent: %d", static_cast<int>(percent)));
             next_percent_for_reporting += PercentReportingInterval;
         }
     }
@@ -449,5 +453,239 @@ void Creator::CreateSqliteWithoutSEE(const git_treeT* const tree)
         m_data->logging_list_box->AddText(FormatText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(body.size()), output_file_path.c_str()));
 
         FileIO::WriteText(output_file_path, body, false);
+    }
+}
+
+
+struct Creator::TagCommits
+{
+    std::string tag_name;
+    git_oid commit_oid;
+    int64_t commit_time;
+
+    struct PullRequest
+    {
+        std::string sha;
+        int64_t commit_time;
+        std::string branch_name;
+        std::string message;
+    };
+
+    std::vector<PullRequest> pull_requests;
+};
+
+
+std::vector<Creator::TagCommits> Creator::GetReleaseTags(const std::string_view earliest_tag_sv)
+{
+    struct CB
+    {
+        git_repository* repo;
+        std::string_view earliest_tag_sv;
+        std::vector<TagCommits> tag_commits;
+        std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
+        std::smatch matches;
+
+        static int func(const char* const name, git_oid* const oid, void* const payload)
+        {
+            func(reinterpret_cast<CB*>(payload), name, oid);
+            return 0;
+        }
+
+        static void func(CB* const cb, const std::string& name, const git_oid* const oid)
+        {
+            if( !std::regex_search(name, cb->matches, cb->tag_regex) )
+                return;
+
+            std::string tag_name = cb->matches.str(1);
+
+            if( tag_name < cb->earliest_tag_sv )
+                return;
+
+            // associate the tag with the most recent commit
+            git_object* object;
+
+            if( git_object_lookup(&object, cb->repo, oid, GIT_OBJECT_ANY) != 0 )
+                ThrowGitException();
+
+            const git_object_t object_type = git_object_type(object);
+
+            git_commit* commit;
+            const bool object_is_commit = ( object_type == GIT_OBJECT_COMMIT );
+
+            if( object_is_commit )
+            {
+                commit = reinterpret_cast<git_commit*>(object);
+            }
+
+            else if( object_type == GIT_OBJECT_TAG )
+            {
+                if( git_commit_lookup(&commit, cb->repo, git_tag_target_id(reinterpret_cast<git_tag*>(object))) != 0 )
+                    ThrowGitException();
+            }
+
+            else
+            {
+                throw ProgrammingErrorException();
+            }
+
+            const int64_t commit_time = git_commit_author(commit)->when.time;
+
+            if( !object_is_commit )
+                git_commit_free(commit);
+
+            git_object_free(object);
+
+            auto lookup = std::find_if(cb->tag_commits.begin(), cb->tag_commits.end(),
+                                       [&](const TagCommits& tc) { return ( tag_name == tc.tag_name ); });
+
+            if( lookup == cb->tag_commits.end() )
+            {
+                cb->tag_commits.emplace_back(TagCommits { std::move(tag_name), *oid, commit_time });
+            }
+
+            else
+            {
+                lookup->commit_oid = *oid;
+                lookup->commit_time = commit_time;
+            }
+        }
+    };
+
+    CB cb { m_data->repo, earliest_tag_sv };
+    git_tag_foreach(m_data->repo, CB::func, &cb);
+    return cb.tag_commits;
+}
+
+
+template<typename git_oidT>
+void Creator::CreateHistoryLog(const git_oidT* const oid)
+{
+    constexpr std::string_view EarliestTag_sv = "7.6.0";
+    constexpr char* EarliestCommitSHA = "9f38058425533d970f74cb42458328faed7f02fa"; // the v7.5.0 tag's commit
+
+    const std::string history_file_path = Path::Combine(*m_data->output_directory, "HISTORY.md");
+
+    m_data->logging_list_box->AddText(SharableString());
+    m_data->logging_list_box->AddText(FormatText("Creating history log: %s", history_file_path.c_str()));
+
+    FileIO::TextFile history_file;
+    history_file.OpenForTextWritingCreate(history_file_path);
+
+    std::vector<TagCommits> tag_commits = GetReleaseTags(EarliestTag_sv);
+
+    if( tag_commits.empty() )
+        throw ProgrammingErrorException();
+
+    git_oid oldest_commit_to_process;
+
+    if( git_oid_fromstr(&oldest_commit_to_process, EarliestCommitSHA) < 0 )
+        throw CSProException("The commit was not found in the repo: %s", EarliestCommitSHA);
+
+    git_revwalk* walker;
+
+    if( git_revwalk_new(&walker, m_data->repo) != 0 )
+        ThrowGitException();
+
+    git_revwalk_push(walker, oid);
+    git_revwalk_sorting(walker, GIT_SORT_TIME);
+
+    std::regex commit_message_regex(R"(^Merge pull request.+CSProDevelopment\/(\S+).*$)");
+    std::smatch matches;
+    git_oid commit_oid;
+
+    while( git_revwalk_next(&commit_oid, walker) == 0 &&
+           !git_oid_equal(&commit_oid, &oldest_commit_to_process) )
+    {
+        git_commit* commit;
+
+        if( git_commit_lookup(&commit, m_data->repo, &commit_oid) != 0 )
+            ThrowGitException();
+
+        // only process commits with at least two parents (which should be the pull requests)
+        if( git_commit_parentcount(commit) >= 2 )
+        {
+            std::string commit_message = git_commit_message(commit);
+
+            if( std::regex_search(commit_message, matches, commit_message_regex) )
+            {
+                // determine the first tag that contains this commit
+                TagCommits* first_tag_with_commit = nullptr;
+
+                for( TagCommits& tc : tag_commits )
+                {
+                    if( git_graph_reachable_from_any(m_data->repo, &commit_oid, &tc.commit_oid, 1) == 1 )
+                    {
+                        first_tag_with_commit = &tc;
+                        break;
+                    }
+                }
+
+                if( first_tag_with_commit == nullptr )
+                {
+                    ASSERT(false);
+                }
+
+                else
+                {
+                    std::string pull_request_branch_name = matches.str(1);
+                    std::string pull_request_message = matches.suffix().str();
+                    SO::MakeTrim(pull_request_message);
+
+                    first_tag_with_commit->pull_requests.emplace_back(
+                        TagCommits::PullRequest
+                        {
+                            git_oid_tostr_s(&commit_oid),
+                            git_commit_author(commit)->when.time,
+                            std::move(pull_request_branch_name),
+                            std::move(pull_request_message)
+                        });
+                }
+            }
+        }
+
+        git_commit_free(commit);
+    }
+
+    git_revwalk_free(walker);
+
+    history_file.WriteLine("## Overview\n");
+    history_file.WriteLine("Because most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), "
+                           "the history of this public repository does not reveal much about CSPro development. Because of this, "
+                           "this document lists information about each pull request merged into the private repository.");
+
+    for( auto tag_commits_itr = tag_commits.crbegin(); tag_commits_itr != tag_commits.crend(); ++tag_commits_itr )
+    {
+        history_file.WriteFormattedLine("\n\n## CSPro %s", tag_commits_itr->tag_name.c_str());
+
+        std::string url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
+        history_file.WriteFormattedLine("\n**Installer**: [%s](%s)", url.c_str(), url.c_str());
+
+        url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s_releasenotes.txt", tag_commits_itr->tag_name.c_str());
+        history_file.WriteFormattedLine("\n**Release notes**: [%s](%s)", url.c_str(), url.c_str());
+
+        if( tag_commits_itr->pull_requests.empty() )
+            continue;
+
+        history_file.WriteLine("\n**Merged pull requests**:\n");
+
+        history_file.WriteLine("| Date | Branch | Pull Request Message |");
+        history_file.WriteLine("| --- | --- | --- |");
+
+        constexpr const char* NonBreakingHyphen = "&#8209;";
+        const std::string date_formatter = FormatText("%%Y%s%%m%s%%d", NonBreakingHyphen, NonBreakingHyphen);
+
+        for( const TagCommits::PullRequest& pull_request : tag_commits_itr->pull_requests )
+        {
+            auto escape_for_table = [&](std::string text)
+            {
+                return SO::Replace(text, "|", "&#124;");
+            };
+
+            history_file.WriteFormattedLine("| %s | [%s](https://github.com/CSProDevelopment/cspro/commit/%s) | %s |",
+                                            DateTime::LocalDateTimeString(pull_request.commit_time, date_formatter).c_str(),
+                                            escape_for_table(pull_request.branch_name).c_str(),
+                                            pull_request.sha.c_str(),
+                                            escape_for_table(pull_request.message).c_str());
+        }
     }
 }
