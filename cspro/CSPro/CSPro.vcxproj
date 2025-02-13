@@ -1,0 +1,342 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AC2E7771-C585-4E0C-9D59-D8B6A2EF74DA}</ProjectGuid>
+    <RootNamespace>CSPro</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <StackReserveSize>2048000</StackReserveSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <StackReserveSize>2048000</StackReserveSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AboutMenuDialogs.cpp" />
+    <ClCompile Include="AplDoc.cpp" />
+    <ClCompile Include="CodeMenu.cpp" />
+    <ClCompile Include="FileTreeNode.cpp" />
+    <ClCompile Include="NewFileCreator.cpp" />
+    <ClCompile Include="NewFileDlg.cpp" />
+    <ClCompile Include="OnKeyCharacterMapDlg.cpp" />
+    <ClCompile Include="PropertiesDlgApplicationPropertiesFilePage.cpp" />
+    <ClCompile Include="PropertiesDlgJsonPage.cpp" />
+    <ClCompile Include="PropertiesDlgLogicSettingsPage.cpp" />
+    <ClCompile Include="PropertiesDlgPage.cpp" />
+    <ClCompile Include="Report.cpp" />
+    <ClCompile Include="ReportPropertiesDlg.cpp" />
+    <ClCompile Include="SelectAppDlg.cpp" />
+    <ClCompile Include="CapiMacrosDlg.cpp" />
+    <ClCompile Include="ChildFrm.cpp" />
+    <ClCompile Include="CommonStoreDlg.cpp" />
+    <ClCompile Include="CSPro.cpp" />
+    <ClCompile Include="DTYPEDLG.CPP" />
+    <ClCompile Include="FakeDropDoc.cpp" />
+    <ClCompile Include="FontPrefDlg.cpp" />
+    <ClCompile Include="HidDTmpl.cpp" />
+    <ClCompile Include="LogicReference.cpp" />
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="MDlgBar.cpp" />
+    <ClCompile Include="MsrDoc.cpp" />
+    <ClCompile Include="MsrView.cpp" />
+    <ClCompile Include="MTabCtl.cpp" />
+    <ClCompile Include="ObjTCtrl.cpp" />
+    <ClCompile Include="AplFileAssociationsDlg.cpp" />
+    <ClCompile Include="AplFileAssociationsGrid.cpp" />
+    <ClCompile Include="PropertiesDlg.cpp" />
+    <ClCompile Include="PropertiesDlgAdvancedFeaturesPage.cpp" />
+    <ClCompile Include="PropertiesDlgParadataPage.cpp" />
+    <ClCompile Include="PropertiesDlgMappingPage.cpp" />
+    <ClCompile Include="PropertiesDlgMappingTileProviderPage.cpp" />
+    <ClCompile Include="SelectDocsDlg.cpp" />
+    <ClCompile Include="StartDlg.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="SymbolAnalysisDlg.cpp" />
+    <ClCompile Include="VersionShifterDlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CSPro.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\AboutBoxLogo.bmp" />
+    <None Include="Res\bch_file.ico" />
+    <None Include="Res\CSPro.rc2" />
+    <None Include="Res\encfile.ico" />
+    <None Include="Res\ent_file.ico" />
+    <None Include="Res\ent_file_capi.ico" />
+    <None Include="RES\ico00001.ico" />
+    <None Include="Res\ico00002.ico" />
+    <None Include="Res\iconAssociationFiller.ico" />
+    <None Include="Res\Idr_main.ico" />
+    <None Include="Res\mgf_file.ico" />
+    <None Include="Res\New.ico" />
+    <None Include="Res\open.ico" />
+    <None Include="Res\ord_file.ico" />
+    <None Include="Res\qsf_file.ico" />
+    <None Include="res\Resource Folder.ico" />
+    <None Include="Res\samerr.ico" />
+    <None Include="RES\SPLASH.BMP" />
+    <None Include="res\Toolbar.bmp" />
+    <None Include="Res\xtb_file.ico" />
+    <None Include="Res\xts_file.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AboutMenuDialogs.h" />
+    <ClInclude Include="AplDoc.h" />
+    <ClInclude Include="FileTreeNode.h" />
+    <ClInclude Include="NewFileCreator.h" />
+    <ClInclude Include="NewFileDlg.h" />
+    <ClInclude Include="OnKeyCharacterMapDlg.h" />
+    <ClInclude Include="PropertiesDlgApplicationPropertiesFilePage.h" />
+    <ClInclude Include="PropertiesDlgJsonPage.h" />
+    <ClInclude Include="PropertiesDlgLogicSettingsPage.h" />
+    <ClInclude Include="ReportPropertiesDlg.h" />
+    <ClInclude Include="SelectAppDlg.h" />
+    <ClInclude Include="CapiMacrosDlg.h" />
+    <ClInclude Include="ChildFrm.h" />
+    <ClInclude Include="CommonStoreDlg.h" />
+    <ClInclude Include="CSPro.h" />
+    <ClInclude Include="DTYPEDLG.H" />
+    <ClInclude Include="FakeDropDoc.h" />
+    <ClInclude Include="FileAssociation.h" />
+    <ClInclude Include="FontPrefDlg.h" />
+    <ClInclude Include="HidDTmpl.h" />
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MDlgBar.h" />
+    <ClInclude Include="MsrDoc.h" />
+    <ClInclude Include="MsrView.h" />
+    <ClInclude Include="MTabCtl.h" />
+    <ClInclude Include="ObjTCtrl.h" />
+    <ClInclude Include="AplFileAssociationsDlg.h" />
+    <ClInclude Include="AplFileAssociationsGrid.h" />
+    <ClInclude Include="PropertiesDlg.h" />
+    <ClInclude Include="PropertiesDlgAdvancedFeaturesPage.h" />
+    <ClInclude Include="PropertiesDlgMappingPage.h" />
+    <ClInclude Include="PropertiesDlgMappingTileProviderPage.h" />
+    <ClInclude Include="PropertiesDlgPage.h" />
+    <ClInclude Include="PropertiesDlgParadataPage.h" />
+    <ClInclude Include="SymbolAnalysisDlg.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="VersionShifterDlg.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="SelectDocsDlg.h" />
+    <ClInclude Include="StartDlg.h" />
+    <ClInclude Include="StdAfx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zAction\zAction.vcxproj">
+      <Project>{7f125ef6-a327-11ed-a8fc-0242ac120002}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+      <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCapiO\zCapiO.vcxproj">
+      <Project>{9cff378d-0d09-4800-866d-5fab8df44fbf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDataO\zDataO.vcxproj">
+      <Project>{dde177b0-a6ae-4d1f-b707-8fb50d1b5644}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDesignerF\zDesignerF.vcxproj">
+      <Project>{5a7c4b2c-3c72-4c23-994f-bc647ab0a882}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictF\zDictF.vcxproj">
+      <Project>{6b536c24-a5df-489e-afb7-7979328bbbc5}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEdit2O\zEdit2O.vcxproj">
+      <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEngineF\zEngineF.vcxproj">
+      <Project>{04b22cef-8246-4596-84a2-13faf5019122}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEngineO\zEngineO.vcxproj">
+      <Project>{45dadbf6-072a-4a5f-94b3-39fb607807f2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zExTab\zExTab.vcxproj">
+      <Project>{7b61854d-4eed-4a86-bc7b-f5ee315b7447}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormatterO\zFormatterO.vcxproj">
+      <Project>{eaa667d9-6593-4bf4-abe3-ca8231b4efec}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zformf\Zformf.vcxproj">
+      <Project>{263e1e29-23a3-4ee4-a584-4c7388ca2cff}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormO\zFormO.vcxproj">
+      <Project>{0837641d-6f03-4f33-9eb5-c03d2ca8edb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFreqO\zFreqO.vcxproj">
+      <Project>{48f0cbb2-b1bb-42a0-bebb-899ce2479f64}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGridO\zGridO.vcxproj">
+      <Project>{7179e255-3de3-45fd-939b-cbd0a7f41761}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zInterfaceF\zInterfaceF.vcxproj">
+      <Project>{a777b4a3-a0b4-4f0e-86c4-7077630e0b54}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zListingO\zListingO.vcxproj">
+      <Project>{15f84c2e-c943-4448-856d-641ac229e3c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
+      <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMapping\zMapping.vcxproj">
+      <Project>{bb03b600-1ccf-4875-9300-26ad969e8d80}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zOrderF\zOrderF.vcxproj">
+      <Project>{0fbe4310-4dc2-4783-b4d0-9a2f02d36993}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zPackO\zPackO.vcxproj">
+      <Project>{9e5e9d64-f6da-11ec-b939-0242ac120002}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">
+      <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Zsrcmgro\ZSRCMGRO.vcxproj">
+      <Project>{89d69981-4131-4b75-8adb-a596219f7ed3}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zTableF\zTableF.vcxproj">
+      <Project>{c3453b1b-dfd0-448d-80d1-ed157336ae69}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zTableO\zTableO.vcxproj">
+      <Project>{192cbdce-78bc-4c95-9c9e-9bee530d677c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUToolO\Zutoolo.vcxproj">
+      <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Res\csdbe_file.ico" />
+    <Image Include="Res\ent_file_all_types.ico" />
+    <Image Include="Res\ent_file_operational_control.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="CSPro.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

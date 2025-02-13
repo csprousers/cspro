@@ -1,0 +1,4 @@
+Controls - First.png
+Controls - Previous.png
+Controls - Next.png
+Controls - Last.png

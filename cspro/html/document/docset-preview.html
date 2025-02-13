@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>CSPro Document Set Preview</title>
+
+    <link rel="stylesheet" href="csdoc.css">
+    <link rel="stylesheet" href="docset.css">
+</head>
+<body>
+
+    <div class="paragraph">
+        <h2><span id="title" class="header_size header">CSPro Document Set Preview</span></h2>
+    </div>
+
+    <!-- Definitions -->
+    <div id="definitions" class="paragraph" style="display: none;">
+        <div class="paragraph"><div class="subheader_size subheader">Definitions</div></div>
+        <div class="paragraph">
+            Order by:
+            <input type="radio" name="definitionsOrder" id="definitionsOrderKey" onclick="updateDefinitions();" checked>
+            <label for="definitionsOrderKey">Key Order</label>
+            <input type="radio" name="definitionsOrder" id="definitionsOrderDeclared" onclick="updateDefinitions();" >
+            <label for="definitionsOrderDeclared">Declared Order</label>
+        </div>
+        <div class="paragraph">
+            <table id="definitionsTable" class="bordered_table">
+                <thead><tr><th class="bordered_table_cell">Key</th><th class="bordered_table_cell">Value</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Context IDs -->
+    <div id="contextIds" class="paragraph" style="display: none; ">
+        <div class="paragraph"><div class="subheader_size subheader">Context IDs</div></div>
+        <div class="paragraph">
+            Order by:
+            <input type="radio" name="contextIdsOrder" id="contextIdsOrderName" onclick="updateContextIds();" checked>
+            <label for="contextIdsOrderName">Name Order</label>
+            <input type="radio" name="contextIdsOrder" id="contextIdsOrderId" onclick="updateContextIds();">
+            <label for="contextIdsOrderId">ID Order</label><br>
+            Show only IDs starting with:
+            <input type="checkbox" name="contextIdsFilter" id="contextIdsFilter" onclick="updateContextIds();" checked>
+            <label for="contextIdsFilter">ID_ and IDC_</label>
+        </div>
+        <div class="paragraph">
+            <table id="contextIdsTable" class="bordered_table">
+                <thead><tr><th class="bordered_table_cell">Name</th><th class="bordered_table_cell">ID</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div id="tableOfContents" class="paragraph" style="display: none;">
+        <div class="paragraph"><div class="subheader_size subheader">Table of Contents</div></div>
+    </div>
+
+    <!-- Index -->
+    <div id="index" class="paragraph" style="display: none;">
+        <div class="paragraph"><div class="subheader_size subheader">Index</div></div>
+        <div class="paragraph">
+            <table id="indexTable" class="bordered_table">
+                <thead><tr><th class="bordered_table_cell">Title</th><th class="bordered_table_cell">Path</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Documents -->
+    <div id="documents" class="paragraph" style="display: none;">
+        <div class="paragraph"><div class="subheader_size subheader">Documents</div></div>
+        <div class="paragraph">
+            Order by:
+            <input type="radio" name="documentsOrder" id="documentsOrderTitle" onclick="updateDocuments();" checked>
+            <label for="documentsOrderTitle">Title Order</label>
+            <input type="radio" name="documentsOrder" id="documentsOrderName" onclick="updateDocuments();">
+            <label for="documentsOrderName">Name Order</label>
+            <input type="radio" name="documentsOrder" id="documentsOrderPath" onclick="updateDocuments();">
+            <label for="documentsOrderPath">Path Order</label>
+        </div>
+        <div class="paragraph">
+            <table id="documentsTable" class="bordered_table">
+                <thead><tr><th class="bordered_table_cell">Title</th><th class="bordered_table_cell">Name</th><th class="bordered_table_cell">Path</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        var input;
+
+        function makeVisible(id) {
+            document.getElementById(id).style.display = "block";
+        }
+
+        function getFilenameFromPath(path) {
+            let slashPos = path.lastIndexOf('/');
+            if( slashPos < 0 ) {
+                slashPos = path.lastIndexOf('\\');
+            }
+            return path.substr(slashPos + 1);
+        }
+
+        function createOpenLink(text, path) {
+            let a = document.createElement("a");
+            a.href = "#";
+            a.appendChild(document.createTextNode(text));
+            a.onclick = () => {
+                window.chrome.webview.postMessage({
+                    action: "open",
+                    path: path,
+                    docSet: input.docSet
+                });
+                return false;
+            }
+            return a;
+        }
+
+        function createBoldText(text) {
+            let b = document.createElement("b");
+            b.appendChild(document.createTextNode(text));
+            return b;
+        }
+
+        function trAddCell(tr, textOrCallback) {
+            let td = document.createElement("td");
+            td.classList.add("bordered_table_cell");
+            td.style.whiteSpace = "nowrap";
+
+            if( typeof textOrCallback === "function" ) {
+                td.appendChild(textOrCallback());
+            }
+            else {
+                td.appendChild(document.createTextNode(textOrCallback));
+            }
+
+            tr.appendChild(td);
+        }
+
+        function trCreateAndAddCells(textsOrCallbacks) {
+            const tr = document.createElement("tr");
+            textsOrCallbacks.forEach((textOrCallback) => trAddCell(tr, textOrCallback));
+            return tr;
+        }
+
+        // Definitions
+        function updateDefinitions() {
+            let definitions = input.definitions;
+
+            if( document.getElementById("definitionsOrderKey").checked ) {
+                definitions = [...definitions];
+                definitions.sort((d1, d2) => {
+                    return d1.key.localeCompare(d2.key);
+                });
+            }
+
+            const tbody = document.createElement("tbody");
+
+            definitions.forEach((definition) => {
+                tbody.appendChild(trCreateAndAddCells([
+                    definition.key,
+                    definition.value
+                ]));
+            });
+
+            const definitionsTable = document.getElementById("definitionsTable");
+            definitionsTable.replaceChild(tbody, definitionsTable.tBodies[0]);
+        }
+
+        // Context IDs
+        function updateContextIds() {
+            let contextIds = input.contextIds;
+
+            if( document.getElementById("contextIdsFilter").checked ) {
+                contextIds = contextIds.filter((contextId) => {
+                    const prefix = contextId.name.substr(0, 4).toUpperCase();
+                    return ( prefix.startsWith("ID_") || prefix.startsWith("IDC_") );
+                });
+            }
+
+            if( document.getElementById("contextIdsOrderId").checked ) {
+                contextIds = [...contextIds];
+                contextIds.sort((c1, c2) => {
+                    return c1.id - c2.id;
+                });
+            }
+
+            const tbody = document.createElement("tbody");
+
+            contextIds.forEach((contextId) => {
+                tbody.appendChild(trCreateAndAddCells([
+                    contextId.name,
+                    contextId.id
+                ]));
+            });
+
+            const contextIdsTable = document.getElementById("contextIdsTable");
+            contextIdsTable.replaceChild(tbody, contextIdsTable.tBodies[0]);
+        }
+
+        // Table of Contents
+        function updateTableOfContents() {
+            if( !Array.isArray(input.tableOfContents) ) {
+                input.tableOfContents = [ input.tableOfContents ];
+            }
+
+            const processChapter = function(chapter) {
+                const ul = document.createElement("ul");
+                ul.classList.add("toc_ul");
+
+                if( chapter.documents ) {
+                    chapter.documents.forEach((doc) => {
+                        const li = document.createElement("li");
+                        li.classList.add("toc_li_topic");
+
+                        if( typeof doc === "string" ) {
+                            li.appendChild(createOpenLink(getFilenameFromPath(doc), doc));
+                        }
+                        else {
+                            li.appendChild(createOpenLink(doc.title, doc.path));
+                        }
+
+                        ul.appendChild(li);
+                    });
+                }
+
+                if( chapter.chapters ) {
+                    chapter.chapters.forEach((subchapter) => {
+                        const li = document.createElement("li");
+                        li.classList.add("toc_li_topic");
+
+                        li.appendChild(createBoldText(subchapter.title));
+                        li.appendChild(processChapter(subchapter));
+
+                        ul.appendChild(li);
+                    });
+                }
+
+                return ul;
+            }
+
+            const ul = document.createElement("ul");
+            ul.classList.add("toc_ul");
+
+            input.tableOfContents.forEach((chapterOrProjectLink) => {
+                const li = document.createElement("li");
+                li.classList.add("toc_li_chapter");
+
+                if( chapterOrProjectLink.project !== undefined ) {
+                    li.appendChild(createBoldText(`Project: ${chapterOrProjectLink.project}`));
+                }
+                else {
+                    li.appendChild(createBoldText(chapterOrProjectLink.title));
+                    li.appendChild(processChapter(chapterOrProjectLink));
+                }
+
+                ul.appendChild(li);
+            });
+
+            const tableOfContentsDiv = document.getElementById("tableOfContents");
+            tableOfContentsDiv.appendChild(ul)
+        }
+
+        // Index
+        function updateIndex() {
+            const tbody = document.createElement("tbody");
+
+            const addEntries = function(entries, spacing) {
+                entries.forEach((entry) => {
+                    const text = spacing + ( ( entry.title !== undefined ) ? entry.title : getFilenameFromPath(entry.path) );
+                    tbody.appendChild(trCreateAndAddCells([
+                        text,
+                        () => { return createOpenLink(entry.path, entry.path); }
+                    ]));
+
+                    if( entry.subindex ) {
+                        addEntries(entry.subindex, "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0");
+                    }
+                });
+            };
+
+            addEntries(input.index, "");
+
+            const indexTable = document.getElementById("indexTable");
+            indexTable.replaceChild(tbody, indexTable.tBodies[0]);
+        }
+
+        // Documents
+        function updateDocuments() {
+            // get the filename from the path (if not already done)
+            if( input.documents[0].name === undefined ) {
+                let documents = [];
+
+                input.documents.forEach((doc) => {
+                    const name = getFilenameFromPath(doc.path);
+                    documents.push({
+                        title: ( doc.title !== undefined ) ? doc.title : name,
+                        name: name,
+                        path: doc.path
+                    });
+                });
+
+                input.documents = documents;
+            }
+
+            const sortByTitle = document.getElementById("documentsOrderTitle").checked;
+            const sortbyName = !sortByTitle && document.getElementById("documentsOrderName").checked;
+            input.documents.sort((d1, d2) => {
+                return sortByTitle ? d1.title.localeCompare(d2.title) :
+                       sortbyName  ? d1.name.localeCompare(d2.name) :
+                                     d1.path.localeCompare(d2.path);
+            });
+
+            const tbody = document.createElement("tbody");
+
+            input.documents.forEach((doc) => {
+                tbody.appendChild(trCreateAndAddCells([
+                    doc.title,
+                    doc.name,
+                    () => { return createOpenLink(doc.path, doc.path); }
+                ]));
+            });
+
+            const documentsTable = document.getElementById("documentsTable");
+            documentsTable.replaceChild(tbody, documentsTable.tBodies[0]);
+        }
+
+        // input processing
+        window.chrome.webview.addEventListener("message", event => {
+            input = event.data;
+
+            if( input.title ) {
+                document.getElementById("title").textContent = input.title;
+            }
+
+            if( input.definitions ) {
+                updateDefinitions();
+                makeVisible("definitions");
+            }
+
+            if( input.contextIds ) {
+                updateContextIds();
+                makeVisible("contextIds");
+            }
+
+            if( input.tableOfContents ) {
+                updateTableOfContents();
+                makeVisible("tableOfContents");
+            }
+
+            if( input.index ) {
+                updateIndex();
+                makeVisible("index");
+            }
+
+            if( input.documents ) {
+                updateDocuments();
+                makeVisible("documents");
+            }
+
+            if( input.scrollY != 0 ) {
+                // scroll once the elements have been rendered
+                setTimeout(() => {
+                    window.scrollTo(0, input.scrollY);
+                }, 0);
+            }
+        });
+
+        window.chrome.webview.postMessage({ action: "getDocSetJson" });
+    </script>
+
+</body>
+</html>

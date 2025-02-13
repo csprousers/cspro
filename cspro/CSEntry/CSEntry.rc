@@ -1,0 +1,859 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\csentry.ico"
+
+IDI_PARTIAL_MOD         ICON                    "res\\mpartial.ico"
+
+IDI_EMPTY               ICON                    "res\\empty.ico"
+
+IDI_PARTIAL_ADD         ICON                    "res\\apartial.ico"
+
+IDI_PARTIAL_VER         ICON                    "res\\vpartial.ico"
+
+IDI_COMPLETE            ICON                    "res\\complete.ico"
+
+IDI_NODE                ICON                    "res\\node.ico"
+
+IDI_COMPLETE_VER        ICON                    "res\\vcomplete.ico"
+
+IDI_DELETED             ICON                    "res\\deleted.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_OPEN_DATORAPL
+    SEPARATOR
+    BUTTON      ID_ADD
+    BUTTON      ID_MODIFY
+    BUTTON      ID_VERIFY
+    SEPARATOR
+    BUTTON      ID_PAUSE
+    BUTTON      ID_STOP
+    SEPARATOR
+    BUTTON      ID_FIRST_CASE
+    BUTTON      ID_PREV_CASE
+    BUTTON      ID_NEXT_CASE
+    BUTTON      ID_LAST_CASE
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "Open &Application...\tCtrl+O", ID_FILE_OPEN
+        MENUITEM "&Open Data File...\tCtrl+D",  ID_OPENDAT_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "&Save Partial Case\tCtrl+R",  ID_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "S&ynchronize\tCtrl+Shift+S",  ID_FILE_SYNCHRONIZE
+        MENUITEM SEPARATOR
+        MENUITEM "CSPro Settings...",           ID_FILE_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "&Recent File",                ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Mode"
+    BEGIN
+        MENUITEM "&Add Case\tCtrl+A",           ID_ADD
+        MENUITEM "&Modify Case\tCtrl+M",        ID_MODIFY
+        MENUITEM "&Verify Case\tCtrl+V",        ID_VERIFY
+        MENUITEM "&Pause\tCtrl+P",              ID_PAUSE
+        MENUITEM "&Stop\tCtrl+S",               ID_STOP
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Insert Case\tIns",           ID_INSERT_CASE
+        MENUITEM "&Delete Case\tDel",           ID_DELETECASE
+        MENUITEM "&Find Case...\tCtrl+F",       ID_FINDCASE
+        MENUITEM SEPARATOR
+        MENUITEM "Insert &Level Occ\tAlt+Ins",  ID_INSERTNODE
+        MENUITEM "&Add Level Occ\tAlt+A",       ID_ADDNODE
+        MENUITEM "Delete L&evel Occ\tAlt+Del",  ID_DELETENODE
+        MENUITEM SEPARATOR
+        MENUITEM "Insert &Group Occ\tF3",       ID_INSERT_GROUPOCC
+        MENUITEM "Insert Group Occ &After\tCtrl+F3", ID_INSERT_GRPOCC_AFTER
+        MENUITEM "Delete G&roup Occ\tF4",       ID_DELETE_GRPOCC
+        MENUITEM "&Sort Group Occ\tF5",         ID_SORTGRPOCC
+        MENUITEM SEPARATOR
+        MENUITEM "Edit Field &Note...\tCtrl+N", ID_EDIT_FIELD_NOTE
+        MENUITEM "Edit Case Note...",           ID_EDIT_CASE_NOTE
+        MENUITEM "Review Notes",                ID_EDIT_REVIEW_NOTES
+        MENUITEM SEPARATOR
+        MENUITEM "In&teractive Edit\tF11",      ID_INTEDIT
+    END
+    POPUP "&Navigation"
+    BEGIN
+        MENUITEM "&Previous Screen\tPgUp",      ID_PREV_SCREEN
+        MENUITEM "&Next Screen\tPgDn",          ID_NEXT_SCREEN
+        MENUITEM SEPARATOR
+        MENUITEM "&First Case\tCtrl+Home",      ID_FIRST_CASE
+        MENUITEM "P&revious Case\tCtrl+PgUp",   ID_PREV_CASE
+        MENUITEM "Ne&xt Case\tCtrl+PgDn",       ID_NEXT_CASE
+        MENUITEM "&Last Case\tCtrl+End",        ID_LAST_CASE
+        MENUITEM SEPARATOR
+        MENUITEM "End &Group Occurrence\t/",    ID_NEXT_GROUP_OCC
+        MENUITEM "End G&roup\tCtrl+/",          ID_NEXT_GROUP
+        MENUITEM SEPARATOR
+        MENUITEM "End &Level Occurrence\tF12",  ID_NEXT_LEVEL_OCC
+        MENUITEM "End L&evel\tCtrl+F12",        ID_NEXT_LEVEL
+        MENUITEM SEPARATOR
+        MENUITEM "&Advance To End\tF10",        ID_ADVTOEND
+        MENUITEM "&Go To...\tF6",               ID_GOTO
+        MENUITEM "Previous Per&sistent\tF7",    ID_PREVIOUS_PERSISTENT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Full Screen\tCtrl+J",        ID_FULLSCREEN
+        MENUITEM SEPARATOR
+        MENUITEM "Show Case &Labels",           ID_SHOW_CASE_LABELS, CHECKED
+        MENUITEM "Cases in &Sort Order\tCtrl+Q", ID_SORTORDER
+        MENUITEM SEPARATOR
+        MENUITEM "View &All Cases",             ID_VIEW_ALL_CASES
+        MENUITEM "View Not D&eleted Cases Only", ID_VIEW_NOT_DELETED_CASES_ONLY
+        MENUITEM "View &Duplicate Cases Only",  ID_VIEW_DUPLICATE_CASES_ONLY
+        MENUITEM "View &Partials Only\tCtrl+B", ID_VIEW_PARTIAL_CASES_ONLY
+        MENUITEM SEPARATOR
+        MENUITEM "&Case Tree\tCtrl+Z",          ID_TOGGLE_CASE_TREE
+        MENUITEM "&Names in Case Tree\tCtrl+T", ID_TOGGLE_NAMES
+        MENUITEM SEPARATOR
+        MENUITEM "Show &Refusal Options",       ID_VIEW_REFUSALS
+        MENUITEM "Show &Values (verify)\tCtrl+F2", ID_VIEW_CHEAT
+        MENUITEM SEPARATOR
+        MENUITEM "Questionnaire",               ID_VIEW_QUESTIONNAIRE
+        MENUITEM SEPARATOR
+        MENUITEM "Operator &Statistics\tCtrl+W", ID_STATS
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Interactive Edit Options",   ID_INTEDITOPTIONS
+        MENUITEM SEPARATOR
+        MENUITEM "Change &Language...\tCtrl+L", ID_LANGUAGE
+        MENUITEM "Show Responses (This Field)\tCtrl+C", ID_CAPITOGGLE
+        MENUITEM "&Show Responses (All Fields)\tCtrl+K", ID_CAPITOGGLEALLVARS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About Data Entry",           ID_APP_ABOUT
+    END
+END
+
+IDR_CASE_MENU MENU
+BEGIN
+    POPUP "Case Menu"
+    BEGIN
+        MENUITEM "Modify Case",                 ID_MODIFY_CASE
+        MENUITEM "Add Case",                    ID_ADD_CASE
+        MENUITEM "Insert Case",                 ID_INSRT_CASE
+        MENUITEM "Delete Case",                 ID_DEL_CASE
+        MENUITEM SEPARATOR
+        MENUITEM "View Questionnaire",          ID_CASE_LISTING_VIEW_QUESTIONNAIRE
+        MENUITEM SEPARATOR
+        MENUITEM "Find Case",                   ID_FIND_CASE
+        MENUITEM SEPARATOR
+        MENUITEM "Add Level Occ",               ID_ADD_NODE
+        MENUITEM "Insert Level Occ",            ID_INSERT_NODE
+        MENUITEM "Delete Level Occ",            ID_DELETE_NODE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "A",            ID_ADD,                 VIRTKEY, CONTROL, NOINVERT
+    "B",            ID_VIEW_PARTIAL_CASES_ONLY, VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_CAPITOGGLE,          VIRTKEY, CONTROL, NOINVERT
+    "D",            ID_OPENDAT_FILE,        VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_FINDCASE,            VIRTKEY, CONTROL, NOINVERT
+    "J",            ID_FULLSCREEN,          VIRTKEY, CONTROL, NOINVERT
+    "K",            ID_CAPITOGGLEALLVARS,   VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_LANGUAGE,            VIRTKEY, CONTROL, NOINVERT
+    "M",            ID_MODIFY,              VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_EDIT_FIELD_NOTE,     VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_PAUSE,               VIRTKEY, CONTROL, NOINVERT
+    "Q",            ID_SORTORDER,           VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_SAVE,                VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_STOP,                VIRTKEY, CONTROL, NOINVERT
+    "T",            ID_TOGGLE_NAMES,        VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_VERIFY,              VIRTKEY, CONTROL, NOINVERT
+    VK_F10,         ID_ADVTOEND,            VIRTKEY, NOINVERT
+    VK_F11,         ID_INTEDIT,             VIRTKEY, NOINVERT
+    VK_F2,          ID_VIEW_CHEAT,          VIRTKEY, CONTROL, NOINVERT
+    VK_HOME,        ID_FIRST_CASE,          VIRTKEY, CONTROL, NOINVERT
+    VK_UP,          ID_PREV_CASE,           VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_STATS,               VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_TOGGLE_CASE_TREE,    VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SYNCHRONIZE,    VIRTKEY, SHIFT, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OPID DIALOG 0, 0, 186, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Operator ID"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    EDITTEXT        IDC_OPID,7,7,172,15,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,67,29,50,14
+END
+
+IDR_MAINFRAME DIALOG 0, 0, 316, 23
+STYLE DS_SETFONT | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "",IDC_STATIC,1,0,141,22,NOT WS_VISIBLE
+    CONTROL         "Add Mode",IDC_ADD,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | BS_PUSHLIKE | WS_GROUP,1,4,60,15
+    CONTROL         "Modify Mode",IDC_MODIFY,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE,71,4,60,15
+    PUSHBUTTON      "Stop",IDC_SUSPEND,177,4,60,15
+    CONTROL         "Pause",IDC_PAUSE,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,243,4,60,15
+END
+
+IDD_QSRCHDLG DIALOG 0, 0, 210, 74
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find Case"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    EDITTEXT        IDC_KEYEDIT,56,17,133,13,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,12,47,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,79,47,50,14
+    LTEXT           "Case ID:",IDC_STATIC,15,20,34,8
+    PUSHBUTTON      "&Help",ID_HELP,146,46,50,14
+END
+
+IDD_GOTO DIALOG 0, 0, 204, 84
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Go To Field"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    EDITTEXT        IDC_NAME,61,13,106,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OCC,61,37,40,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,63,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,77,63,50,14
+    PUSHBUTTON      "&Help",ID_HELP,147,63,50,14
+    LTEXT           "&Name",IDC_STATIC,14,16,20,8
+    LTEXT           "&Occurrence",IDC_STATIC,14,39,38,8
+END
+
+IDD_STATDLG DIALOGEX 0, 0, 473, 244
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Data File Statistics"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    PUSHBUTTON      "OK",IDOK,180,224,50,14
+    PUSHBUTTON      "&Help",ID_HELP,243,224,50,14
+    LTEXT           "",IDC_STATGRID,7,44,459,173,SS_SUNKEN
+    GROUPBOX        "",IDC_STATIC,7,7,459,30
+    LTEXT           "Number of cases  =",IDC_STATIC,15,19,65,10
+    EDITTEXT        IDC_NUMCASES,85,19,65,12,WS_DISABLED | NOT WS_BORDER
+    LTEXT           "Verified cases = ",IDC_VERIFIED,172,19,54,10
+    EDITTEXT        IDC_VERFIEDCASES,229,19,65,12,WS_DISABLED | NOT WS_BORDER
+END
+
+IDD_INTEDTDLG DIALOG 0, 0, 186, 84
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Interactive Edit Options"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,64,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,64,50,14
+    GROUPBOX        "Stop On",IDC_STATIC,7,7,172,54
+    PUSHBUTTON      "&Help",ID_HELP,129,64,50,14
+    CONTROL         "&Error messages",IDC_MSGRAD,"Button",BS_AUTORADIOBUTTON | WS_GROUP,21,19,64,10
+    CONTROL         "&Out of range",IDC_OUTOFRANGE,"Button",BS_AUTORADIOBUTTON,21,32,55,10
+    CONTROL         "&Both",IDC_BOTH,"Button",BS_AUTORADIOBUTTON,21,45,31,10
+END
+
+IDD_LEFTVIEW DIALOG 0, 0, 17, 18
+STYLE DS_SETFONT | WS_CHILD | WS_BORDER
+FONT 8, "MS Shell Dlg"
+BEGIN
+END
+
+IDD_PROPPAGE1 DIALOG 0, 0, 72, 63
+STYLE WS_CHILD | WS_CAPTION
+CAPTION "File"
+BEGIN
+END
+
+IDD_PROPPAGE2 DIALOG 0, 0, 91, 114
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Case"
+FONT 8, "MS Shell Dlg"
+BEGIN
+END
+
+IDD_DLG_DISCARD DIALOG 0, 0, 186, 28
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Stop Adding"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    PUSHBUTTON      "&Discard",IDOK,7,7,50,14
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,68,7,50,14
+    PUSHBUTTON      "&Help",ID_HELP,129,7,50,14
+END
+
+IDD_DLG_DISCARD_MOD DIALOGEX 0, 0, 271, 28
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Stop Modifying"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "&Finish",IDC_FINISH,7,7,62,14
+    PUSHBUTTON      "&Discard",IDOK,72,7,62,14
+    PUSHBUTTON      "Cancel",IDCANCEL,137,7,62,14
+    PUSHBUTTON      "&Help",ID_HELP,202,7,62,14
+END
+
+IDD_DLG_PARTIAL DIALOG 0, 0, 247, 28
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Stop Adding"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "&Partial Save",IDC_SAVEPARTIAL,7,7,50,14
+    PUSHBUTTON      "&Discard",IDOK,68,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,7,50,14
+    PUSHBUTTON      "&Help",ID_HELP,190,7,50,14
+END
+
+IDD_DLG_PARTIAL_MOD DIALOGEX 0, 0, 379, 29
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Stop Modifying"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "&Partial Save",IDOK,7,7,61,14
+    PUSHBUTTON      "&Finish",IDC_FINISH,83,7,61,14
+    PUSHBUTTON      "&Discard",IDC_DICARD,159,7,61,14
+    PUSHBUTTON      "Cancel",IDCANCEL,235,7,61,14
+    PUSHBUTTON      "&Help",ID_HELP,311,7,61,14
+END
+
+IDD_DLG_GPS DIALOGEX 0, 0, 218, 76
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Reading GPS..."
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,84,55,50,14
+    LTEXT           "Static",IDC_GPS_DLG_TEXT,7,7,204,43
+END
+
+IDD_PROGRESS_DIALOG DIALOGEX 0, 0, 388, 96
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Static",IDC_PROGRESS_MESSAGE,7,7,374,25
+    PUSHBUTTON      "Cancel",IDCANCEL,168,75,50,14,BS_CENTER
+    CONTROL         "",IDC_PROGRESS_BAR,"msctls_progress32",WS_BORDER,7,45,374,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "Data Entry"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "CSEntry"
+            VALUE "OriginalFilename", "CSEntry.EXE"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_OPID, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+
+    IDR_MAINFRAME, DIALOG
+    BEGIN
+    END
+
+    IDD_QSRCHDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 67
+    END
+
+    IDD_GOTO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 197
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 77
+    END
+
+    IDD_STATDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 466
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 243
+    END
+
+    IDD_INTEDTDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 78
+    END
+
+    IDD_LEFTVIEW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 10
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 11
+    END
+
+    IDD_PROPPAGE1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 65
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 56
+    END
+
+    IDD_PROPPAGE2, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 84
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 107
+    END
+
+    IDD_DLG_DISCARD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 21
+    END
+
+    IDD_DLG_DISCARD_MOD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 264
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 21
+    END
+
+    IDD_DLG_PARTIAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 240
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 21
+    END
+
+    IDD_DLG_PARTIAL_MOD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 372
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 22
+    END
+
+    IDD_DLG_GPS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 211
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 69
+    END
+
+    IDD_PROGRESS_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 381
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 89
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_PROGRESS_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DLG_DISCARD_MOD AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DLG_PARTIAL_MOD AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "CSEntry\n\nCSEntry\n\n\nCSEntry.Document\nCSEntry Document"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "CSPro Data Entry"
+    AFX_IDS_IDLEMESSAGE     "For Help, press F1"
+    AFX_IDS_HELPMODEMESSAGE "Select an object on which to get Help"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open a data entry application"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application"
+    ID_HELP_INDEX           "Opens Help\nHelp Topics"
+    ID_HELP_FINDER          "Show help contents and index\nHelp Topics"
+    ID_HELP_USING           "Display instructions about how to use help\nHelp"
+    ID_CONTEXT_HELP         "Display help for clicked on buttons, menus and windows\nHelp"
+    ID_HELP                 "Display help for current task or command\nHelp"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToolbar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nStatus Bar"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_INVLDFTYPE          "Invalid File Type "
+END
+
+STRINGTABLE
+BEGIN
+    ID_INSERT_GROUPOCC      "Insert another occurrence of these fields here"
+    ID_INSERT_GRPOCC_AFTER  "Insert another occurrence of these fields after this one"
+    ID_INSERTNODE           "Insert another occurrence at this level here"
+    ID_INSRT_CASE           "Insert Case\nInsert Case"
+    ID_INTEDIT              "Start or continue interactive edit\nInteractive Edit"
+    ID_INTEDITOPTIONS       "Change Interactive Edit Options\nInteractive Edit Options"
+    ID_LANGUAGE             "Set Language\nSet Language"
+    ID_LAST_CASE            "Move to last case in the data file\nLast Case"
+    ID_MODIFY               "Modify cases in the data file\nModify"
+    ID_MODIFY_CASE          "Modify Case\n Modify Case"
+    ID_NEXT_CASE            "Move to next case in the dat file\nNext Case"
+    ID_NEXT_GROUP           "End of all occurrences of these fields"
+    ID_NEXT_GROUP_OCC       "Go to the next occurrence of these fields"
+    ID_NEXT_LEVEL           "Go to the next level occurrence at the level above this"
+    ID_NEXT_LEVEL_OCC       "Go to the next level occurrence at this level"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_SCREEN          "Move to the next screen in the case"
+    ID_OPENDAT_FILE         "Open another data file"
+    ID_PAUSE                "Pause entry operations to take a break\nPause"
+    ID_PREV_CASE            "Move to previous case in the data file\nPrevious Case"
+    ID_PREV_SCREEN          "Move to the previous screen in the case"
+    ID_PREVIOUS_PERSISTENT  "Go to previous persistent field"
+    ID_SAVE                 "Partially save the current case"
+    ID_SHOW_CASE_LABELS     "Show case labels instead of IDs"
+    ID_SORTGRPOCC           "Sort occurrences of these fields on this field"
+    ID_SORTORDER            "Show cases in file tree in sort rather than physical order"
+    ID_STATS                "Show operator statistics data file"
+    ID_STOP                 "Stop data entry operations\nStop"
+    ID_TOGGLE_CASE_TREE     "Show case tree"
+    ID_TOGGLE_NAMES         "Show names in case tree instead of labels"
+    ID_VERIFY               "Verify cases in the data file\nVerify"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_CHEAT           "Show all data values in verify mode"
+    ID_VIEW_PARTIAL_CASES_ONLY "Show only partial cases in fill tree"
+    ID_VIEW_QUESTIONNAIRE   "View questionnaire\nQuestionnaire"
+    ID_VIEW_REFUSALS        "Show refused options that are currently hidden"
+END
+
+STRINGTABLE
+BEGIN
+    ID_ADD                  "Add cases to the data file\nAdd"
+    ID_ADD_CASE             "Add Case\nAdd Case"
+    ID_ADDNODE              "Add another occurrence of this level"
+    ID_ADVTOEND             "Advance to the end of the case"
+    ID_CAPITOGGLE           "Toggle Capi Windows\nToggle Capi Windows"
+    ID_CAPITOGGLEALLVARS    "Show or hide responses window"
+    ID_CASE_LISTING_VIEW_QUESTIONNAIRE "View questionnaire\nQuestionnaire"
+    ID_DEL_CASE             "Delete Case\nDelete Case"
+    ID_DELETE_GRPOCC        "Delete this occurrence of these fields"
+    ID_DELETE_NODE          "Delete Node \nDelete Node"
+    ID_DELETECASE           "Delete this case"
+    ID_DELETENODE           "Delete this node\nDelete Node"
+    ID_EDIT_CASE_NOTE       "Add, modify, or delete case note"
+    ID_EDIT_FIELD_NOTE      "Add, modify, or delete field note"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_REVIEW_NOTES    "Review notes"
+    ID_ENDGRP               "Go To Next Group"
+    ID_FILE_OPEN_DATORAPL   "Open an existing document\nOpen"
+    ID_FILE_SETTINGS        "Modify CSPro Settings\nCSPro Settings"
+    ID_FIND_CASE            "Find Case\nFind Case"
+    ID_FINDCASE             "Find case with the specified case ids"
+    ID_FIRST_CASE           "Move to the first case in the data file\nFirst Case"
+    ID_FULLSCREEN           "Hide the trees and show full screen view"
+    ID_GOTO                 "Go to a particular field"
+    ID_INDICATOR_FIELD      "Add Node\nAdd Node                                                                    "
+    ID_INDICATOR_MODE       "              "
+    ID_INDICATOR_OCC        "Insert Node\nInsert Node"
+    ID_INDICATOR_PARTIALS   "                      "
+    ID_INDICATOR_SHOW       "         "
+    ID_INSERT_CASE          "Insert case at this location"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

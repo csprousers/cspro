@@ -1,0 +1,70 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+
+    <title>CSPro Image Viewer</title>
+
+    <style>
+        img {
+            max-width: 95%;
+            max-height: 95%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <img id="image" onclick="closeDialog();" />
+
+    <script>
+        const CS = new CSProActionInvoker("dd005955343719278b46cc15ea9aacae");
+        let input = CS.UI.getInputData();
+
+        $(document).prop("title", input.title);
+        $("#image").attr("src", input.url);
+
+        // size the dialog to fit the image
+        let dimensions = CS.UI.getMaxDisplayDimensions();
+
+        if( input.width != undefined ) {
+            const adjustedImageWidth = input.width / 0.95;
+            const adjustedImageHeight = input.height / 0.95;
+
+            const dialogRatio = dimensions.width / dimensions.height;
+            const imageRatio = adjustedImageWidth / adjustedImageHeight;
+
+            if( imageRatio >= dialogRatio ) {
+                dimensions.width = Math.min(adjustedImageWidth, dimensions.width);
+                dimensions.height = dimensions.width / imageRatio;
+            }
+            else {
+                dimensions.height = Math.min(adjustedImageHeight, dimensions.height);
+                dimensions.width = dimensions.height * imageRatio;
+            }
+        }
+
+        CS.UI.setDisplayOptions({
+            width: dimensions.width,
+            height: dimensions.height,
+            keyboard: false
+        });
+
+        // close the dialog on the Enter and Escape keys
+        $(document).keydown((e) => {
+            if( e.keyCode === 13 || e.keyCode === 27 ) {
+                closeDialog();
+            }
+        });
+
+        function closeDialog() {
+            CS.UI.closeDialog({ result: { } });
+        }
+    </script>
+</body>
+</html>

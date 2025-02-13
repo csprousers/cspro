@@ -1,0 +1,44 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="gov.census.cspro.csentry.GetOperatorIdFragment">
+
+
+    <TextView
+        android:id="@+id/operator_id_dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:text="@string/operator_id_dialog_title"
+        android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+    <EditText
+        android:id="@+id/edittext_operator_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:background="@drawable/edittxt_border"
+        android:ems="10"
+        android:hint="@string/operator_id_prompt"
+        android:imeOptions="actionDone"
+        android:inputType="textNoSuggestions"
+        android:text=""
+        android:textAlignment="center"
+        android:layout_below="@id/operator_id_dialog_title" />
+
+    <Button
+        android:id="@+id/button_ok"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/edittext_operator_id"
+        android:layout_marginTop="15dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:text="@string/modal_dialog_helper_ok_text"/>
+
+</RelativeLayout>

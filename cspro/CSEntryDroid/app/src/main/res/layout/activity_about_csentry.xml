@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EFEFEF"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:id="@+id/about_icons_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:background="#EFEFEF" >
+
+        <ImageView
+            android:id="@+id/about_globe_icon"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:contentDescription="@string/about_csentry_globe_icon_desc"
+            android:src="@drawable/ic_globe" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/about_container_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/about_census_banner_layout"
+        android:layout_below="@+id/about_icons_layout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="0dp"
+        android:background="#EFEFEF" >
+
+        <TextView
+            android:id="@+id/textView_about_creators"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="10dp"
+            android:text="@string/about_creators"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/about_census_banner_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="110dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="0dp"
+        android:background="#0C3B72" >
+
+        <ImageView
+            android:id="@+id/ic_census_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="5dp"
+            android:contentDescription="@string/about_census_logo_desc"
+            android:src="@drawable/ic_census_logo" />
+
+        <TextView
+            android:id="@+id/textview_about_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignTop="@+id/ic_census_logo"
+            android:layout_marginLeft="15dp"
+            android:text="@string/about_version"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FEFEFE" />
+
+        <TextView
+            android:id="@+id/textview_about_release_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/textview_about_version"
+            android:layout_below="@+id/textview_about_version"
+            android:text="@string/about_release_date"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FEFEFE" />
+
+        <TextView
+            android:id="@+id/textview_about_android_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/textview_about_version"
+            android:layout_below="@id/textview_about_release_date"
+            android:text="@string/about_android_version"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FEFEFE" />
+
+        <TextView
+            android:id="@+id/textview_about_licenses"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/textview_about_version"
+            android:layout_below="@id/textview_about_android_version"
+            android:text="@string/about_licenses"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FEFEFE" />
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+  <data>
+    <import type="android.view.View"/>
+    <variable
+      name="deploymentPackage"
+      type="gov.census.cspro.smartsync.addapp.DeploymentPackage" />
+    <variable
+      name="showStatus"
+      type="java.lang.Boolean" />
+  </data>
+
+  <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/relativeLayout"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:minHeight="50dp">
+
+  <TextView
+    android:id="@+id/text_view_package_name"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="10dp"
+    android:layout_marginRight="10dp"
+    android:paddingTop="10dp"
+    tools:text="Package Name"
+    android:text="@{deploymentPackage.getName()}"
+    android:textSize="18sp"
+    android:textStyle="bold"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/button_update"
+    app:layout_constraintTop_toTopOf="parent" />
+
+  <TextView
+    android:id="@+id/text_view_package_description"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="8dp"
+    android:layout_marginRight="8dp"
+    android:text="@{deploymentPackage.getDescription()}"
+    tools:text="A description of the package"
+    android:textSize="14sp"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/button_update"
+    app:layout_constraintTop_toBottomOf="@+id/text_view_package_name" />
+
+    <TextView
+      android:id="@+id/text_view_package_install_status"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toStartOf="@id/button_update"
+      app:layout_constraintTop_toBottomOf="@+id/text_view_package_description"
+      android:textStyle="italic"
+      android:text='@{deploymentPackage.getInstallStatus() == 1 ? "" : deploymentPackage.getInstallStatus() == 2 ? @string/add_app_new_version : @string/add_app_up_to_date}'
+      tools:text="@string/add_app_new_version"
+      android:textSize="14sp"
+      android:visibility="@{showStatus ? View.VISIBLE : View.GONE}"/>
+
+  <Button
+    android:id="@+id/button_update"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@{deploymentPackage.getInstallStatus() == 1 ? @string/add_app_install : deploymentPackage.getInstallStatus() == 2 ? @string/add_app_update : @string/add_app_reinstall}"
+    tools:text= "@string/add_app_update"
+    android:textSize="16sp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginRight="8dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintRight_toRightOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

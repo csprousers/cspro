@@ -1,0 +1,340 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{ee252804-852d-43ad-8c7e-3198bd425d35}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{18ac406a-fe75-47a8-800a-2168e863ff3d}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{99b6aa39-3634-4bbf-a524-6282f5d35f4a}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\PropertyGrid">
+      <UniqueIdentifier>{96121765-89db-457f-8773-08d8667a2524}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PropertyGrid">
+      <UniqueIdentifier>{eea22481-bbeb-4285-bc3e-a1f93e130189}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DDChWnd.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DDDoc.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DDDpTgt.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DDEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DDGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ddgview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DDLView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DDTrCtl.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DICTGRID.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictTreeNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictionaryMacros.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FindDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ITEMGRID.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LEVGRID.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OccDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OccGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RECGRID.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RelDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RelGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zDictF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="langedt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="langgrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CapiLDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SecurityOptionsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BeforeAfterDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VSLabelRenamerDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateVSDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StartPositionDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridCtrl.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridBaseManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridDictionaryManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridLevelManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridValueSetManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridValueManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridRecordManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictPropertyGridItemManager.cpp">
+      <Filter>Source Files\PropertyGrid</Filter>
+    </ClCompile>
+    <ClCompile Include="DictDialogBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DictClipboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DSplWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\col.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\colplus.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\colstar.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\colstarp.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\dict16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\itemu.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\noteno.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\notenog.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\NoteYes.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\noteyesg.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\rel.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\row.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\rowplus.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\rowstar.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\rowstarp.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\subitemu.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\Toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\nodrop.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DDChWnd.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DDDOC.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DDDpTgt.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DDEdit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DDGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ddgview.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DDLView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DDTrCtl.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DICTGRID.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictTreeNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryMacros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ITEMGRID.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LEVGRID.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OccDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OccGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RECGRID.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RelDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RelGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zDictF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="langedt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="langgrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CapiLDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SecurityOptionsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BeforeAfterDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateVSDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VSLabelRenamerDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FindDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StartPositionDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridCtrl.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictDialogBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridBaseManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridDictionaryManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridLevelManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridRecordManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridValueManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridValueSetManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictPropertyGridItemManager.h">
+      <Filter>Header Files\PropertyGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="DictClipboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DSplWnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zDictF.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

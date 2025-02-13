@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{006D748A-CD6E-411D-9146-D1575172FB30}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>zSyncO</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXDLL;_USRDLL;ZSYNCO_EXPORTS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)external/easylogging;$(SolutionDir)external;$(SolutionDir)external/jsoncons;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>mfcs140ud.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXDLL;_USRDLL;ZSYNCO_EXPORTS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)external/easylogging;$(SolutionDir)external;$(SolutionDir)external/jsoncons;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>mfcs140u.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\external\easylogging\easylogging++.h" />
+    <ClInclude Include="ApplicationPackage.h" />
+    <ClInclude Include="AppSyncParamRunner.h" />
+    <ClInclude Include="BarcodeCredentials.h" />
+    <ClInclude Include="BluetoothChunk.h" />
+    <ClInclude Include="BluetoothDeviceInfo.h" />
+    <ClInclude Include="CaseJsonStreamParser.h" />
+    <ClInclude Include="CaseJsonWriter.h" />
+    <ClInclude Include="CaseObservable.h" />
+    <ClInclude Include="CSWebDataChunk.h" />
+    <ClInclude Include="DefaultChunk.h" />
+    <ClInclude Include="DictionaryInfo.h" />
+    <ClInclude Include="DropboxDb.h" />
+    <ClInclude Include="DropboxLocalSyncServerConnection.h" />
+    <ClInclude Include="DropboxSyncServerConnection.h" />
+    <ClInclude Include="ExponentialBackoff.h" />
+    <ClInclude Include="FileBasedParadataSyncer.h" />
+    <ClInclude Include="FtpSyncServerConnection.h" />
+    <ClInclude Include="IBluetoothAdapter.h" />
+    <ClInclude Include="IChooseBluetoothDeviceDialog.h" />
+    <ClInclude Include="IDataChunk.h" />
+    <ClInclude Include="IDropboxAuthDialog.h" />
+    <ClInclude Include="ILoginDialog.h" />
+    <ClInclude Include="IDataRepositoryRetriever.h" />
+    <ClInclude Include="IObexResource.h" />
+    <ClInclude Include="ISyncListener.h" />
+    <ClInclude Include="JsonStreamParser.h" />
+    <ClInclude Include="LocalFileSyncServerConnection.h" />
+    <ClInclude Include="OauthTokenRequest.h" />
+    <ClInclude Include="OauthTokenResponse.h" />
+    <ClInclude Include="ObexConstants.h" />
+    <ClInclude Include="BluetoothSyncServerConnection.h" />
+    <ClInclude Include="ConnectResponse.h" />
+    <ClInclude Include="CSWebSyncServerConnection.h" />
+    <ClInclude Include="IObexTransport.h" />
+    <ClInclude Include="ISyncServerConnection.h" />
+    <ClInclude Include="ISyncServerConnectionFactory.h" />
+    <ClInclude Include="JsonConverter.h" />
+    <ClInclude Include="ObexClient.h" />
+    <ClInclude Include="ObexHeader.h" />
+    <ClInclude Include="ObexPacket.h" />
+    <ClInclude Include="ObexPacketSerializer.h" />
+    <ClInclude Include="FileBasedSmartSyncer.h" />
+    <ClInclude Include="ObexServer.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SyncClient.h" />
+    <ClInclude Include="SyncCredentialStore.h" />
+    <ClInclude Include="SyncCustomHeaders.h" />
+    <ClInclude Include="SyncErrorResponse.h" />
+    <ClInclude Include="SyncException.h" />
+    <ClInclude Include="SyncGetResponse.h" />
+    <ClInclude Include="SyncLogCaseConstructionReporter.h" />
+    <ClInclude Include="SyncMessage.h" />
+    <ClInclude Include="SyncObexHandler.h" />
+    <ClInclude Include="SyncPutResponse.h" />
+    <ClInclude Include="SyncRequest.h" />
+    <ClInclude Include="SyncUtil.h" />
+    <ClInclude Include="WinBluetoothAdapter.h" />
+    <ClInclude Include="BluetoothObexServer.h" />
+    <ClInclude Include="SyncServerConnectionFactory.h" />
+    <ClInclude Include="BluetoothObexConnection.h" />
+    <ClInclude Include="WinBluetoothNameSetter.h" />
+    <ClInclude Include="WinBluetoothScanner.h" />
+    <ClInclude Include="WinObexBluetoothTransport.h" />
+    <ClInclude Include="zSyncO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\external\easylogging\easylogging++.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ApplicationPackage.cpp" />
+    <ClCompile Include="AppSyncParamRunner.cpp" />
+    <ClCompile Include="BluetoothChunk.cpp" />
+    <ClCompile Include="CSWebDataChunk.cpp" />
+    <ClCompile Include="DefaultChunk.cpp" />
+    <ClCompile Include="DropboxDb.cpp" />
+    <ClCompile Include="DropboxLocalSyncServerConnection.cpp" />
+    <ClCompile Include="DropboxSyncServerConnection.cpp" />
+    <ClCompile Include="ExponentialBackoff.cpp" />
+    <ClCompile Include="FtpSyncServerConnection.cpp" />
+    <ClCompile Include="LocalFileSyncServerConnection.cpp" />
+    <ClCompile Include="OauthTokenRequest.cpp" />
+    <ClCompile Include="OauthTokenResponse.cpp" />
+    <ClCompile Include="ObexConstants.cpp" />
+    <ClCompile Include="BluetoothSyncServerConnection.cpp" />
+    <ClCompile Include="ConnectResponse.cpp" />
+    <ClCompile Include="CSWebSyncServerConnection.cpp" />
+    <ClCompile Include="JsonConverter.cpp">
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreprocessToFile>
+    </ClCompile>
+    <ClCompile Include="ObexClient.cpp" />
+    <ClCompile Include="ObexHeader.cpp" />
+    <ClCompile Include="ObexPacket.cpp" />
+    <ClCompile Include="ObexPacketSerializer.cpp" />
+    <ClCompile Include="ObexServer.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="SyncClient.cpp" />
+    <ClCompile Include="SyncCustomHeaders.cpp" />
+    <ClCompile Include="SyncErrorResponse.cpp" />
+    <ClCompile Include="SyncGetResponse.cpp" />
+    <ClCompile Include="SyncObexHandler.cpp" />
+    <ClCompile Include="SyncPutResponse.cpp" />
+    <ClCompile Include="SyncRequest.cpp" />
+    <ClCompile Include="WinBluetoothAdapter.cpp" />
+    <ClCompile Include="BluetoothObexServer.cpp" />
+    <ClCompile Include="SyncServerConnectionFactory.cpp" />
+    <ClCompile Include="BluetoothObexConnection.cpp" />
+    <ClCompile Include="WinBluetoothNameSetter.cpp" />
+    <ClCompile Include="WinBluetoothScanner.cpp" />
+    <ClCompile Include="WinObexBluetoothTransport.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+      <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseO\zCaseO.vcxproj">
+      <Project>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDataO\zDataO.vcxproj">
+      <Project>{dde177b0-a6ae-4d1f-b707-8fb50d1b5644}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">
+      <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zZipo\zZipo.vcxproj">
+      <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SyncServerClasses.cd" />
+    <None Include="SyncClientClasses.cd" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <script src="/external/jquery/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="/external/codemirror/codemirror.min.css">
+    <script src="/external/codemirror/codemirror.min.js"></script>
+
+    <link rel="stylesheet" href="/external/summernote/summernote-lite.min.css">
+    <script src="/external/summernote/summernote-lite.min.js"></script>
+
+    <script src="/external/summernote/summernote-ext-customizable-styles.js"></script>
+    <script src="/external/summernote-rtl-plugin/summernote-ext-rtl.js"></script>
+
+
+    <link rel="stylesheet" href="/html-editor/summernote-ext-capi-fill.css">
+    <script src="/html-editor/summernote-ext-capi-fill.js"></script>
+
+    <title>HTML Editor</title>
+</head>
+<body>
+<div id="summernote"></div>
+<script>
+    $(document).ready(function() {
+
+        const $note = $('#summernote');
+
+        $note.summernote({
+            spellCheck: false,
+            callbacks: {
+                onInit: function() {
+                    $note.summernote("fullscreen.toggle");
+                    $.summernote.dom.emptyPara = "<p></p>"; // prevent insertion of <p><br/></p> for empty editor
+                },
+                onPaste: function(e) {
+                    // paste content from the CSPro Scintilla editors as text
+					var clipboardData = ( e.originalEvent || e).clipboardData || window.clipboardData;
+                    if (clipboardData.getData('text/html').indexOf("\x3c!--cspro--\x3e") >= 0) {
+                        e.preventDefault();
+                        document.execCommand('insertText', false, clipboardData.getData('text/plain'));
+                    }
+                },
+            },
+            height: 400, // This value shouldn't matter since we use fullscreen but if no height is set, the height is wrong after switching to code view and back
+            tabDisable: true, // Disable tab key moving to next field so you can type tabs in the editor
+            toolbar: false,
+            disableDragAndDrop: true,
+            codeviewFilter: false,
+            codemirror: {
+              mode: 'text/html',
+              htmlMode: true,
+              lineNumbers: true,
+              lineWrapping: true,
+            },
+        });
+
+        const context = $note.data('summernote');
+        const buttons = context.modules.buttons;
+        const $editingArea = context.layoutInfo.editingArea;
+
+        if (window.chrome.webview) {
+
+            function cleanupStyle(style) {
+                const fontNames = style['font-family'].split(',').map((name) => {
+                    return name.replace(/[\'\"]/g, '')
+                        .replace(/\s+$/, '')
+                        .replace(/^\s+/, '');
+                });
+                return {
+                    "font-family": fontNames.find(buttons.isFontInstalled.bind(buttons)),
+                    "font-bold": style['font-bold'] === 'bold',
+                    "font-italic": style['font-italic'] === 'italic',
+                    "font-underline": style['font-underline'] === 'underline',
+                    "font-size": style['font-size'],
+                    "list-style": style['list-style'],
+                    "text-align": style['text-align'],
+                    "class": style['class'],
+                };
+            }
+
+            function postSelectionChanged() {
+                const rng = $note.summernote('editor.getLastRange');
+                const style = cleanupStyle($note.summernote('customizableStyle.currentStyle'));
+                window.chrome.webview.postMessage({
+                    action: 'selectionChanged',
+                    empty: rng.isCollapsed(),
+                    currentStyle: style,
+                });
+            }
+
+            function postTextChanged(we, contents) {
+                window.chrome.webview.postMessage({action: 'textChanged', value: contents});
+            }
+
+            // Events from host control
+            window.chrome.webview.addEventListener('message', event => {
+                switch (event.data.action) {
+                    case 'setText':
+                        $note.off('summernote.change.codeview', postTextChanged);
+                        $note.off('summernote.keyup summernote.mouseup summernote.change', postSelectionChanged);
+                        $note.summernote('code', event.data.value);
+                        $note.summernote('commit'); // clear undo stack
+                        $note.on('summernote.change.codeview', postTextChanged);
+                        $note.on('summernote.keyup summernote.mouseup summernote.change', postSelectionChanged);
+                        break;
+                    case 'clear':
+                        $note.off('summernote.change.codeview', postTextChanged);
+                        $note.off('summernote.keyup summernote.mouseup summernote.change', postSelectionChanged);
+                        $note.summernote('empty');
+                        $note.summernote('commit'); // clear undo stack
+                        $note.on('summernote.change.codeview', postTextChanged);
+                        $note.on('summernote.keyup summernote.mouseup summernote.change', postSelectionChanged);
+                        break;
+                    case 'applyStyle':
+                        $note.summernote('customizableStyle.applyStyle', event.data.tag, event.data.className);
+                        postSelectionChanged(); // command can change selection/format
+                        break;
+                    case 'leftToRight':
+                        $note.summernote('capifill.ltr');
+                        postSelectionChanged(); // command can change selection/format
+                        break;
+                    case 'rightToLeft':
+                        $note.summernote('capifill.rtl');
+                        postSelectionChanged(); // command can change selection/format
+                        break;
+                    case 'summernoteCommand':
+                        $note.summernote(event.data.command, event.data.arg);
+                        postSelectionChanged(); // command can change selection/format
+                        break;
+
+                }
+            });
+
+            // override link dialog so that clicking edit link in popover
+            // sends event to host to launch native dialog instead of launching
+            // html dialog
+            context.modules.linkDialog.showLinkDialog = (linkInfo) => {
+                return $.Deferred((deferred) => {
+                    window.chrome.webview.addEventListener('message', event => {
+                        switch (event.data.action) {
+                            case 'editLinkDialogDismissed':
+                                if (event.data.cancelled) {
+                                    deferred.reject();
+                                } else {
+                                    linkInfo.url = event.data.url;
+                                    linkInfo.text = event.data.text;
+                                    linkInfo.isNewWindow = event.data.isNewWindow;
+                                    deferred.resolve(linkInfo);
+                                }
+                                break;
+                        }
+                    }, { once: true});
+                    window.chrome.webview.postMessage({
+                        action: 'showEditLinkDialog',
+                        linkInfo: linkInfo,
+                    });
+                });
+            };
+
+            $note.on('summernote.codeview.toggled', () => {
+                const codeView = $note.summernote('codeview.isActivated');
+                window.chrome.webview.postMessage({
+                    action: 'codeViewToggled',
+                    codeView: codeView,
+                });
+            });
+
+            // Notify host on context menu in edit area
+            $(document).on('contextmenu', e => {
+                e.preventDefault();
+                const topLeft = $editingArea.offset();
+                const x = e.clientX - topLeft.left;
+                const y = e.clientY - topLeft.top;
+                if (x >= 0 && x <= $editingArea.width() && y >= 0 && y <= $editingArea.height())
+                    window.chrome.webview.postMessage({
+                        action: 'contextMenu',
+                        clientX: e.clientX,
+                        clientY: e.clientY,
+                    });
+            });
+
+            window.chrome.webview.postMessage({action: 'documentLoaded'});
+
+        }
+    });
+</script>
+</body>
+</html>

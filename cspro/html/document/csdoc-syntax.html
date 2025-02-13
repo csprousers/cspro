@@ -1,0 +1,89 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>CSPro Document Syntax</title>
+</head>
+<body>
+
+    <h3>Tags (version 0)</h3>
+    <div style="word-wrap:break-word;margin:0px;padding:0px;border:0px;background-color:#ffffff;color:#000000;font-family:Consolas;font-size:10pt;">
+
+        <p><strong>Page Title:</strong> &lt;title&gt;page title&lt;/title&gt; &lt;title noheader&gt;page title (not displayed)&lt;/title&gt;</p>
+
+        <p><strong>Page Subheadings:</strong> &lt;subheader&gt;page subheader&lt;/subheader&gt;</p>
+
+        <p><strong>Context Sensitive Help:</strong> &lt;context IDD_FIELD_COLORS_DLG !IDD_THAT_MAY_NOT_EXIST /&gt;</p>
+
+        <p><strong>New Paragraph:</strong> Insert a blank line</p>
+
+        <p><strong>Basic Formatting:</strong> &lt;b&gt;<b>bold (strong)</b>&lt;/b&gt; &lt;i&gt;<i>italics</i>&lt;/i&gt; &lt;sup&gt;<sup>superscript</sup>&lt;/sup&gt;</p>
+
+        <p><strong>Font Size:</strong> &lt;font 1.5&gt;text&lt;/font&gt; &lt;font header&gt;text&lt;/font&gt; &lt;font subheader&gt;text&lt;/font&gt;</p>
+
+        <p><strong>Font Color:</strong> &lt;font blue&gt;text&lt;/font&gt; &lt;font #ff00bb&gt;text&lt;/font&gt;</p>
+
+        <p><strong>Font Type:</strong> &lt;font monospace&gt;text&lt;/font&gt; &lt;font 2.5 blue monospace&gt;text&lt;/font&gt;</p>
+
+        <p><strong>Text Indentation:</strong> &lt;indent&gt;text&lt;/indent&gt; &lt;indent 3&gt;extra-indented text&lt;/indent&gt;</p>
+
+        <p><strong>Centering:</strong> &lt;center&gt;text&lt;/center&gt;</p>
+
+        <p><strong>Lists:</strong> &lt;list&gt;unordered list&lt;/list&gt; &lt;list ordered&gt;ordered list&lt;list&gt; &lt;li&gt;list item&lt;/li&gt;</p>
+
+        <p><strong>Tables:</strong> &lt;table 2 header&gt;two-column table with a header row&lt;/table&gt; &lt;table 3&gt;three-column table&lt;/table&gt; &lt;table 2 nowrap&gt;table where the first column's text does not wrap&lt;/table&gt; &lt;table 2 center&gt;table with all cells centered&lt;/table&gt;</p>
+
+        <p><strong>Table Cells:</strong> &lt;cell&gt;header or data table cell&lt;/cell&gt; &lt;cell 2&gt;header or data table cell with a two-column span&lt;/cell&gt; &lt;cell nowrap&gt;cell where the cell's text does not wrap&lt;/cell&gt;</p>
+
+        <p><strong>Images:</strong> &lt;image image.png /&gt; &lt;image image.png width 640 height 480 /&gt; &lt;image nochm conditional-image.png /&gt;</p>
+
+        <p><strong>Links:</strong> &lt;topic help_topic.hgt /&gt; &lt;link url.hgt&gt;text&lt;/link&gt; &lt;link OtherDocument::help_topic.hgt&gt;text&lt;/link&gt;</p>
+
+        <p><strong>See Also:</strong> &lt;seealso topic1.hgt topic2.hgt /&gt; &lt;seealso ordered topicB.hgt topicA.hgt /&gt;</p>
+
+        <p><strong>Logic Colorization:</strong> &lt;logic&gt;code&lt;/logic&gt; &lt;logicsyntax&gt;syntax&lt;/logicsyntax&gt; &lt;logiccolor&gt;text&lt;/logiccolor&gt; &lt;logiccolor valueset&gt;text&lt;/logiccolor&gt;</p>
+
+        <p><strong>Logic Syntax:</strong> &lt;arg&gt;argument&lt;/arg&gt; 『optional arguments』 option_1 ‖ option_2</p>
+
+        <p><strong>Logic Table:</strong> &lt;logictable 4&gt;four-column table of logic reserved words&lt;/logictable&gt;</p>
+
+        <p><strong>Action Invoker Colorization:</strong> &lt;action&gt;Action.Name&lt;/action&gt;</p>
+
+        <p><strong>Message File Colorization:</strong> &lt;message&gt;messages&lt;/message&gt;</p>
+
+        <p><strong>Report File Colorization:</strong> &lt;report 『HTML』&gt;report&lt;/report&gt;</p>
+
+        <p><strong>PFF Colorization:</strong> &lt;pff&gt;code&lt;/pff&gt; &lt;pffcolor&gt;keyword&lt;/pffcolor&gt;</p>
+
+        <p><strong>Pre-CSPro 8.0 Logic Colorization:</strong> &lt;color cspro_v0&gt;code&lt;/color&gt; &lt;colorinline cspro_v0&gt;code&lt;/colorinline&gt;</p>
+
+        <p><strong>Other Colorization:</strong> &lt;color HTML ‖ JavaScript ‖ JSON ‖ SQL&gt;code&lt;/color&gt; &lt;colorinline ...&gt;code&lt;/colorinline&gt;</p>
+
+        <p><strong>HTML:</strong> &lt;html&gt;markup&lt;/html&gt;</p>
+
+        <p><strong>Definitions:</strong> &lt;definition definition_name /&gt; &lt;definition domain::special_definition_name /&gt;</p>
+
+        <p><strong>Escape Character:</strong> &lt; is &amp;lt;</p>
+
+        <p><strong>Forced Newline:</strong> ~!~</p>
+
+        <p><strong>Text Inclusion:</strong> &lt;include help_include.hgi /&gt;</p>
+
+        <p><strong>Callout:</strong> &lt;callout&gt;text&lt;/callout&gt;</p>
+
+        <p><strong>Page Break:</strong> &lt;pagebreak /&gt;</p>
+
+    </div>
+
+
+    <h3>Tags (version 8)</h3>
+    <div style="word-wrap:break-word;margin:0px;padding:0px;border:0px;background-color:#ffffff;color:#000000;font-family:Consolas;font-size:10pt;">
+
+        <p><strong>Barcode:</strong> &lt;barcode text="..."『, errorCorrection="...", scale="...", quietZone="...", darkColor="...", lightColor="...", width="...", height="..." 』/&gt;</p>
+
+        <p><strong>Notes:</strong> &lt;note text="..." 『, type="error" ‖ "warning" ‖ "todo" ‖ "comment"』/&gt;</p>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/questionnaire_menuitem_edit_field_note"
+        android:title="@string/menu_questionnaire_edit_field_note">
+    </item>
+    <item
+        android:id="@+id/questionnaire_menuitem_edit_case_note"
+        android:title="@string/menu_questionnaire_edit_case_note">
+    </item>
+    <item
+        android:id="@+id/questionnaire_menuitem_review_notes"
+        android:title="@string/menu_questionnaire_review_notes">
+    </item>
+
+</menu>

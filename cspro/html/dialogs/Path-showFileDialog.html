@@ -1,0 +1,618 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/external/mustache/mustache.min.js"></script>
+    <script src="/external/sprintf/sprintf.min.js"></script>
+
+    <title>File Dialog</title>
+
+    <style>
+        .my-list-item {
+            z-index: 1;
+            outline: none !important;
+            border-top-color: transparent;
+            border-left-color: transparent;
+            border-right-color: transparent;
+        }
+
+        .my-icon {
+            width: 28px;
+            height: 28px;
+            background-size: 28px;
+            background-repeat: no-repeat;
+        }
+
+        .my-dialog-footer {
+            margin-left: -15px;
+            margin-right: -15px;
+        }
+    </style>
+
+    <script id="selectFileTemplate" type="text/template">
+        <div id="mWidth" style="display:inline-block;width:800px;height:600px;"></div>
+        <div id="mContainer" class="container-fluid my-dialog errmsg-dialog">
+            <div id="mTitle" class="row my-dialog-header">
+                <div class="col withNewline" id="mmTitle" style="padding-right:32px;">{{title}}</div>
+                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                </div>
+            </div>
+            <div id="mCurDir" class="row" style="background-color:black;color:#ddd;">
+                <div class="col" style="word-wrap:break-word;">{{currentListing.path}}</div>
+            </div>
+            <div id="mBody" class="row my-dialog-body" style="overflow-y:auto;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;">
+                <div class="col-12" style="padding-right:0; padding-left:0;">
+                    <div class="list-group my-input" id="list-tab" role="tablist" style="border-radius:0;margin-top:0;">
+                        {{#currentListing.paths}}
+                        <a id="i{{index}}" class="list-group-item list-group-item-action my-list-item" data-toggle="list" href="#" role="tab" aria-controls="{{name}}" onclick="selectItem({{index}})">
+                            <div style="display:table-row">
+                                <div style="display:table-cell;padding-right:8px;vertical-align:middle;">
+                                    <div class="my-icon" style="background-image:url('/images/{{icon}}.png')"></div>
+                                </div>
+                                <div style="display:table-cell;width:100%" class="withNewline">
+                                    {{name}}
+                                </div>
+                            </div>
+                        </a>
+                        {{/currentListing.paths}}
+                    </div>
+                    <div id="no-files-found" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; text-align: center;display:none;">
+                        <div style="position: absolute; width: 100%; top: 40%; font-size:18px;color:#999;">
+                            <div class="bi bi-slash-circle" style="font-size:24px;"></div>
+                            <div>{{noFilesText}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="mFooter" class="text-center my-dialog-footer" style="box-shadow: 0 -2px 8px rgba(0,0,0,.2); position: relative; z-index: 100; margin-bottom: 0; padding-bottom: 8px;">
+                <div class="row">
+                    <div class="col-12">
+                        <form id="pathForm" class="m-2">
+                            <input id="pathText" type="text" class="form-control" autocomplete="off">
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col my-dialog-button-col">
+                        <button class="btn btn-light w-100 text-center" id="okButton" type="button" onclick="submitPath();" tabindex="-1" disabled style="color:#aaa;">
+                            <span class="bi bi-check-lg"></span>
+                        </button>
+                    </div>
+                    <div class="col my-dialog-button-col">
+                        <button class="btn btn-light w-100 text-center" id="cancelButton" type="button" onclick="CS.UI.closeDialog();" tabindex="-1">
+                            <span class="bi bi-x-lg" style="color:#500;"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        const CS = new CSProActionInvoker("ffbcfae7d0b53557c6e91b45c8ba1067");
+        var selectedIndex = 0;
+        var focusedIndex = 0;
+        var firstFocus = true;
+        var tabItems = [];
+        var tabFocusIndex = 0;
+        var realClick = true;
+        const parentDirectoryName = "..";
+        const specialPaths = CS.Path.getSpecialPaths();
+        const onAndroid = (specialPaths.CSEntry != undefined);
+        var defaultName = "";
+
+        const iconsDict = {
+            ".ai.arw.bmp.cr2.dib.eps.gif.heic.heif.ind.indd.indt.j2k.jfi.jfif.jp2.jpe.jif.jpeg.jpf.jpg.jpm.jpx.k25.mj2.nrw.png.psd.raw.svg.svgz.tif.tiff.webp.": "file-picture-icon",
+            ".8svx.aax.act.aiff.alac.amr.ape.au.awb.cda.dss.dvf.flac.gsm.iklax.ivs.m4a.m4b.m4p.mmf.mogg.mp3.mpc.msv.nmf.oga.ogg.opus.ra.raw.rf64.rm.sln.tta.voc.vox.wav.webm.wma.wv.": "file-music-icon",
+            ".3g2.3gp.amv.asf.avi.drc.f4a.f4b.f4p.f4v.flv.gif.gifv.M2TS.m2v.m4p.m4v.mkv.mng.mov.mp2.mp4.mpe.mpeg.mpg.mpv.MTS.mxf.nsv.ogg.ogv.qt.rm.rmvb.roq.svi.TS.viv.vob.webm.wmv.yuv.": "file-video-icon",
+            ".csdb.": "csdb-icon",
+            ".csdbe.": "csdbe-icon",
+            ".cslog.": "cslog-icon",
+            ".lst.": "lst-icon",
+            ".pen.": "pen-icon",
+            ".pff.": "pff-icon",
+            ".csentry.": "folder-csentry-icon",
+            ".audio.": "folder-music-icon",
+            ".downloads.": "folder-downloads-icon",
+            ".images.": "folder-picture-icon",
+            ".video.": "folder-video-icon"
+        };
+
+        function setMaxWH() {
+            const minWidth = 320; //minimum dialog width in px
+            const maxDisplayDimensions = CS.UI.getMaxDisplayDimensions()
+
+            $("#mContainer").css("min-width", minWidth);
+            $("#mContainer").css("max-width", maxDisplayDimensions.width);
+
+            $("#mContainer").css("max-height", maxDisplayDimensions.height);
+        }
+
+        function setNoFilesFoundVisibility() {
+            if (input.currentListing.paths.length == 0 || (input.currentListing.paths.length == 1 && input.currentListing.paths[0].name == parentDirectoryName)) {
+                $("#no-files-found").show();
+            }
+            else {
+                $("#no-files-found").hide();
+            }
+        }
+
+        function setDefaultFileName() {
+            if (defaultName.length > 0)
+                $('#pathText').val(defaultName);
+            else if (input.name)
+                $('#pathText').val(input.name);
+        }
+
+        function buildDialog(input) {
+            var template = $("#selectFileTemplate").html();
+            $("#dialogDynamicContainer").empty().html(Mustache.render(template, input));
+
+            replaceNewline();
+
+            osProfile();
+
+            setMaxWH();
+
+            $("#mContainer").css("width", $("#mWidth").outerWidth());
+            $("#mContainer").css("height", $("#mWidth").outerHeight());
+            $("#mBody").css("height", $("#mContainer").outerHeight() - $("#mTitle").outerHeight() - $("#mCurDir").outerHeight() - $("#mFooter").outerHeight());
+
+            $("#mWidth").hide();
+
+            $("#pathText").on("input", function () {
+                defaultName = $("#pathText").val();
+                setOkButtonStatus();
+            });
+
+            setNoFilesFoundVisibility();
+
+            setTabItems();
+
+            setDefaultFileName();
+
+            setOkButtonStatus();
+        }
+
+        //Doing some stuff differently based on the OS
+        function osProfile() {
+            if (onAndroid) {
+                //hiding "x" button
+                $(".close").hide();
+
+                //hiding title if it's empty
+                if ($("#mTitle").children().first().html().trim().length == 0) {
+                    $("#mTitle").hide();
+                }
+            }
+        }
+
+        function replaceNewline() {
+            $('.withNewline').each(function (index) {
+                $(this).html($(this).html().trim().replace(/(?:\r\n|\r|\n)/g, "<br>"));
+            });
+        }
+
+        function setFocusedIndex() {
+            tabItems.pop();
+            tabItems.push($('#i' + focusedIndex)[0]);
+            tabFocusIndex = tabItems.length - 1;
+        }
+
+        function setOkButtonStatus() {
+            var isEnabled = $("#pathText").val().length > 0;
+            if (isEnabled) {
+                $('#okButton').prop('disabled', false);
+                $('#okButton').css('color', '#050');
+            }
+            else {
+                $('#okButton').prop('disabled', true);
+                $('#okButton').css('color', '#aaa');
+            }
+        }
+
+        function selectItem(idx) {
+            focusedIndex = idx;
+            setFocusedIndex();
+            if (selectedIndex != idx) {
+                $(`#i${selectedIndex}`).removeClass("active");
+                $(`#i${idx}`).addClass("active");
+
+                selectedIndex = idx;
+
+                if (input.currentListing["paths"][idx - 1].type !== "directory") {
+                    $('#pathText').val(input.currentListing.paths[idx - 1].name);
+                }
+
+                setOkButtonStatus();
+            }
+            else if (idx > 0 && input.currentListing["paths"][idx - 1].type !== "directory") {
+                submitPath();
+            }
+
+            if (realClick) {
+                if (input.currentListing["paths"][idx - 1].type === "directory") {
+                    setTimeout(function () {
+                        selectedIndex = 0;
+                        focusedIndex = 0;
+                        firstFocus = true;
+                        tabItems = [];
+                        tabFocusIndex = 0;
+
+                        goToDirectory(input.currentListing["paths"][idx - 1].path)
+                    }, 50);
+                }
+            }
+
+            realClick = true;
+        }
+
+        function setTabItems() {
+            tabItems = [];
+            tabItems.push($("#okButton")[0]);
+            tabItems.push($("#cancelButton")[0]);
+            tabItems.push($("#list-tab")[0]);
+        }
+
+        function cycleTab(isShift) {
+            while (true) {
+                if (!isShift) {
+                    tabFocusIndex++;
+                    if (tabFocusIndex >= tabItems.length) {
+                        tabFocusIndex = 0;
+                    }
+                }
+                else {
+                    tabFocusIndex--;
+                    if (tabFocusIndex < 0) {
+                        tabFocusIndex = tabItems.length - 1;
+                    }
+                }
+
+                if (tabItems[tabFocusIndex].id == "pathText" || !tabItems[tabFocusIndex].disabled) {
+                    tabItems[tabFocusIndex].focus();
+                    break;
+                }
+            }
+        }
+
+        function setFirstFocus() {
+            if (firstFocus) {
+                firstFocus = false;
+                $('#okButton').focus();
+                $('#okButton').select();
+                $('#okButton').prop('disabled', true);
+                $('#okButton').css('color', '#aaa');
+
+                focusedIndex = input.currentListing.paths[0].index - 1;
+                if (input.defaultIndex >= 0) {
+                    for (var i = 0; i < input.currentListing.paths.length; i++) {
+                        var obj = input.currentListing.paths[i];
+                    }
+                }
+
+                if (focusedIndex >= input.currentListing.paths[0].index) {
+                    $('#i' + focusedIndex).focus();
+                    $('#i' + focusedIndex).trigger('click');
+                    setFocusedIndex();
+                }
+            }
+        }
+
+        function getIconFromExtension(fName, fType, ext) {
+            if (fType === "file") {
+                if (ext && ext != "") {
+                    for (var key in iconsDict) {
+                        if (key.includes(`${ext.toLowerCase()}.`))
+                            return iconsDict[key];
+                    }
+                }
+            } else if (fType === "directory") {
+                if (fName === "..")
+                    return "dirUp-icon";
+
+                return "folder-icon";
+            }
+
+            return "file-icon-icon";
+        }
+
+
+        $(document).ready(function () {
+            var w = $("#mContainer").outerWidth();
+            var h = $("#mContainer").outerHeight();
+
+            CS.UI.setDisplayOptions({
+                width: w,
+                height: h,
+                keyboard: false,
+                titleBarColor: $('.my-dialog-header').css('background-color')
+            });
+
+            var ua = navigator.userAgent.toLowerCase();
+            var isAndroid = ua.indexOf("android") > -1;
+            if (isAndroid) {
+                setFirstFocus();
+            }
+
+            $(".my-list-item").focus(function () {
+                setFirstFocus();
+            });
+
+            $(".confirm-modal-btn1").click(function () {
+                input.confirmOverwrite = false;
+                submitPath();
+            });
+
+            setOkButtonStatus();
+        });
+
+        $(document).keydown(function (e) {
+            var isShift;
+            if (window.event) {
+                isShift = !!window.event.shiftKey;
+            } else {
+                isShift = !!ev.shiftKey;
+            }
+
+            if (e.keyCode === 27) { //ESC
+                if ($('#alert-modal').is(":visible")) {
+                    $('#alert-modal').modal('hide');
+                } else if ($('#confirm-modal').is(":visible")) {
+                    $('#confirm-modal').modal('hide');
+                } else {
+                    CS.UI.closeDialog();
+                }
+            }
+            else if (e.keyCode === 39 || e.keyCode === 40) { //down arrow, right arrow
+                if ($('#alert-modal').is(":visible") ||
+                    $('#confirm-modal').is(":visible")) {
+                    e.preventDefault();
+                    return;
+                }
+
+                focusedIndex++;
+                if (focusedIndex > input.currentListing.paths[input.currentListing.paths.length - 1].index) {
+                    focusedIndex = input.currentListing.paths[0].index;
+                }
+                $('#i' + focusedIndex).focus();
+                setFocusedIndex();
+                realClick = false;
+                $('#i' + focusedIndex).click();
+                e.preventDefault();
+            }
+            else if (e.keyCode === 37 || e.keyCode === 38) { //up arrow, left arrow
+                if ($('#alert-modal').is(":visible") ||
+                    $('#confirm-modal').is(":visible")) {
+                    e.preventDefault();
+                    return;
+                }
+
+                focusedIndex--;
+                if (focusedIndex < input.currentListing.paths[0].index) {
+                    focusedIndex = input.currentListing.paths[input.currentListing.paths.length - 1].index;
+                }
+                $('#i' + focusedIndex).focus();
+                setFocusedIndex();
+                realClick = false;
+                $('#i' + focusedIndex).click();
+                e.preventDefault();
+            }
+            else if (e.keyCode === 9) { //tab
+                if ($('#alert-modal').is(":visible") ||
+                    $('#confirm-modal').is(":visible")) {
+                    e.preventDefault();
+                    return;
+                }
+
+                cycleTab(isShift);
+                e.preventDefault();
+            }
+        });
+
+        function alertModal(text) {
+            $('#alert-modal-title').html(getMGF(input.error, 110011, "Error"));
+            $('#alert-modal-body').html(text);
+            $('#alert-modal').modal('show');
+        }
+
+        function confirmModal(text) {
+            $('#confirm-modal-title').html(getMGF(input.confirm, 110015, "Confirm"));
+            $('#confirm-modal-body').html(text);
+            $('#confirm-modal').modal('show');
+        }
+
+        function pathStartsWith(pathSource, patchStartsWith) {
+            return (patchStartsWith != undefined &&
+                pathSource.length >= patchStartsWith.length &&
+                pathSource.substr(0, patchStartsWith.length).localeCompare(patchStartsWith, undefined, { sensitivity: "accent" }) == 0);
+        }
+
+        function getMGF(inputText, number, defaultText) {
+            if( inputText != undefined ) {
+                return inputText;
+            }
+            try {
+                return CS.Message.getText({
+                    number: number,
+                    type: "system"
+                });
+            } catch(e) {
+                return defaultText;
+            }
+        }
+
+        function goToDirectory(path) {
+            input.currentListing = CS.Path.getDirectoryListing({
+                path: path,
+                filter: input.filter,
+                type: (input.showDirectories == false) ? "file" : undefined,
+                detailed: true
+            });
+
+            // on Android, clean up some of the paths
+            if (onAndroid) {
+                const addPathOverride = (specialPath) => {
+                    let slashPos = specialPath.lastIndexOf('/');
+                    if (slashPos < 0) {
+                        slashPos = specialPath.lastIndexOf('\\');
+                    }
+                    input.currentListing.pathOverride = "..." + specialPath.substring(slashPos) + input.currentListing.path.substring(specialPath.length);
+                };
+
+                if (pathStartsWith(input.currentListing.path, specialPaths.CSEntry)) {
+                    addPathOverride(specialPaths.CSEntry);
+                }
+                else if (pathStartsWith(input.currentListing.path, specialPaths.Downloads)) {
+                    addPathOverride(specialPaths.Downloads);
+                }
+            }
+
+            // sort the paths by type and then name
+            input.currentListing.paths.sort((pi1, pi2) => {
+                if (pi1.type != pi2.type) {
+                    return (pi1.type == "directory") ? -1 : 1;
+                }
+                else {
+                    return pi1.name.localeCompare(pi2.name, undefined, { sensitivity: "case" });
+                }
+            });
+
+            // add the parent directory (if applicable)
+            if (input.showDirectories != false && input.currentListing.parent != undefined) {
+                if (input.rootDirectory == undefined || pathStartsWith(input.currentListing.parent, input.rootDirectory) || input.rootDirectory == "|Android") {
+                    let parentPathInfo = CS.Path.getPathInfo({ path: input.currentListing.parent });
+                    parentPathInfo.name = parentDirectoryName;
+                    parentPathInfo.type = "directory";
+                    input.currentListing.paths.splice(0, 0, parentPathInfo);
+                }
+            }
+
+            let i = 0;
+            input.currentListing.paths.forEach(function (item) {
+                item["index"] = ++i;
+                item["icon"] = getIconFromExtension(item["name"], item["type"], item["extension"]);
+            });
+
+            const isSaveDialog = (input.type === "save");
+
+            input.title = getMGF(input.title, isSaveDialog ? 100376 : 100375, isSaveDialog ? "Save File As" : "Open File");
+            input.noFilesText = getMGF(input.noFilesText, 100371, "No Files");
+
+            buildDialog(input)
+        }
+
+        function submitPath() {
+            var ua = navigator.userAgent.toLowerCase();
+            var isAndroid = ua.indexOf("android") > -1;
+            const path = input.currentListing.path +
+                (isAndroid ? '/' : '\\') +
+                $("#pathText").val();
+
+            // validate the current selection
+            try {
+                let lastSlash = path.lastIndexOf('/');
+                if (lastSlash < 0) {
+                    lastSlash = path.lastIndexOf('\\');
+                    if (lastSlash < 0) {
+                        const message = getMGF(input.invalidPathText, 100380, "The path '%s' is invalid.");
+                        throw new Error(sprintf(message, path));
+                    }
+                }
+
+                const fileInfo = CS.Path.getPathInfo({ path: path });
+                const filename = path.substr(lastSlash + 1);
+
+                if (fileInfo.exists) {
+                    if (fileInfo.type == "directory") {
+                        const message = getMGF(input.mustSelectFileText, 100381, "You must select a file. '%s' is a directory.");
+                        throw new Error(sprintf(message, filename));
+                    }
+                    else if (isSaveDialog && input.confirmOverwrite) {
+                        const message = getMGF(input.confirmOverwriteText, 100382, "'%s' already exists. Are you sure you want to overwrite it?");
+                        confirmModal(sprintf(message, filename));
+                        return false;
+                    }
+                }
+                else if (isSaveDialog) {
+                    const directory = path.substr(0, lastSlash);
+                    const directoryInfo = CS.Path.getPathInfo({ path: directory });
+                    if (!directoryInfo.exists) {
+                        const message = getMGF(input.directoryNotExistText, 100378, "The directory '%s' does not exist.");
+                        throw new Error(sprintf(message, directory));
+                    }
+                }
+                else {
+                    const message = getMGF(input.fileNotExistText, 100377, "The file '%s' does not exist.");
+                    throw new Error(sprintf(message, filename));
+                }
+
+                CS.UI.closeDialog({ result: path });
+            }
+            catch (exception) {
+                alertModal(exception.message);
+            }
+
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <button onclick="CS.UI.closeDialog();">Exit</button>
+    <!--Dialog container-->
+    <div id="dialogDynamicContainer" style="position: fixed; top: 0;"></div>
+    <div id="alert-modal" class="modal fade">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="alert-modal-title" class="modal-title"></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div id="alert-modal-body" class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default alert-modal-btn" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal fade">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="confirm-modal-title" class="modal-title"></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div id="confirm-modal-body" class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default confirm-modal-btn1">OK</button>
+                    <button type="button" class="btn btn-default confirm-modal-btn2"
+                        data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var input = CS.UI.getInputData();
+        const isSaveDialog = (input.type === "save");
+
+        goToDirectory(input.startDirectory);
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools">
+  <data>
+    <import type="android.view.View"/>
+    <variable
+      name="viewModel"
+      type="gov.census.cspro.smartsync.addapp.UpdateApplicationViewModel" />
+  </data>
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="gov.census.cspro.smartsync.addapp.UpdateApplicationsActivity">
+
+    <TextView
+      android:id="@+id/checkingForUpdates"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="16dp"
+      android:layout_marginLeft="16dp"
+      android:text="@string/checking_for_updates"
+      app:layout_constraintBottom_toBottomOf="@id/progressBar"
+      app:layout_constraintStart_toEndOf="@id/progressBar"
+      app:layout_constraintTop_toTopOf="@id/progressBar" />
+
+    <ProgressBar
+      android:id="@+id/progressBar"
+      style="?android:attr/progressBarStyle"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="8dp"
+      android:layout_marginLeft="8dp"
+      android:layout_marginTop="8dp"
+      android:indeterminate="true"
+      android:tint="@color/cspro_green"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+      android:id="@+id/noUpdatesAvailable"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginTop="16dp"
+      android:text="@string/no_updates_available"
+      android:visibility="@{viewModel.updatableApplications != null &amp;&amp; viewModel.updatableApplications.size() == 0 ? View.VISIBLE : View.GONE}"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+      android:id="@+id/followingUpdatesAvailable"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginTop="16dp"
+      android:text="@string/following_updates_available"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/applist"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginTop="8dp"
+      app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/followingUpdatesAvailable"
+      tools:listitem="@layout/deployment_package_item" />
+
+    <androidx.constraintlayout.widget.Group
+      android:id="@+id/group"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:visibility="@{viewModel.updatableApplications == null ? View.VISIBLE : View.GONE}"
+      app:constraint_referenced_ids="checkingForUpdates,progressBar" />
+
+    <androidx.constraintlayout.widget.Group
+      android:id="@+id/group2"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:visibility="@{viewModel.updatableApplications != null &amp;&amp; viewModel.updatableApplications.size() > 0 ? View.VISIBLE : View.GONE}"
+      app:constraint_referenced_ids="applist,followingUpdatesAvailable" />
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
+

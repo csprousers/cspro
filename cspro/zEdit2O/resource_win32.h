@@ -1,0 +1,3 @@
+//{{NO_DEPENDENCIES}}
+#define IDC_FIND_EDIT    0x480
+#define IDC_REPLACE_EDIT 0x481

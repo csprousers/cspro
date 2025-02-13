@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">CSEntry</string>
+    <string name="activity_case_list_name" translatable="false">Case Listing</string>
+    <string name="activity_entry" translatable="false">Entry</string>
+    <string name="deeplink_host" translatable="false">www.csprousers.org</string>
+    <string name="deeplink_path_prefix" translatable="false">/apps/</string>
+    <string name="deeplink_https_scheme" translatable="false">https</string>
+    <string name="deeplink_http_scheme" translatable="false">http</string>
+    <string name="app_placeholder_1" translatable="false">Place Holder 1</string>
+    <string name="app_placeholder_2" translatable="false">Place Holder 2</string>
+    <string name="app_numeric_placeholder" translatable="false">32</string>
+    <string name="questionnaire_input_prompt_text_entry" translatable="false"></string>
+    <string name="menu_questionnaire_save_nav_control_state" translatable="false">nav_control_state</string>
+    <string name="menu_casetree_save_show_skipped_state" translatable="false">show_skipped_field_state</string>
+    <string name="menu_casetree_save_show_labels_state" translatable="false">show_labels_state</string>
+    <string name="about_census_logo_desc">U.S. Census Bureau</string>
+    <string name="about_csentry_mailto" translatable="false">mailto:CSPro@lists.census.gov</string>
+    <string name="about_csentry_web_url" translatable="false">https://www.census.gov/data/software/cspro.html</string>
+    <string name="segment_control_item_placeholder" translatable="false">Item 1</string>
+    <string name="terms_displayed_state" translatable="false">TermsOfServiceDisplayed</string>
+    <string name="url_main_help" translatable="false">https://www.census.gov/data/software/cspro/documentation/android-user-guide.html</string>
+    <string name="pff_sync_file_extension" translatable="false">.pnc</string>
+    <string name="preferences_file_global">global_preferences</string>
+    <string name="preferences_file_credentials">credentials</string>
+    <string name="preferences_show_hidden_applications">preferences_show_hidden_applications</string>
+    <string name="preferences_clear_credentials">preferences_clear_credentials</string>
+</resources>

@@ -1,0 +1,78 @@
+﻿/* --- CSPro Runtime Messages - Vietnamese */
+
+Language=VI
+
+/* --- Common Messages Used by CSEntry */
+
+/* --- Out of Range */
+88888  CẢNH BÁO: Giá trị ngoài khoảng! Có chấp nhận giá trị cho %s%s không?
+88889  CẢNH BÁO: Giá trị ngoài khoảng! Hãy nhập vào giá trị hợp lệ cho %s%s
+
+89201  GIÁ TRỊ NGOÀI KHOẢNG
+89202  THỨ TỰ NGOÀI KHOẢNG
+89203  Hãy nhập giá trị hợp lệ
+89204  Hãy nhập giá trị hợp lệ hoặc bấm F2 để qua
+89205  Hãy nhập giá trị đúng
+89206  Bấm F8 để đóng thông báo
+
+/* --- Go To Field */
+89211  Không tìm thấy trường số liệu (câu hỏi)
+89212  Giá trị lặp không hợp lệ
+
+/* --- Partial Save */
+89221  Lưu một phần
+89222  Phiếu đang ở tình trạng chưa hoàn thành. Có muốn di chuyển tới câu hỏi được thao tác lần gần nhất không?
+89223  Không thể chuyển sang xem số liệu của phiếu đang có tình trạng Sửa. Dừng sửa và mở phiếu.
+89224  Phiếu hiện thời đã được lưu.
+89225  Lỗi khi đang lưu phiếu
+
+/* --- Verify */
+89241  Hoàn thành xác thực số liệu
+89242  GIÁ TRỊ KHÔNG PHÙ HỢP
+89243  Hãy nhập lại giá trị
+
+/* --- Case Management */
+89251  Có muốn hủy bỏ phiếu hiện thời không?
+89252  Có thực sự muốn xóa phiếu này không?
+89253  Có thực sự muốn xóa phiếu có ID '%s' không?
+89254  Chấp nhận phiếu này?
+89255  Chấp nhận %s này?
+
+/* --- Miscellaneous Entry */
+89261  Không thể di chuyển tới dòng/cột không tồn tại
+89263  "File %s không tồn tại.\n\nCó tạo file này không?"
+
+/* --- Entry Errors */
+89271  Không thể thêm phiếu mới khi đang sửa phiếu
+89273  Lỗi khi đang đọc file %s
+89274  Lỗi ứng dụng. Kết thúc nhập số liệu.
+
+/* --- Index */
+89291  Không tạo được chỉ số
+89292  "Trùng ids:'%s'\n\ntrong file %s"
+
+/* --- Portable Messages */
+110001 OK
+110002 Hủy
+110003 Có
+110004 Không
+
+110013 Thông báo
+110014 Thoát
+
+110041 Dừng thêm mới?
+110042 Dừng sửa đổi?
+110043 Ghi thay đổi
+110044 Hủy bỏ thay đổi
+110045 Di chuyển nhanh tới trường cuối
+
+110051 Lựa chọn ngôn ngữ
+110052 Chỉ có một ngôn ngữ được định nghĩa
+
+/* --- ... */
+
+
+/* --- Notes */
+46511  Xem lại các ghi chú
+46512  Không có ghi chú để xem
+46513  Di chuyển tới trường

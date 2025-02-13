@@ -1,0 +1,66 @@
+{
+  "software": "CSPro", 
+  "version": 7.7, 
+  "fileType": "dictionary", 
+  "name": "TESTDICT_DICT", 
+  "labels": [ { "text": "TestDict" } ], 
+  "security": {
+    "allowDataViewerModifications": false, 
+    "allowExport": true, 
+    "cachedPasswordMinutes": 0, 
+    "settings": "acc9436e23d83eb2ce4689536d9f1a948e143f507991bb7bfcbf2c05382d3a87"
+  }, 
+  "enableBinaryItems": true, 
+  "recordType": {
+    "start": 1, 
+    "length": 1
+  }, 
+  "defaults": {
+    "decimalMark": true, 
+    "zeroFill": false
+  }, 
+  "relativePositions": true, 
+  "levels": [
+    {
+      "name": "TESTDICT_QUEST", 
+      "labels": [ { "text": "TestDict questionnaire" } ], 
+      "ids": {
+        "items": [
+          {
+            "name": "TESTDICT_ID", 
+            "labels": [ { "text": "TestDict identification" } ], 
+            "contentType": "numeric", 
+            "start": 2, 
+            "length": 1, 
+            "zeroFill": false
+          }
+        ]
+      }, 
+      "records": [
+        {
+          "name": "TESTDICT_REC", 
+          "labels": [ { "text": "TestDict record" } ], 
+          "recordType": "1", 
+          "occurrences": {
+            "required": true, 
+            "maximum": 5
+          }, 
+          "items": [
+            {
+              "name": "TEST_ITEM", 
+              "labels": [ { "text": "Test item" } ], 
+              "contentType": "alpha", 
+              "length": 30
+            }, 
+            {
+              "name": "TEST_IMAGE", 
+              "labels": [ { "text": "Test Image" } ], 
+              "contentType": "Image", 
+              "length": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\CHMLib">
+      <UniqueIdentifier>{4557ed61-595d-4fb6-83a8-ec986d11821d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CHMLib">
+      <UniqueIdentifier>{0107486e-f497-49d3-a45c-43ea0c174b73}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zHelp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChmFileReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\CHMLib\lzx.c">
+      <Filter>Source Files\CHMLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\CHMLib\chm_lib.c">
+      <Filter>Source Files\CHMLib</Filter>
+    </ClCompile>
+    <ClCompile Include="ChmFileVirtualFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="zHelp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ChmFileReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\CHMLib\lzx.h">
+      <Filter>Header Files\CHMLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\CHMLib\chm_lib.h">
+      <Filter>Header Files\CHMLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ChmFileVirtualFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{40427473-971C-41EE-ADEB-23795522E112}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <ProjectName>zUtilF</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZUTILF_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZUTILF_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="DropFilesListCtrl.cpp" />
+    <ClCompile Include="BatchMeterDlg.cpp" />
+    <ClCompile Include="ChoiceDlg.cpp" />
+    <ClCompile Include="ColorPickerComboBox.cpp" />
+    <ClCompile Include="CSButton.cpp" />
+    <ClCompile Include="EditControls.cpp" />
+    <ClCompile Include="HtmlDialogFunctionRunner.cpp" />
+    <ClCompile Include="ImageCaptureDlg.cpp" />
+    <ClCompile Include="ImageFileDialog.cpp" />
+    <ClCompile Include="ImageManager.cpp" />
+    <ClCompile Include="ImageSelectorDlg.cpp" />
+    <ClCompile Include="ImageViewDlg.cpp" />
+    <ClCompile Include="LoggingListBox.cpp" />
+    <ClCompile Include="MDIFrameWndHelpers.cpp" />
+    <ClCompile Include="MsgDial.cpp" />
+    <ClCompile Include="NoteEditDlg.cpp" />
+    <ClCompile Include="ProcessSummaryDlg.cpp" />
+    <ClCompile Include="ProgressDlg.cpp" />
+    <ClCompile Include="ProgressDlg2.cpp" />
+    <ClCompile Include="ProgressDlgFactory.cpp" />
+    <ClCompile Include="RectExt.cpp" />
+    <ClCompile Include="SelectDlg.cpp" />
+    <ClCompile Include="SelectFileDlg.cpp" />
+    <ClCompile Include="SettingsDlg.cpp" />
+    <ClCompile Include="SrtHdrCt.cpp" />
+    <ClCompile Include="SrtLstCt.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="StyledComboBox.cpp" />
+    <ClCompile Include="SystemIcon.cpp" />
+    <ClCompile Include="TextInputDlg.cpp" />
+    <ClCompile Include="TextReportDlg.cpp" />
+    <ClCompile Include="ThreadedProgressDlg.cpp" />
+    <ClCompile Include="WindowsDocsDlg.cpp" />
+    <ClCompile Include="WindowsMenuManager.cpp" />
+    <ClCompile Include="zUtilF.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zUtilF.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DocViewIterators.h" />
+    <ClInclude Include="DropFilesListCtrl.h" />
+    <ClInclude Include="ApplicationShutdownRunner.h" />
+    <ClInclude Include="BatchMeterDlg.h" />
+    <ClInclude Include="ChoiceDlg.h" />
+    <ClInclude Include="ColorPickerComboBox.h" />
+    <ClInclude Include="CSButton.h" />
+    <ClInclude Include="DynamicLayoutControlResizer.h" />
+    <ClInclude Include="EditControls.h" />
+    <ClInclude Include="HtmlDialogFunctionRunner.h" />
+    <ClInclude Include="ImageCaptureDlg.h" />
+    <ClInclude Include="ImageFileDialog.h" />
+    <ClInclude Include="ImageManager.h" />
+    <ClInclude Include="ImageSelectorDlg.h" />
+    <ClInclude Include="ImageViewDlg.h" />
+    <ClInclude Include="LoggingListBox.h" />
+    <ClInclude Include="DynamicMenuBuilder.h" />
+    <ClInclude Include="MFCMenuBarWithoutSerializableState.h" />
+    <ClInclude Include="MsgDial.h" />
+    <ClInclude Include="MsgOpt.h" />
+    <ClInclude Include="MDIFrameWndHelpers.h" />
+    <ClInclude Include="NoteEditDlg.h" />
+    <ClInclude Include="PopupInfoLinkCtrl.h" />
+    <ClInclude Include="ProcessSummaryDlg.h" />
+    <ClInclude Include="ProcessSummaryReporter.h" />
+    <ClInclude Include="ProgressDlg.h" />
+    <ClInclude Include="ProgressDlg2.h" />
+    <ClInclude Include="ProgressDlgFactory.h" />
+    <ClInclude Include="DialogValidators.h" />
+    <ClInclude Include="Rectext.h" />
+    <ClInclude Include="resource_shared.h" />
+    <ClInclude Include="SelectDlg.h" />
+    <ClInclude Include="SelectFileDlg.h" />
+    <ClInclude Include="SettingsDlg.h" />
+    <ClInclude Include="SplitterWndTwoColumnProportionalResize.h" />
+    <ClInclude Include="SplitterWndWithDifferingViews.h" />
+    <ClInclude Include="SrtHdrCt.h" />
+    <ClInclude Include="SrtLstCt.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="StyledComboBox.h" />
+    <ClInclude Include="SystemIcon.h" />
+    <ClInclude Include="TextInputDlg.h" />
+    <ClInclude Include="TextReportDlg.h" />
+    <ClInclude Include="ThreadedProgressDlg.h" />
+    <ClInclude Include="UIThreadRunner.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="WindowsDocsDlg.h" />
+    <ClInclude Include="WindowsMenuManager.h" />
+    <ClInclude Include="zUtilF.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

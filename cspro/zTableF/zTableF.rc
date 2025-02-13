@@ -1,0 +1,1456 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "resource_shared.h"
+#include "../zDesignerF/resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""resource_shared.h""\r\n"
+    "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "FileDescription", "zTableF DLL"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "zTableF"
+            VALUE "OriginalFilename", "zTableF.DLL"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_TABLE_FRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New...\tCtrl+N",             ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close\tCtrl+F4",             ID_FILE_CSPRO_CLOSE
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_CSPRO_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_CSPRO_SAVE_AS
+        MENUITEM "Save &Tables...",             ID_FILE_SAVE_TABLE
+        MENUITEM SEPARATOR
+        MENUITEM "Add &Files...",               ID_FILE_ADD_FILE
+        MENUITEM "&Drop Files...",              ID_FILE_DROP_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "&Load Preferences...",        ID_TOOLS_IMPORTTFT
+        MENUITEM "Save Preferences...",         ID_TOOLS_EXPORTTFT
+        MENUITEM SEPARATOR
+        MENUITEM "&Run...\tCtrl+R",             ID_RUNTAB
+        MENUITEM "Run &in Parts...",            ID_RUN_PCS
+        MENUITEM SEPARATOR
+        MENUITEM "Page Set&up...",              ID_EDIT_TBL_PRINTFMT
+        MENUITEM "Print S&etup...",             ID_FILE_PRINT_SETUP
+        MENUITEM "Print Pre&view",              ID_VIEW_PAGEPRINTVIEW
+        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Add Table",                  ID_ADD_TABLE
+        MENUITEM "&Insert Table",               ID_INSERT_TABLE
+        MENUITEM "&Delete Table",               ID_DELETE_TABLE
+        MENUITEM SEPARATOR
+        MENUITEM "Tally Attri&butes Table\tCtrl+B", ID_EDIT_TBL_TALLYATTRIB
+        MENUITEM "A&rea\tAlt+A",                ID_AREA
+        MENUITEM SEPARATOR
+        MENUITEM "Format Table...",             ID_EDIT_TBL_FMT
+        MENUITEM "Format Application...",       ID_EDIT_APP_FMT
+        MENUITEM "Format Print Table...",       ID_EDIT_TBL_PRINTFMT
+        MENUITEM SEPARATOR
+        MENUITEM "&Go To...\tCtrl+G",           ID_EDIT_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "Copy Cells Onl&y",            ID_EDIT_COPYCELLSONLY
+        MENUITEM "Copy Table &Spec",            ID_EDIT_COPYTABLESTRUCTURE
+        MENUITEM "Paste Table Spec",            ID_EDIT_PASTETABLE
+        MENUITEM SEPARATOR
+        MENUITEM "Select A&ll\tCtrl+A",         ID_SELECTALL
+        MENUITEM "Cancel Selec&tion\tEsc",      ID_DESELECTALL
+        MENUITEM SEPARATOR
+        MENUITEM "E&xclude Table from Run",     ID_EDIT_TABLE_EXCLUDE
+        MENUITEM "Exclude All But T&his ",      ID_EDIT_EXCLUDEALLBUTTHIS
+        MENUITEM "Incl&ude All Tables",         ID_EDIT_INCLUDEALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Preferences",                ID_EDIT_TBL_OPTIONS
+        MENUITEM SEPARATOR
+        MENUITEM "&Find...\tCtrl+F",            ID_TBL_EDIT_FIND
+        MENUITEM "Find &Next \tF3",             ID_FIND_NEXT
+        MENUITEM "R&eplace...\tCtrl+H",         ID_REPLACE
+        MENUITEM "Generate Logic",              ID_EDIT_GENERATELOGIC
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Names in Trees\tCtrl+T",     ID_VIEW_NAMES
+        MENUITEM "Append Labels to Names in Tree", ID_VIEW_NAMES_WITH_LABELS
+        MENUITEM "&Full Screen\tCtrl+J",        ID_VIEW_FULLSCREEN
+        MENUITEM "&Hidden Parts\tCtrl+D",       ID_DESIGN_VIEW
+        MENUITEM SEPARATOR
+        MENUITEM "&Previous Table\tAlt+Shift+Left Arrow", ID_VIEW_PREVIOUS_TABLE
+        MENUITEM "Ne&xt Table\tAlt+Shift+Right Arrow", ID_VIEW_NEXT_TABLE
+        MENUITEM SEPARATOR
+        MENUITEM "Zoom &In\tCtrl+Plus",         ID_VIEW_ZOOM_IN
+        MENUITEM "Zoom &Out\tCtrl+Minus",       ID_VIEW_ZOOM_OUT
+        MENUITEM SEPARATOR
+        MENUITEM "Fa&cing Pages",               ID_VIEW_BOOKLAYOUT
+        MENUITEM "M&ultiple Pages...",          ID_VIEW_FACING
+        MENUITEM "Fir&st Page\tAlt+Home",       ID_VIEW_FIRST_PAGE
+        MENUITEM "Pre&vious page\tAlt+Left Arrow", ID_VIEW_PREV_PAGE
+        MENUITEM "Next pa&ge\tAlt+Right Arrow", ID_VIEW_NEXT_PAGE
+        MENUITEM "&Last page\tAlt+End",         ID_VIEW_LAST_PAGE
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "Application Properties",      ID_OPTIONS_PROPERTIES
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Data Viewer",                ID_TOOLS_DATAVIEWER
+        MENUITEM "&Text Viewer",                ID_TOOLS_TEXTVIEW
+        MENUITEM "Ta&ble Viewer",               ID_TOOLS_TABLEVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Tabulate &Frequencies",       ID_TOOLS_FREQ
+        MENUITEM SEPARATOR
+        MENUITEM "Deploy Application",          ID_TOOLS_DEPLOY
+        MENUITEM "&Pack Application",           ID_TOOLS_PACK
+        MENUITEM SEPARATOR
+        MENUITEM "&Compare Data",               ID_TOOLS_COMPARE
+        MENUITEM "Conc&atenate Data",           ID_TOOLS_CONCAT
+        MENUITEM "Excel to CSPro",              ID_TOOLS_EXCEL2CSPRO
+        MENUITEM "&Export Data",                ID_TOOLS_EXPORT
+        MENUITEM "&Index Data",                 ID_TOOLS_INDEX
+        MENUITEM "&Reformat Data",              ID_TOOLS_REFORMAT
+        MENUITEM "&Sort Data",                  ID_TOOLS_SORT
+        MENUITEM SEPARATOR
+        MENUITEM "Paradata Concatenator",       ID_TOOLS_PARADATACONCAT
+        MENUITEM "Paradata Viewer",             ID_TOOLS_PARADATAVIEWER
+        MENUITEM SEPARATOR
+        MENUITEM "CSCode",                      ID_TOOLS_CSCODE
+        MENUITEM "CSDocument",                  ID_TOOLS_CSDOCUMENT
+        MENUITEM "CSView",                      ID_TOOLS_CSVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "PFF Editor",                  ID_TOOLS_PFFEDITOR
+        MENUITEM "Production Runner",           ID_TOOLS_PRODUCTIONRUNNER
+        MENUITEM "Operator Statistics Viewer",  ID_TOOLS_OPERATORSTATSVIEWER
+        MENUITEM "Save Array Viewer",           ID_TOOLS_SAVEARRAYVIEWER
+        MENUITEM "Text Encoding Converter",     ID_TOOLS_TEXTCONVERTER
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile Top to Bottom",         ID_WINDOW_TILE_HORZ
+        MENUITEM "Tile &Side by Side",          ID_WINDOW_TILE_VERT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "What's &New in CSPro?",       ID_HELP_WHAT_IS_NEW
+        MENUITEM "&Examples Folder",            ID_HELP_EXAMPLES
+        MENUITEM SEPARATOR
+        MENUITEM "Mailing &List Signup",        ID_HELP_MAILING_LIST
+        POPUP "&Troubleshooting"
+        BEGIN
+            MENUITEM "&Technical Support",          ID_HELP_TROUBLESHOOTING
+            MENUITEM "&Sync.log file",              ID_HELP_SHOW_SYNC_LOG
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Android CS&Entry App",        ID_HELP_GOOGLEPLAY
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSPro",                ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_TABLE_FRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_QUICK_QUIT
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_CSPRO_SAVE
+    BUTTON      ID_FILE_SAVE_TABLE
+    SEPARATOR
+    BUTTON      ID_EDIT_TBL_PRINTFMT
+    BUTTON      ID_VIEW_PAGEPRINTVIEW
+    BUTTON      ID_FILE_PRINT
+    SEPARATOR
+    BUTTON      ID_RUNTAB
+    SEPARATOR
+    BUTTON      ID_ADD_TABLE
+    BUTTON      ID_INSERT_TABLE
+    BUTTON      ID_DELETE_TABLE
+    SEPARATOR
+    BUTTON      ID_EDIT_TBL_TALLYATTRIB
+    BUTTON      ID_AREA
+    SEPARATOR
+    BUTTON      ID_EDIT_COPY
+    SEPARATOR
+    BUTTON      ID_VIEW_PREVIOUS_TABLE
+    BUTTON      ID_VIEW_NEXT_TABLE
+    SEPARATOR
+    BUTTON      ID_WINDOW_DICTS
+    BUTTON      ID_WINDOW_FORMS
+    BUTTON      ID_WINDOW_ORDER
+    BUTTON      ID_WINDOW_TABLES
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+    BUTTON      ID_VIEW_ZOOM_OUT
+    BUTTON      ID_AREA_COMBO
+    BUTTON      ID_VIEW_ZOOM_IN
+    BUTTON      ID_PRINTVIEW_CLOSE
+END
+
+IDR_PRTVIEW_NAVIGATION_BAR TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_VIEW_FIRST_PAGE
+    BUTTON      ID_VIEW_PREV_PAGE
+    BUTTON      ID_VIEW_NEXT_PAGE
+    BUTTON      ID_VIEW_LAST_PAGE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TABLE_FRAME         BITMAP                  "res\\Toolbar.bmp"
+
+IDR_PRTVIEW_NAVIGATION_BAR BITMAP                  "res\\toolbar1.bmp"
+
+IDB_SEPARATE            BITMAP                  "res\\BothSep.bmp"
+
+IDB_INTERLEAVE          BITMAP                  "res\\BothInt.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_TABLE_FRAME         ICON                    "res\\tabulate.ico"
+
+IDI_ITEM                ICON                    "res\\ico00002.ico"
+
+IDI_VSET                ICON                    "res\\vset.ico"
+
+IDI_SUBITEM             ICON                    "res\\subitem.ico"
+
+IDI_TLEVEL              ICON                    "res\\ico00003.ico"
+
+IDI_VSETC               ICON                    "res\\ico00001.ico"
+
+IDI_TABLECOL            ICON                    "res\\tablecol.ico"
+
+IDI_TABLE               ICON                    "res\\table.ico"
+
+IDI_SUBITEMC            ICON                    "res\\icon1.ico"
+
+IDI_ITEMC               ICON                    "res\\itemc.ico"
+
+IDI_TABLE_LOGIC         ICON                    "res\\tablelog.ico"
+
+IDI_XTBL                ICON                    "Res\\xtbl.ico"
+
+IDI_XTBLOG              ICON                    "Res\\xtblog.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_TABLE_FRAME ACCELERATORS
+BEGIN
+    "A",            ID_AREA,                VIRTKEY, ALT, NOINVERT
+    "L",            ID_CHANGE_LANGUAGE,     VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, SHIFT, NOINVERT
+    VK_ESCAPE,      ID_DESELECTALL,         VIRTKEY, NOINVERT
+    "D",            ID_DESIGN_VIEW,         VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "G",            ID_EDIT_GOTO,           VIRTKEY, CONTROL, NOINVERT
+    "B",            ID_EDIT_TBL_TALLYATTRIB, VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          ID_FILE_CSPRO_CLOSE,    VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_CSPRO_SAVE,     VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_FIND_NEXT,           VIRTKEY, NOINVERT
+    VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    "H",            ID_REPLACE,             VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_RUNTAB,              VIRTKEY, CONTROL, NOINVERT
+    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
+    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
+    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
+    "K",            ID_TBL_COMPILE,         VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_TBL_EDIT_FIND,       VIRTKEY, CONTROL, NOINVERT
+    VK_HOME,        ID_VIEW_FIRST_PAGE,     VIRTKEY, ALT, NOINVERT
+    VK_END,         ID_VIEW_LAST_PAGE,      VIRTKEY, ALT, NOINVERT
+    "T",            ID_VIEW_NAMES,          VIRTKEY, CONTROL, NOINVERT
+    VK_RIGHT,       ID_VIEW_NEXT_PAGE,      VIRTKEY, ALT, NOINVERT
+    VK_RIGHT,       ID_VIEW_NEXT_TABLE,     VIRTKEY, SHIFT, ALT, NOINVERT
+    VK_LEFT,        ID_VIEW_PREV_PAGE,      VIRTKEY, ALT, NOINVERT
+    VK_LEFT,        ID_VIEW_PREVIOUS_TABLE, VIRTKEY, SHIFT, ALT, NOINVERT
+    "L",            ID_VIEW_TAB_LOGIC,      VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_PLUS,    ID_VIEW_ZOOM_IN,        VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_MINUS,   ID_VIEW_ZOOM_OUT,       VIRTKEY, CONTROL, NOINVERT
+    "M",            ID_VIEW_TABLE,          VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_PICK_TABLES DIALOG 0, 0, 235, 121
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_SAVETBLS,2,2,231,95,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,3,103,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,63,103,50,14
+    PUSHBUTTON      "&Select All",IDC_CHECKALL,123,103,50,14
+    PUSHBUTTON      "&Help",ID_HELP,183,103,50,14
+END
+
+IDD_FACINGPAGES DIALOGEX 0, 0, 128, 70
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Multiple Pages"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    COMBOBOX        IDC_HORZ,73,7,48,89,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_VERT,73,25,48,77,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,7,49,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,71,49,50,14
+    LTEXT           "Horizontal pages:",IDC_STATIC,7,9,56,8
+    LTEXT           "Vertical pages:",IDC_STATIC,7,27,48,8
+END
+
+IDD_AREA DIALOGEX 0, 0, 310, 252
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Area"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_QUESTID_LIST,14,25,110,80,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_AREAID_LIST,185,25,110,80,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Add >>",IDC_AID_ADD,130,31,50,14
+    PUSHBUTTON      "<< &Remove",IDC_AID_REMOVE,130,49,50,14
+    PUSHBUTTON      "Move &Up",IDC_MOVE_UP,130,67,50,14
+    PUSHBUTTON      "Move &Down",IDC_MOVE_DOWN,130,85,50,14
+    COMBOBOX        IDC_QUEST_REC,14,119,110,126,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Keep Areas with No Tallies",IDC_SHOW_ZERO_AREAS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,25,154,100,10
+    CONTROL         "&Standard",IDC_STANDARD,"Button",BS_AUTORADIOBUTTON | WS_GROUP,26,188,45,10
+    CONTROL         "&Custom",IDC_CUSTOM,"Button",BS_AUTORADIOBUTTON,26,204,40,10
+    COMBOBOX        IDC_LOWEST_LEVEL,129,186,144,91,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Edit",IDC_EDIT_CUSTOM,129,202,50,14
+    DEFPUSHBUTTON   "OK",IDOK,32,231,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,231,50,14
+    PUSHBUTTON      "&Help",ID_HELP,227,231,50,14
+    GROUPBOX        "Area Structure",IDC_STATIC,7,3,296,134
+    LTEXT           "Questionnaire Items",IDC_STATIC,33,13,66,8
+    LTEXT           "Area Items",IDC_STATIC,224,13,36,8
+    LTEXT           "Lowest Level:",IDC_STATIC,82,188,45,8
+    GROUPBOX        "Consolidation",IDC_STATIC,7,177,296,45
+    LTEXT           "Include Items from Record",IDC_STATIC,20,108,86,8
+    GROUPBOX        "Tabulation",IDC_STATIC,7,142,296,29
+END
+
+IDD_AREA_CONSPEC DIALOGEX 0, 0, 445, 287
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Area Custom Consolidation Specifications"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "",IDC_CONSPEC_GRID,7,28,431,229,0,WS_EX_CLIENTEDGE
+    PUSHBUTTON      "&Add",IDC_ADD,99,7,50,14
+    PUSHBUTTON      "&Insert",IDC_INSERT,197,7,50,14
+    PUSHBUTTON      "&Delete",IDC_DELETE,295,7,50,14
+    DEFPUSHBUTTON   "OK",IDOK,99,265,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,197,265,50,14
+    PUSHBUTTON      "&Help",ID_HELP,295,265,50,14
+END
+
+IDD_TALLY_VAR DIALOGEX 0, 0, 231, 244
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Tally Attributes (Sex)"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,21,223,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,91,223,50,14
+    PUSHBUTTON      "&Help",ID_HELP,159,223,50,14
+    COMBOBOX        IDC_COMB_TOTPOS,76,13,142,99,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Position:",IDC_STATIC,17,15,28,8
+    LTEXT           "Type:",IDC_STATIC,17,51,20,8
+    LTEXT           "Position:",IDC_STATIC,17,66,28,8
+    COMBOBOX        IDC_COMB_PERTYPE,76,49,142,76,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMB_PERPOS,76,66,142,65,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Percents",IDC_STATIC,7,37,217,64
+    CONTROL         "M&inimum",IDC_DISP_MIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,91,178,43,10
+    CONTROL         "Ma&ximum",IDC_DISP_MAX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,91,193,45,10
+    CONTROL         "M&ode",IDC_CT_MODE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,137,124,34,10
+    CONTROL         "Me&dian",IDC_CT_MEDIAN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,137,139,39,10
+    GROUPBOX        "Statistics",IDC_STATIC,7,107,217,110
+    CONTROL         "N-tiles",IDC_NTILES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,137,154,36,10
+    COMBOBOX        IDC_PCTSONLY,110,83,55,91,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Percents Only",IDC_STATIC,59,84,46,8
+    GROUPBOX        "Total",IDC_STATIC,7,3,217,30
+    EDITTEXT        IDC_EDT_NTILES,179,152,22,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_NUMTILES_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS,201,152,11,14
+    CONTROL         "&Variance",IDC_DISP_VAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,51,154,44,10
+    CONTROL         "&Std Deviation",IDC_DISP_STDDEV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,51,139,59,10
+    CONTROL         "&Mean",IDC_CT_MEAN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,51,124,34,10
+END
+
+IDD_TALLY_TABLE DIALOGEX 0, 0, 504, 350
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Tally Attributes (Table)"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,166,330,50,14
+    COMBOBOX        IDC_SUBTABLES,86,15,272,69,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_UNIVSTRING,59,85,299,26,ES_MULTILINE | WS_VSCROLL
+    EDITTEXT        IDC_WEIGHT,59,67,222,14,ES_AUTOHSCROLL
+    LTEXT           "Table (Subtables):",IDC_STATIC,16,18,60,8
+    LTEXT           "Unit Tallied:",IDC_STATIC,17,36,38,8
+    EDITTEXT        IDC_VALUE,59,50,222,14,ES_AUTOHSCROLL
+    LTEXT           "Universe:",IDC_STATIC,23,88,32,8
+    LTEXT           "Weight:",IDC_STATIC,29,69,26,8
+    LTEXT           "Value Tallied:",IDC_STATIC,12,52,43,8
+    PUSHBUTTON      "Cancel",IDCANCEL,226,330,50,14
+    PUSHBUTTON      "&Help",ID_HELP,286,330,50,14
+    PUSHBUTTON      "&Edit",IDC_UNIVERSE,364,85,46,14
+    COMBOBOX        IDC_UNIT,59,34,222,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Area",IDC_STATIC,9,293,485,31
+    COMBOBOX        IDC_BREAKLEVEL,86,305,195,116,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Lowest Break Level:",IDC_STATIC,16,307,65,8
+    GROUPBOX        "Tally",IDC_STATIC,9,3,485,193
+    CONTROL         "Use custom special values:",IDC_USE_CUSTOM_SPECIAL_VALUES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,263,101,10
+    CONTROL         "NotAppl (blank) values",IDC_SPECIAL_VAL_NOTAPPL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,133,263,87,10
+    CONTROL         "Missing values",IDC_SPECIAL_VAL_MISSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,238,263,61,10
+    CONTROL         "Refused values",IDC_SPECIAL_VAL_REFUSED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,329,263,65,10
+    CONTROL         "Default (invalid) values",IDC_SPECIAL_VAL_DEFAULT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,133,275,89,10
+    CONTROL         "Undefined values (not in value set)",IDC_SPECIAL_VAL_UNDEFINED,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,238,275,128,10
+    GROUPBOX        "Special values",IDC_STATIC,9,253,485,36
+    PUSHBUTTON      "Apply to All Tables",IDC_WGHT_APPLYALL,285,67,73,14
+    PUSHBUTTON      "Apply to All Tables",IDC_UNIV_APPLYALL,414,85,73,14
+    LTEXT           "Tab Logic:",IDC_STATIC,21,116,34,8
+    PUSHBUTTON      "&Edit",IDC_BTN_TABLOGIC,441,114,46,14
+    PUSHBUTTON      "&Edit",IDC_BTN_POSTCALC,442,210,46,14
+    GROUPBOX        "PostCalc",IDC_STATIC,9,200,485,48
+    EDITTEXT        IDC_POSTCALC,59,210,378,32,ES_MULTILINE | WS_VSCROLL
+    EDITTEXT        IDC_TABLOGIC,59,114,378,76,ES_MULTILINE | WS_VSCROLL
+    PUSHBUTTON      "Modify All Subtables",IDC_APPLYALL_UNIT,285,33,73,14
+    LTEXT           "Logic:",IDC_STATIC,35,212,20,8
+END
+
+IDD_FORMAT_TABLE DIALOGEX 0, 0, 360, 132
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Format (Table)"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,52,111,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,188,111,50,14
+    CONTROL         "Include &Subtitle",IDC_INCL_SUBTITLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,52,15,65,10
+    CONTROL         "Include &Pagenote",IDC_INCL_PGNOTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,52,28,72,10
+    CONTROL         "Include &Endnote",IDC_INCL_FOOTNOTE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,52,41,68,10
+    LTEXT           "Left St&ub",IDC_STATIC,32,75,30,8
+    COMBOBOX        IDC_LSTUB_LEADERING,75,72,85,99,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "R&ight Stub",IDC_STATIC,32,89,34,8
+    COMBOBOX        IDC_RSTUB_LEADERING,75,87,85,92,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Frequency",IDC_STATIC,210,15,35,8
+    COMBOBOX        IDC_FRQ_RDRBRKS,253,14,85,168,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Left",IDC_STATIC,210,47,14,8
+    COMBOBOX        IDC_BRDRL,253,43,85,97,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Ri&ght",IDC_STATIC,210,61,18,8
+    COMBOBOX        IDC_BRDRR,253,58,85,108,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Top",IDC_STATIC,210,75,13,8
+    COMBOBOX        IDC_BRDRT,253,73,85,86,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Bottom",IDC_STATIC,210,89,24,8
+    COMBOBOX        IDC_BRDRB,253,88,85,81,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Reset",IDC_RESET,120,111,50,14
+    GROUPBOX        "Stub Leadering",IDC_STATIC,7,64,168,42
+    GROUPBOX        "Borders",IDC_STATIC,185,35,168,71
+    PUSHBUTTON      "&Help",ID_HELP,256,111,50,14
+    GROUPBOX        "Additional Elements",IDC_STATIC,7,3,168,54
+    GROUPBOX        "Stub Reader Breaks",IDC_STATIC,185,3,168,29
+END
+
+IDD_FORMAT_APP DIALOGEX 0, 0, 259, 242
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Format (Application)"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_DECIMAL_SYMBL,125,12,114,41,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Cell Formating",IDC_STATIC,6,3,246,118
+    LTEXT           "&Decimal Symbol:",IDC_STATIC,31,14,52,8
+    LTEXT           "Digit &Grouping Symbol:",IDC_STATIC,31,29,73,8
+    COMBOBOX        IDC_DIGIT_GRP_SYMBL,125,27,114,49,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_DIGIT_GRP,125,42,114,41,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "D&igit Grouping:",IDC_STATIC,31,44,48,8
+    LTEXT           "Display Leading &Zeros:",IDC_STATIC,31,59,73,8
+    COMBOBOX        IDC_DISPLAY_LDG_ZEROES,125,57,114,49,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Measurement System:",IDC_STATIC,31,74,72,8
+    COMBOBOX        IDC_UNITS,125,72,114,49,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_ZERO_MASK,125,87,114,41,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Zero M&ask:",IDC_STATIC,31,89,36,8
+    LTEXT           "&Rounded to Zero Mask:",IDC_STATIC,31,104,76,8
+    COMBOBOX        IDC_ROUND_MASK,125,102,114,49,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Special Text",IDC_STATIC,7,128,245,44
+    EDITTEXT        IDC_TITLE_TEMPLATE,125,137,114,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_DEFAUL_TXT,16,199,101,49,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_CONTINUATION,125,154,114,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ALTERNATE_TXT,125,198,114,14,ES_AUTOHSCROLL
+    LTEXT           "&Title Template:",IDC_STATIC,31,140,48,8
+    GROUPBOX        "Generated Text",IDC_STATIC,7,178,245,39
+    LTEXT           "&Continuation Text:",IDC_STATIC,31,155,61,8
+    LTEXT           "Default Text",IDC_STATIC,18,189,41,8
+    LTEXT           "Alternate Text",IDC_STATIC,129,188,48,8
+    DEFPUSHBUTTON   "OK",IDOK,27,222,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,104,222,50,14
+    PUSHBUTTON      "&Help",ID_HELP,181,222,50,14
+END
+
+IDD_FORMAT_PRINT DIALOGEX 0, 0, 342, 241
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Format Print (Table)"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_TBL_LAYOUT,150,11,106,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_HEADER_FREQUENCY,150,26,106,74,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_PAGE_MARGIN_LEFT,132,74,106,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PAGE_MARGIN_RIGHT,132,89,106,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PAGE_MARGIN_TOP,132,103,106,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PAGE_MARGIN_BOTTOM,132,117,106,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Make Equal",IDC_MAKE_EQUAL,161,56,50,14
+    EDITTEXT        IDC_HEADER_LEFT,48,159,76,14,ES_AUTOHSCROLL | WS_GROUP
+    EDITTEXT        IDC_HEADER_CENTER,126,159,76,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_HEADER_RIGHT,203,159,76,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_FOOTER_LEFT,48,177,76,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_FOOTER_CENTER,126,177,76,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_FOOTER_RIGHT,203,177,76,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Font",IDC_HEADER_FONT,285,159,40,14
+    PUSHBUTTON      "Font",IDC_FOOTER_FONT,285,177,40,14
+    PUSHBUTTON      "&Date",IDC_BUTTON_DATE,48,198,24,12,NOT WS_TABSTOP
+    PUSHBUTTON      "&Time",IDC_BUTTON_TIME,78,198,24,12,NOT WS_TABSTOP
+    PUSHBUTTON      "Table &File",IDC_BUTTON_FILE,108,198,40,12,NOT WS_TABSTOP
+    PUSHBUTTON      "&Page",IDC_BUTTON_PAGE,200,198,24,12,NOT WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,78,220,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,145,220,50,14
+    PUSHBUTTON      "&Help",ID_HELP,212,220,50,14
+    LTEXT           "Insert:",IDC_STATIC,22,200,22,8
+    LTEXT           "Header:",IDC_STATIC,20,161,26,8
+    LTEXT           "Footer:",IDC_STATIC,20,179,24,8
+    CTEXT           "Center",IDC_STATIC,152,149,26,8
+    CTEXT           "Right",IDC_STATIC,229,149,26,8
+    CTEXT           "Left",IDC_STATIC,70,149,26,8
+    GROUPBOX        "Page Margins",IDC_STATIC,64,47,198,89
+    LTEXT           "&Left:",IDC_STATIC,79,76,16,8
+    LTEXT           "&Right:",IDC_STATIC,79,90,20,8
+    LTEXT           "&Top:",IDC_STATIC,79,104,16,8
+    LTEXT           "&Bottom:",IDC_STATIC,79,119,26,8
+    GROUPBOX        "Layout",IDC_STATIC,64,3,198,41
+    LTEXT           "&Stubs:",IDC_STATIC,80,14,22,8
+    GROUPBOX        "Folio Text",IDC_STATIC,7,141,328,75
+    LTEXT           "&Boxhead Frequency:",IDC_STATIC,79,28,68,8
+    LTEXT           "",IDC_UNITS1,242,75,8,8
+    LTEXT           "cm",IDC_UNITS2,242,90,10,8
+    LTEXT           "cm",IDC_UNITS3,242,104,10,8
+    LTEXT           "cm",IDC_UNITS4,241,119,10,8
+    EDITTEXT        IDC_START_PAGE,273,197,40,14,ES_AUTOHSCROLL
+    LTEXT           "Start Page:",IDC_START_PAGE_STATIC_LABEL,234,200,38,8
+    CONTROL         "",IDC_STARTPG_SPIN,"msctls_updown32",UDS_ARROWKEYS,314,197,11,14
+    PUSHBUTTON      "&Input File",IDC_BUTTON_INPUTFILE,154,198,40,12
+END
+
+IDD_FLASHMSG DIALOGEX 0, 0, 186, 46
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Static",IDC_FLASHMSG,7,7,172,31
+END
+
+IDD_FMT_COLORDLG DIALOGEX 2, 0, 304, 196
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Color"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "&Basic colors:",-1,4,4,140,9
+    CONTROL         "",720,"Static",SS_SIMPLE | WS_GROUP | WS_TABSTOP,4,14,140,86
+    LTEXT           "&Custom colors:",-1,4,106,140,9
+    CONTROL         "",721,"Static",SS_SIMPLE | WS_GROUP | WS_TABSTOP,4,116,140,28
+    PUSHBUTTON      "&Define Custom Colors >>",719,4,162,140,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,4,178,44,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,52,178,44,14,WS_GROUP
+    PUSHBUTTON      "&Help",1038,100,178,44,14,WS_GROUP
+    CONTROL         "",710,"Static",SS_SIMPLE | SS_SUNKEN,152,4,118,116
+    CONTROL         "",702,"Static",SS_SIMPLE | SS_SUNKEN,280,4,8,116
+    CONTROL         "",709,"Static",SS_SIMPLE | SS_SUNKEN,152,124,40,26
+    PUSHBUTTON      "&o",713,300,200,6,14,WS_GROUP
+    RTEXT           "Color",730,152,151,20,9
+    LTEXT           "|S&olid",731,172,151,20,9
+    RTEXT           "Hu&e:",723,194,126,20,9
+    EDITTEXT        703,216,124,18,12,WS_GROUP
+    RTEXT           "&Sat:",724,194,140,20,9
+    EDITTEXT        704,216,138,18,12,WS_GROUP
+    RTEXT           "&Lum:",725,194,154,20,9
+    EDITTEXT        705,216,152,18,12,WS_GROUP
+    RTEXT           "&Red:",726,243,126,24,9
+    EDITTEXT        706,269,124,18,12,WS_GROUP
+    RTEXT           "&Green:",727,243,140,24,9
+    EDITTEXT        707,269,138,18,12,WS_GROUP
+    RTEXT           "Bl&ue:",728,243,154,24,9
+    EDITTEXT        708,269,152,18,12,WS_GROUP
+    PUSHBUTTON      "&Add to Custom Colors",712,152,178,142,14,WS_GROUP
+    CONTROL         "Use Default",IDC_DEF_CLR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,149,72,10
+END
+
+IDD_FMT_FONTDLG DIALOGEX 13, 54, 263, 197
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "&Font:",1088,7,7,40,9
+    COMBOBOX        1136,7,16,98,76,CBS_SIMPLE | CBS_OWNERDRAWFIXED | CBS_AUTOHSCROLL | CBS_SORT | CBS_HASSTRINGS | CBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font st&yle:",1089,110,7,44,9
+    COMBOBOX        1137,110,16,62,76,CBS_SIMPLE | CBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Size:",1090,177,7,30,9
+    COMBOBOX        1138,177,16,27,76,CBS_SIMPLE | CBS_OWNERDRAWFIXED | CBS_SORT | CBS_HASSTRINGS | CBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,210,16,45,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,210,32,45,14,WS_GROUP
+    PUSHBUTTON      "&Apply",1026,210,48,45,14,WS_GROUP
+    PUSHBUTTON      "&Help",1038,210,64,45,14,WS_GROUP
+    GROUPBOX        "Effects",1072,7,97,98,24,WS_GROUP
+    CONTROL         "&Underline",1041,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,110,51,10
+    GROUPBOX        "Sample",1073,110,97,94,43,WS_GROUP
+    CTEXT           "AaBbYyZz",1092,118,111,77,23,SS_NOPREFIX | NOT WS_VISIBLE
+    LTEXT           "",1093,7,176,196,20,SS_NOPREFIX | NOT WS_GROUP
+    LTEXT           "Sc&ript:",1094,110,147,30,9
+    COMBOBOX        1140,110,157,94,30,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_AUTOHSCROLL | CBS_HASSTRINGS | WS_BORDER | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Use Default Font",IDC_USE_DEF_FONT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,144,69,10
+    GROUPBOX        "Default",IDC_USE_DEFAULT_GROUPBOX,6,134,98,24,WS_GROUP
+END
+
+IDD_OBJECT_FORMATS_PAGE DIALOGEX 0, 0, 289, 119
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Choose one of the items below ""Object formats"" to set its default style.",IDC_STATIC,14,15,268,54
+END
+
+IDD_PRTVIEW_DLGBAR DIALOGEX 0, 0, 21, 19
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+END
+
+IDD_PRTVIEW_GOTO_PAGE DIALOGEX 0, 0, 186, 50
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Goto page"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Goto page:",IDC_STATIC,7,9,37,8
+    EDITTEXT        IDC_PAGE,55,7,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,39,31,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,99,31,50,14
+END
+
+IDD_PRTVIEW_GOTO_AREA DIALOGEX 0, 0, 210, 63
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Goto area"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Goto table:",IDC_STATIC,7,9,37,8
+    LTEXT           "Area:",IDC_STATIC,7,30,37,8
+    COMBOBOX        IDC_COMBO_AREA,53,27,150,127,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,35,43,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,43,50,14
+    COMBOBOX        IDC_TBL,53,7,150,112,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_PRTVIEW_GOTO_TBL DIALOGEX 0, 0, 186, 50
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Goto table"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Goto table:",IDC_STATIC,7,9,37,8
+    DEFPUSHBUTTON   "OK",IDOK,39,31,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,99,31,50,14
+    COMBOBOX        IDC_TBL,45,7,134,112,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_TABLE_PRINT_DLG DIALOGEX 32, 32, 288, 221
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Print"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Printer",1075,8,4,272,84,WS_GROUP
+    LTEXT           "&Name:",1093,16,20,36,8
+    COMBOBOX        1139,52,18,152,152,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
+    PUSHBUTTON      "&Properties...",1025,212,17,60,14,WS_GROUP
+    LTEXT           "Status:",1095,16,36,36,10,SS_NOPREFIX
+    CONTROL         "",1099,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | WS_GROUP,52,36,224,10
+    LTEXT           "Type:",1094,16,48,36,10,SS_NOPREFIX
+    CONTROL         "",1098,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | WS_GROUP,52,48,224,10
+    LTEXT           "Where:",1097,16,60,36,10,SS_NOPREFIX
+    CONTROL         "",1101,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | WS_GROUP,52,60,224,10
+    LTEXT           "Comment:",1096,16,72,36,10,SS_NOPREFIX
+    CONTROL         "",1100,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | WS_GROUP,52,72,156,10
+    CONTROL         "Print to fi&le",1040,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,212,72,64,12
+    GROUPBOX        "Print range",1072,8,92,144,92,WS_GROUP
+    RADIOBUTTON     "&All",1056,16,104,64,12,WS_GROUP
+    RADIOBUTTON     "C&urrent Page",IDC_CURRENT_PAGE,16,120,64,12
+    RADIOBUTTON     "Current &Table",IDC_CURRENT_TABLE,16,136,64,12
+    RADIOBUTTON     "Pa&ges",1058,16,152,36,12
+    RTEXT           "&from:",1089,53,152,20,8
+    EDITTEXT        1152,75,152,26,12,ES_NUMBER | WS_GROUP
+    RTEXT           "&to:",1090,103,152,16,8
+    EDITTEXT        1153,121,152,26,12,ES_NUMBER | WS_GROUP
+    RADIOBUTTON     "&Selected Tables",IDC_TABLES,16,168,66,12
+    PUSHBUTTON      "Select...",IDC_SELECT_TABLES,89,168,47,12
+    GROUPBOX        "Copies",1073,160,92,120,92,WS_GROUP
+    LTEXT           "Number of &copies:",1092,168,108,68,8
+    EDITTEXT        1154,240,106,32,12,ES_NUMBER | WS_GROUP
+    ICON            "",1086,162,124,20,20,SS_CENTERIMAGE | WS_GROUP
+    CONTROL         "C&ollate",1041,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,240,130,36,12
+    DEFPUSHBUTTON   "OK",IDOK,180,190,48,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,232,190,48,14
+    PUSHBUTTON      "&Help",ID_HELP,8,190,48,14
+END
+
+IDD_TABSET_PROP_DLG DIALOGEX 0, 0, 235, 71
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Table Set Properties"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_FF_LABEL,39,7,186,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_FF_NAME,39,27,140,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,24,50,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,92,50,50,14
+    PUSHBUTTON      "&Help",ID_HELP,160,50,50,14
+    LTEXT           "Label:",IDC_STATIC,7,10,20,8
+    LTEXT           "Name:",IDC_STATIC,7,30,22,8
+END
+
+IDD_TABLE_PROP_DLG DIALOGEX 0, 0, 203, 52
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Table Properties"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_FF_NAME,39,7,140,12,ES_UPPERCASE | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,31,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,31,50,14
+    PUSHBUTTON      "&Help",ID_HELP,143,31,50,14
+    LTEXT           "Name:",-1,7,9,22,8
+END
+
+IDD_EDTLOGIC_DLG DIALOGEX 0, 0, 571, 343
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit Logic"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDT_LOGIC2,7,7,556,309,ES_MULTILINE | WS_VSCROLL
+    PUSHBUTTON      "OK",IDOK,228,321,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,293,321,50,14
+END
+
+IDD_TALLY_VAR_NEW DIALOGEX 0, 0, 344, 201
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Tally Attributes (Sex)"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,51,180,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,114,180,50,14
+    PUSHBUTTON      "&Help",ID_HELP,240,180,50,14
+    LTEXT           "Selected:",IDC_STATIC,208,7,31,8
+    LTEXT           "Available:",IDC_STATIC,7,7,32,8
+    PUSHBUTTON      "Add -->",IDC_ADD,147,31,50,14
+    PUSHBUTTON      "<-- Remove",IDC_REMOVE,147,50,50,14
+    PUSHBUTTON      "Up",IDC_UP,147,88,50,14
+    PUSHBUTTON      "Down",IDC_DOWN,147,108,50,14
+    PUSHBUTTON      "Options",IDC_OPTIONS,147,144,50,14
+    PUSHBUTTON      "&Reset",IDC_RESET,177,180,50,14
+    LISTBOX         IDC_LIST_AVAILABLE,8,16,129,156,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_SELECTED,210,16,129,156,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_TALLY_VAR_PERCENT DIALOGEX 0, 0, 180, 119
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Percent Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,96,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,65,96,50,14
+    PUSHBUTTON      "&Help",ID_HELP,123,96,50,14
+    COMBOBOX        IDC_PERCENT_TYPE,48,7,109,80,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Type:",IDC_STATIC,23,8,20,8
+    GROUPBOX        "Display of both counts and percents",IDC_STATIC,7,30,166,55
+    CONTROL         "Separate",IDC_SEPARATE,"Button",BS_AUTORADIOBUTTON | WS_GROUP,16,48,45,10
+    CONTROL         "Interleaved",IDC_INTERLEAVED,"Button",BS_AUTORADIOBUTTON,16,64,51,10
+    CONTROL         IDB_INTERLEAVE,IDC_INTERLEAVE_PIC,"Static",SS_BITMAP,93,47,57,28
+END
+
+IDD_TALLY_VAR_PROPORTION DIALOGEX 0, 0, 180, 71
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Proportion Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,50,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,65,50,50,14
+    PUSHBUTTON      "&Help",ID_HELP,123,50,50,14
+    COMBOBOX        IDC_TYPE,48,7,109,80,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Type:",IDC_STATIC,23,8,20,8
+    LTEXT           "Range:",IDC_STATIC,23,32,24,8
+    EDITTEXT        IDC_RANGE,48,30,109,14,ES_AUTOHSCROLL
+END
+
+IDD_TALLY_VAR_MEDIAN DIALOGEX 0, 0, 180, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Median Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,129,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,65,129,50,14
+    PUSHBUTTON      "&Help",ID_HELP,123,129,50,14
+    COMBOBOX        IDC_TYPE,48,7,109,80,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Type:",IDC_STATIC,23,8,20,8
+    GROUPBOX        "Generate calculation ranges using",IDC_STATIC,7,46,166,78
+    CONTROL         "Use value set ranges for calculation",IDC_USE_VSET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,24,29,130,10
+    EDITTEXT        IDC_MIN,63,61,70,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_MAX,63,81,70,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_INTERVAL,63,101,70,14,ES_AUTOHSCROLL
+    LTEXT           "Min:",IDC_STATIC,32,64,14,8
+    LTEXT           "Max:",IDC_STATIC,32,84,17,8
+    LTEXT           "Interval:",IDC_STATIC,32,103,29,8
+END
+
+IDD_TALLY_VAR_NTILES DIALOGEX 0, 0, 180, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "N-tiles Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,129,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,65,129,50,14
+    PUSHBUTTON      "&Help",ID_HELP,123,129,50,14
+    GROUPBOX        "Generate calculation ranges using",IDC_STATIC,7,46,166,78
+    CONTROL         "Use value set ranges for calculation",IDC_USE_VSET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,24,29,130,10
+    EDITTEXT        IDC_MIN,63,61,70,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_MAX,63,81,70,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_INTERVAL,63,101,70,14,ES_AUTOHSCROLL
+    LTEXT           "Min:",IDC_STATIC,32,64,14,8
+    LTEXT           "Max:",IDC_STATIC,32,84,17,8
+    LTEXT           "Interval:",IDC_STATIC,32,103,29,8
+    LTEXT           "Number:",IDC_STATIC,57,9,28,8
+    COMBOBOX        IDC_NUM_TILES,87,7,34,136,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_TALLY_VAR_TOTAL_PERCENT DIALOGEX 0, 0, 180, 53
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Total Percent Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,32,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,65,32,50,14
+    PUSHBUTTON      "&Help",ID_HELP,123,32,50,14
+    COMBOBOX        IDC_PERCENT_TYPE,48,7,109,80,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Type:",IDC_STATIC,23,8,20,8
+END
+
+IDD_TALLY_TABLE_UNITS DIALOGEX 0, 0, 280, 53
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Set Units for Every Subtable"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,30,32,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,114,32,50,14
+    PUSHBUTTON      "&Help",ID_HELP,198,32,50,14
+    LTEXT           "Unit Tallied:",IDC_STATIC,9,10,38,8
+    COMBOBOX        IDC_UNIT_SUBTABLES,51,8,222,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_FORMAT_OBJECT DIALOGEX 0, 0, 364, 198
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Format (Object)"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,60,179,50,14
+    CONTROL         "Hide",IDC_HIDECOMP,"Button",BS_AUTO3STATE | WS_TABSTOP,31,15,30,10
+    CONTROL         "Custom Text",IDC_CUSTOMTXT,"Button",BS_AUTO3STATE | WS_TABSTOP,98,15,57,10
+    LTEXT           "Arial, 10 point",IDC_FONT_DESC,15,56,99,8
+    PUSHBUTTON      "&Change",IDC_CHNGFONT,122,53,50,14
+    LTEXT           "Text Color",IDC_STATIC,29,73,34,8
+    CONTROL         "",IDC_BUTTON_TXTCOLR,"Button",BS_OWNERDRAW | WS_TABSTOP,67,70,14,14,WS_EX_CLIENTEDGE
+    LTEXT           "Fill Color",IDC_STATIC,98,73,28,8
+    CONTROL         "",IDC_BUTTON_FILLCOLR,"Button",BS_OWNERDRAW | WS_TABSTOP,129,70,14,14,WS_EX_CLIENTEDGE
+    GROUPBOX        "Indent",IDC_STATIC,7,89,171,43
+    CONTROL         "Use default indentation",IDC_DEFAULT_INDENTATION,"Button",BS_AUTO3STATE | WS_TABSTOP,15,99,118,10
+    LTEXT           "Left",IDC_STATIC_LEFT,22,115,14,8
+    EDITTEXT        IDC_INDENTL,39,113,33,14,ES_AUTOHSCROLL
+    LTEXT           "cm",IDC_UNITSL,76,115,10,8
+    LTEXT           "Right",IDC_STATIC_RIGHT,93,115,18,8
+    EDITTEXT        IDC_INDENTR,114,113,33,14,ES_AUTOHSCROLL
+    LTEXT           "cm",IDC_UNITSR,151,115,10,8
+    GROUPBOX        "Alignment",IDC_STATIC,7,133,171,41
+    LTEXT           "&Horizontal",IDC_STATIC,32,144,33,8
+    COMBOBOX        IDC_ALGNH,75,141,85,59,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Vertical",IDC_STATIC,32,157,24,8
+    COMBOBOX        IDC_ALGNV,75,156,85,49,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Lines",IDC_STATIC,186,3,171,71
+    LTEXT           "&Left",IDC_STATIC,211,15,14,8
+    COMBOBOX        IDC_BRDRL,254,11,85,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Right",IDC_STATIC,211,29,18,8
+    COMBOBOX        IDC_BRDRR,254,26,85,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Top",IDC_STATIC,211,43,13,8
+    COMBOBOX        IDC_BRDRT,254,41,85,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Bottom",IDC_STATIC,211,57,24,8
+    COMBOBOX        IDC_BRDRB,254,56,85,65,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Associated Cells",IDC_STATIC,186,77,171,97
+    CONTROL         "Extend Font into Cells",IDC_EXTND_FONT,"Button",BS_AUTO3STATE | WS_TABSTOP,199,87,86,10
+    CONTROL         "Extend Lines into Cells",IDC_EXTND_LINES,"Button",BS_AUTO3STATE | WS_TABSTOP,199,97,87,10
+    CONTROL         "Extend Text Color into Cells",IDC_EXTND_TXTCOLOR,"Button",BS_AUTO3STATE | WS_TABSTOP,199,107,105,10
+    CONTROL         "Extend Fill Color into Cells",IDC_EXTND_FILLCOLOR,
+                    "Button",BS_AUTO3STATE | WS_TABSTOP,199,117,98,10
+    CONTROL         "Extend Indentation into Cells",IDC_EXTND_INDENT,"Button",BS_AUTO3STATE | WS_TABSTOP,199,127,109,10
+    LTEXT           "Decimal places:",IDC_STATIC,201,155,50,8
+    COMBOBOX        IDC_DECIMALS,254,153,85,83,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Reset",IDC_RESET,124,179,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,188,179,50,14
+    PUSHBUTTON      "&Help",ID_HELP,252,179,50,14
+    GROUPBOX        "Font and Color",IDC_STATIC,7,44,171,44
+    GROUPBOX        "Status",IDC_STATIC,7,3,171,39
+    CONTROL         "Span fields",IDC_SPAN_CELLS,"Button",BS_AUTO3STATE | WS_TABSTOP,199,137,51,10
+    CONTROL         "Hide when All Cells in Row are Zero",IDC_HIDEZERO,
+                    "Button",BS_AUTO3STATE | WS_TABSTOP,31,27,128,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_FACINGPAGES DLGINIT
+BEGIN
+    IDC_HORZ, 0x403, 2, 0
+0x0031, 
+    IDC_HORZ, 0x403, 2, 0
+0x0032, 
+    IDC_HORZ, 0x403, 2, 0
+0x0033, 
+    IDC_HORZ, 0x403, 2, 0
+0x0034, 
+    IDC_HORZ, 0x403, 2, 0
+0x0035, 
+    IDC_VERT, 0x403, 2, 0
+0x0031, 
+    IDC_VERT, 0x403, 2, 0
+0x0032, 
+    IDC_VERT, 0x403, 2, 0
+0x0033, 
+    IDC_VERT, 0x403, 2, 0
+0x0034, 
+    IDC_VERT, 0x403, 2, 0
+0x0035, 
+    0
+END
+
+IDD_FORMAT_PRINT DLGINIT
+BEGIN
+    IDC_TBL_LAYOUT, 0x403, 15, 0
+0x654c, 0x7466, 0x7320, 0x6469, 0x2065, 0x6e6f, 0x796c, "\000" 
+    IDC_TBL_LAYOUT, 0x403, 21, 0
+0x654c, 0x7466, 0x6120, 0x646e, 0x7220, 0x6769, 0x7468, 0x7320, 0x6469, 
+0x7365, "\000" 
+    IDC_HEADER_FREQUENCY, 0x403, 12, 0
+0x6f4e, 0x6220, 0x786f, 0x6568, 0x6461, 0x0073, 
+    IDC_HEADER_FREQUENCY, 0x403, 17, 0
+0x6f54, 0x2070, 0x666f, 0x6520, 0x6361, 0x2068, 0x6170, 0x6567, "\000" 
+    IDC_HEADER_FREQUENCY, 0x403, 13, 0
+0x6f54, 0x2070, 0x666f, 0x7420, 0x6261, 0x656c, "\000" 
+    0
+END
+
+IDD_TALLY_VAR_MEDIAN DLGINIT
+BEGIN
+    IDC_TYPE, 0x403, 11, 0
+0x6f43, 0x746e, 0x6e69, 0x6f75, 0x7375, "\000" 
+    IDC_TYPE, 0x403, 9, 0
+0x6944, 0x6373, 0x6572, 0x6574, "\000" 
+    0
+END
+
+IDD_TALLY_VAR_NTILES DLGINIT
+BEGIN
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0032, 
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0033, 
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0034, 
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0035, 
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0036, 
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0037, 
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0038, 
+    IDC_NUM_TILES, 0x403, 2, 0
+0x0039, 
+    IDC_NUM_TILES, 0x403, 3, 0
+0x3031, "\000" 
+    0
+END
+
+IDD_TALLY_VAR_TOTAL_PERCENT DLGINIT
+BEGIN
+    IDC_PERCENT_TYPE, 0x403, 19, 0
+0x7328, 0x6d61, 0x2065, 0x7361, 0x7020, 0x7265, 0x6563, 0x746e, 0x2973, 
+"\000" 
+    IDC_PERCENT_TYPE, 0x403, 6, 0
+0x6f54, 0x6174, 0x006c, 
+    IDC_PERCENT_TYPE, 0x403, 4, 0
+0x6f52, 0x0077, 
+    IDC_PERCENT_TYPE, 0x403, 7, 0
+0x6f43, 0x756c, 0x6e6d, "\000" 
+    0
+END
+
+IDD_TALLY_VAR_PERCENT DLGINIT
+BEGIN
+    IDC_PERCENT_TYPE, 0x403, 6, 0
+0x6f54, 0x6174, 0x006c, 
+    IDC_PERCENT_TYPE, 0x403, 4, 0
+0x6f52, 0x0077, 
+    IDC_PERCENT_TYPE, 0x403, 7, 0
+0x6f43, 0x756c, 0x6e6d, "\000" 
+    0
+END
+
+IDD_TALLY_VAR_PROPORTION DLGINIT
+BEGIN
+    IDC_TYPE, 0x403, 8, 0
+0x6550, 0x6372, 0x6e65, 0x0074, 
+    IDC_TYPE, 0x403, 16, 0
+0x6550, 0x6372, 0x6e65, 0x2074, 0x2026, 0x6f54, 0x6174, 0x006c, 
+    IDC_TYPE, 0x403, 6, 0
+0x6152, 0x6974, 0x006f, 
+    IDC_TYPE, 0x403, 14, 0
+0x6152, 0x6974, 0x206f, 0x2026, 0x6f54, 0x6174, 0x006c, 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_TAB_COL             CURSOR                  "res\\col.cur"
+
+IDC_TAB_COLPLUS         CURSOR                  "res\\colplus.cur"
+
+IDC_TAB_COLSTAR         CURSOR                  "res\\colstar.cur"
+
+IDC_TAB_NODROP          CURSOR                  "res\\nodrop.cur"
+
+IDC_TAB_ROW             CURSOR                  "res\\row.cur"
+
+IDC_TAB_ROWPLUS         CURSOR                  "res\\rowplus.cur"
+
+IDC_TAB_ROWSTAR         CURSOR                  "res\\rowstar.cur"
+
+IDC_TAB_COLSTARPLUS     CURSOR                  "res\\colstarp.cur"
+
+IDC_TAB_ROWSTARPLUS     CURSOR                  "res\\rowstarp.cur"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_PICK_TABLES, DIALOG
+    BEGIN
+    END
+
+    IDD_FACINGPAGES, DIALOG
+    BEGIN
+    END
+
+    IDD_AREA, DIALOG
+    BEGIN
+    END
+
+    IDD_AREA_CONSPEC, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_VAR, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_TABLE, DIALOG
+    BEGIN
+        LEFTMARGIN, 9
+        RIGHTMARGIN, 494
+        BOTTOMMARGIN, 344
+    END
+
+    IDD_FORMAT_TABLE, DIALOG
+    BEGIN
+    END
+
+    IDD_FORMAT_APP, DIALOG
+    BEGIN
+    END
+
+    IDD_FORMAT_PRINT, DIALOG
+    BEGIN
+    END
+
+    IDD_FLASHMSG, DIALOG
+    BEGIN
+    END
+
+    IDD_FMT_COLORDLG, DIALOG
+    BEGIN
+    END
+
+    IDD_FMT_FONTDLG, DIALOG
+    BEGIN
+    END
+
+    IDD_OBJECT_FORMATS_PAGE, DIALOG
+    BEGIN
+    END
+
+    IDD_PRTVIEW_DLGBAR, DIALOG
+    BEGIN
+    END
+
+    IDD_PRTVIEW_GOTO_PAGE, DIALOG
+    BEGIN
+    END
+
+    IDD_PRTVIEW_GOTO_TBL, DIALOG
+    BEGIN
+    END
+
+    IDD_TABLE_PRINT_DLG, DIALOG
+    BEGIN
+    END
+
+    IDD_TABSET_PROP_DLG, DIALOG
+    BEGIN
+    END
+
+    IDD_TABLE_PROP_DLG, DIALOG
+    BEGIN
+    END
+
+    IDD_EDTLOGIC_DLG, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_VAR_NEW, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_VAR_PERCENT, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_VAR_PROPORTION, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_VAR_MEDIAN, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_VAR_TOTAL_PERCENT, DIALOG
+    BEGIN
+    END
+
+    IDD_TALLY_TABLE_UNITS, DIALOG
+    BEGIN
+    END
+
+    IDD_FORMAT_OBJECT, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_TALLY_TABLE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_MAXLIMIT            "Cannot drop more than  ten variables in ""+"" mode along rows or columns"
+    IDS_MULT_ERR            "You cannot use '%s' in this table.  A table may not include items from different multiple records."
+    IDS_NEED_CNTS_FOR_INTERLEAVE 
+                            "Interleaving percents with counts requires that you have counts next to the percents.\nAdd counts either before or after the percents or make the percents separate."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_NEED_PERCENTS_FOR_SAME_AS_PERCENTS 
+                            "Cannot set to same as percents when there are no percents.\nPlease add percents to this variable."
+    IDS_OCCS_ERR            "You cannot use '%s' in this table.  A table may not include more than one item with occurrences."
+    IDS_OPENDDFLD           "Opening %1 failed "
+    IDS_PICKPRINT           "Select tables to print"
+    IDS_PICKTBLSTOSAVE      "Select tables to save"
+END
+
+STRINGTABLE
+BEGIN
+    IDR_TABLE_FRAME         "CrossTab\n\nXTS\nCrossTab Spec Files (*.xts)\n.xts\nCrossTab.Document\nCSPro CrossTab  Document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_PAGE_SETUP      "Change the page margins, headers and footers\nPage Setup"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
+    ID_FILE_PRINT           "Print the active document\nPrint"
+    ID_FILE_PRINT_PREVIEW   "Preview the printing of the active document\nPrint Preview"
+END
+
+STRINGTABLE
+BEGIN
+    ID_ADD_TABLE            "Add a new table to the table set\nAdd Table"
+    ID_AREA                 "Edit the (geographic) areas of tabulation\nArea"
+    ID_DELETE_TABLE         "Delete a table from the table set\nDelete Table"
+    ID_DESELECTALL          "Cancel the current selection\nCancel Selection"
+    ID_DESIGN_VIEW          "Show hidden parts of the table"
+    ID_EDIT_APP_FMT         "Change the table application options\nFormat Application"
+    ID_EDIT_COPYCELLSONLY   "Copy the selected cells and put them on the Clipboard"
+    ID_EDIT_COPYTABLESTRUCTURE "Copy the table specification\nCopy Table Spec"
+    ID_EDIT_EXCLUDEALLBUTTHIS "Exclude all tables but this from the run"
+    ID_EDIT_GENERATELOGIC   "Generate CSPro logic from tabulation specifications"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_VAR_TALLYATTRIB "Edit percent, statistics, or display properties for the given variable\nEdit Item Properties"
+    ID_EDIT_VAR_TALLYATTRIB1 "Edit Tally attributes"
+    ID_FILE_SAVE_TABLE      "Save the CSPro tables\nSave Tables"
+    ID_FIND_NEXT            "Find the next occurrence of the specified text "
+    ID_INSERT_TABLE         "Insert a new table into the table set\nInsert Table"
+    ID_PRTVIEW_PAGENUM      "Indicates the current page"
+    ID_REPLACE              "Replace the specified text with different text "
+    ID_RUN_PCS              "Run separate tabulation modules"
+    ID_RUNTAB               "Run the tabulation\nRun"
+    ID_SELECTALL            "Select the entire table\nSelect All"
+    ID_TBL_EDIT_FIND        "Find the specified text\nFind"
+    ID_TBL_RUN              "Run All Tabluation Modules"
+END
+
+STRINGTABLE
+BEGIN
+    ID_TOGGLE_TREE          "Show printing or level tree\nToggle tree"
+    ID_TOOLS_EXPORTTFT      "Save formatting preferences to an external file"
+    ID_TOOLS_IMPORTTFT      "Load formatting preferences from an external file"
+    ID_VIEW_BOOKLAYOUT      "Show even page on left and odd page on the right"
+    ID_VIEW_FACING          "Select multiple page display"
+    ID_VIEW_FIRST_PAGE      "Go to first page"
+    ID_VIEW_LAST_PAGE       "Go to last page"
+    ID_VIEW_NEXT_PAGE       "Go to next page"
+    ID_VIEW_NEXT_TABLE      "Move forwards through the table set\nNext Table"
+    ID_VIEW_PAGEPRINTVIEW   "Preview the printing of the active document\nPrint Preview"
+    ID_VIEW_PREV_PAGE       "Go to previous page"
+    ID_VIEW_PREVIOUS_TABLE  "Move backwards through the table set\nPrevious Table"
+    ID_VIEW_TAB_LOGIC       "View Logic \n View Logic "
+    ID_VIEW_TABLE           "View Table \n View Table"
+    ID_VIEW_ZOOM            "Zoom \n Zoom"
+    ID_VIEW_ZOOM_IN         "Increase zoom to view details\nZoom In"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_ZOOM_OUT        "Decrease zoom to view more of document\nZoom Out"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_GOTO            "Go to selected page or table"
+    ID_EDIT_INCLUDEALL      "Include all tables in the run"
+    ID_EDIT_PASTETABLE      "Paste a table specification to create a new table\nPaste Table Spec"
+    ID_EDIT_TABLE_EXCLUDE   "Exclude table from run"
+    ID_EDIT_TABLE_PROP      "Change table name"
+    ID_EDIT_TABSET_PROP     "Change table set label or name"
+    ID_EDIT_TBL_FMT         "Change the table formatting options\nFormat Table"
+    ID_EDIT_TBL_OPTIONS     "Specify the formatting preferences for the application"
+    ID_EDIT_TBL_PRINTFMT    "Change the page margins, headers and footers\nFormat Print Table"
+    ID_EDIT_TBL_TALLYATTRIB "Edit tally attributes for current table\nTally Attributes"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade"
+    ID_WINDOW_TILE_HORZ     "Arrange the windows side by side"
+    ID_WINDOW_TILE_VERT     "Arrange the windows top to bottom"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+    ID_HELP_FINDER          "Show help contents and index\nHelp Topics"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_COPY            "Copy the selected cells and their correspond heads and stubs and put them on the Clipboard\nCopy"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

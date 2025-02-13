@@ -1,0 +1,167 @@
+.container-page {
+    /* phones and & tablets */
+    width: 100%;
+}
+
+@media only screen and (min-width: 62em) {
+    /* large tablets, laptops, and desktops */
+    .container-page {
+        width: 75%;
+    }
+}
+
+.container-freq {
+    width: 100%;
+    padding: 5px;
+    /*background-color: #4cff00;*/
+}
+
+.container-stat {
+    width: 100%;
+    margin: 10px 0px 15px 0px;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: #e0e0e0;
+}
+
+body {
+    margin: 10px;
+    padding: 0px;
+    background-color: white;
+    color: black;
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+}
+
+/*--- TABLE -----------------------------------------------------------------*/
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #395870;
+    background: linear-gradient(#49708f, #293f50);
+    color: #fff;
+}
+
+th, td {
+    padding: 5px 10px;
+    text-align: right;
+    border-bottom: 1px solid #cecfd5;
+    border-right: 1px solid #cecfd5;
+}
+
+th:first-child, td:first-child {
+    border-left: 1px solid #cecfd5;
+}
+
+/*--- PERCENTILE TABLE ------------------------------------------------------*/
+
+#percentiles {
+    background-color: #fff;
+}
+
+table#percentiles thead {
+    background: #A9A9A9;
+    color: black;
+}
+
+table#percentiles td {
+    text-align: right;
+}
+
+/*--- STATISTICS TABLE ------------------------------------------------------*/
+
+table#statistics th {
+    text-align: left;
+}
+
+table#statistics td {
+    border: none;
+}
+
+/*--- Text ------------------------------------------------------------------*/
+
+hgroup {
+    margin: 10px 0 10px 0;
+}
+
+h1 {
+    font-size: 1.5em;
+    margin: 0 0 0 0;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.17em;
+    margin: 0 0 0 0;
+}
+
+/*--- JUSTIFICATION ---------------------------------------------------------*/
+
+.left {
+    text-align: left;
+}
+
+.center {
+    text-align: center;
+}
+
+.bottom {
+    vertical-align: bottom;
+}
+
+/*--- WIDTH -----------------------------------------------------------------*/
+
+.width-10 {
+    width: 10%;
+}
+
+.width-25 {
+    width: 25%;
+}
+
+.width-33 {
+    width: 33%;
+}
+
+.width-34 {
+    width: 34%;
+}
+
+/*--- COLOR -----------------------------------------------------------------*/
+
+.error {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+.warning {
+    color: #0000ff;
+    font-weight: bold;
+}
+
+.user-defined {
+    font-weight: bold;
+}
+
+.highlight {
+    background-color: #E0E0E0;
+}
+
+.outOfValueSetRow {
+    color: red;
+}
+
+/*--- MISC ------------------------------------------------------------------*/
+
+hr {
+    width: 100%;
+    margin: 0px;
+}
+
+.bold {
+    font-weight: bold;
+}

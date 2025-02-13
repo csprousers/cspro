@@ -1,0 +1,164 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Location Mapper</title>
+
+    <link rel="stylesheet" href="/external/leaflet/leaflet.css" />
+    <script src="/external/leaflet/leaflet.js"></script>
+
+    <script src="https://unpkg.com/esri-leaflet/dist/esri-leaflet.js"></script>
+
+    <style>
+        body {
+            height: 100%;
+            margin: 0px;
+            position: relative;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        #mapid {
+            height: 100%;
+            z-index: 0;
+        }
+
+        table, td, th {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+<body>
+    <div id="mapid"></div>
+
+    <script>
+        var csmap;
+        var markers;
+
+        function initMap(latitude, longitude) {
+            csmap = L.map('mapid').setView([latitude, longitude], 2);
+
+            L.esri.basemapLayer('Topographic').addTo(csmap);
+
+            markers = L.layerGroup().addTo(csmap);
+        }
+
+        initMap(38.84839, -76.931098); //initialize the map on the U.S. Census Bureau
+
+        function clearMarkers() {
+            markers.clearLayers();
+        }
+
+        function postActionMessage(action, dbId, e) {
+            const actionJson = JSON.stringify({
+                "action": action,
+                "dbId": dbId,
+                "markerId": ( e != null ) ? markers.getLayerId(e.target) : null
+            });
+            window.chrome.webview.postMessage(actionJson);
+        }
+
+        function handleMarkerClick(e, dbId) {
+            postActionMessage("markerClick", dbId, e);
+        }
+
+        function copyCoordinates(dbId) {
+            postActionMessage("copyCoordinates", dbId, null);
+        }
+
+        function openGoogleMaps(dbId) {
+            postActionMessage("openGoogleMaps", dbId, null);
+        }
+
+        function addMarkerDetails(markerId, pointDetailsJson) {
+            const marker = markers.getLayer(markerId);
+            const pointDetails = JSON.parse(pointDetailsJson);
+            let dataHTML = '<table style="white-space:pre-wrap;"> <thead> <tr> <th> Attribute </th> <th> Value </th> </thead> <tbody>';
+            for (key in displayLayout) {
+                let value = pointDetails[displayLayout[key][0]];
+                if (value === null) {
+                    value = "";
+                }
+                else {
+                    value += displayLayout[key][1];
+                }
+                dataHTML += '<tr> <td>' + key + '</td> <td>' + value + '</td> </tr>';
+            }
+            dataHTML += "</tbody> </table>";
+            dataHTML += "<p><a href='javascript:copyCoordinates(" + pointDetails["dbId"] + ");'>Copy Coordinates</a> &ndash; ";
+            dataHTML += "<a href='javascript:openGoogleMaps(" + pointDetails["dbId"] + ");'>Open in Google Maps</a></p>";
+            marker.off('click'); //remove click handler so the data isn't loaded from the db more than once
+            marker.bindPopup(dataHTML).openPopup();
+        }
+
+        function addMarker(latitude, longitude, dbId, backgroundReading, altitude = null) {
+            let marker;
+            if (backgroundReading) {
+                marker = L.circleMarker(L.latLng(latitude, longitude, altitude), backgroundMarkerOptions).addTo(markers);
+            }
+            else {
+                marker = L.circleMarker(L.latLng(latitude, longitude, altitude), markerOptions).addTo(markers);
+            }
+            marker.on('click', (e) => handleMarkerClick(e, dbId));
+        }
+
+        function fitPoints() {
+            let minLat = 90;
+            let maxLat = -90;
+            let minLong = 180;
+            let maxLong = -180;
+            markers.eachLayer((marker) => {
+                const latLng = marker.getLatLng();
+                if (latLng.lat < minLat) {
+                    minLat = latLng.lat;
+                }
+                if (latLng.lat > maxLat) {
+                    maxLat = latLng.lat;
+                }
+                if (latLng.lng < minLong) {
+                    minLong = latLng.lng;
+                }
+                if (latLng.lng > maxLong) {
+                    maxLong = latLng.lng;
+                }
+            });
+            csmap.fitBounds(L.latLngBounds(L.latLng(minLat, minLong), L.latLng(maxLat, maxLong)));
+        }
+
+
+        var markerOptions = {
+            "radius": 8,
+            "fillColor": "red",
+            "color": "red",
+            "weight": 2,
+            "opacity": 1
+        }
+
+        var backgroundMarkerOptions = {
+            "radius": 6,
+            "fillColor": "#0f4187",
+            "color": "#0f4187",
+            "weight": 2,
+            "opacity": 1
+        }
+
+        var displayLayout = {
+            "Time": ["time", ""],
+            "Username": ["username", ""],
+            "Operator ID": ["operatorId", ""],
+            "GPS Action": ["gpsAction", ""],
+            "Max Requested Reading Duration": ["requestDuration", " s"],
+            "Min Requested Accuracy": ["requestAccuracy", " m"],
+            "Reading Duration": ["readingDuration", " s"],
+            "Latitude": ["latitude", "&deg;"],
+            "Longitude": ["longitude", "&deg;"],
+            "Altitude": ["altitude", " m"],
+            "Satellites": ["satellites", ""],
+            "Accuracy": ["accuracy", " m"]
+        }
+    </script>
+</body>
+</html>

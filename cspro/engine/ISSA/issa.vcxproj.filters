@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\Applload.cpp" />
+    <ClCompile Include="..\CtUnit.cpp" />
+    <ClCompile Include="..\Form.cpp" />
+    <ClCompile Include="..\Issafunc.cpp" />
+    <ClCompile Include="..\Settings.cpp" />
+    <ClCompile Include="..\subtable.cpp" />
+    <ClCompile Include="..\Tables.cpp" />
+    <ClCompile Include="..\Tablesen.cpp" />
+    <ClCompile Include="..\VariableInOut.cpp" />
+    <ClCompile Include="..\Messages.cpp" />
+  </ItemGroup>
+</Project>

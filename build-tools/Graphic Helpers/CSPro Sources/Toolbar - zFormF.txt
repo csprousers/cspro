@@ -1,0 +1,29 @@
+New.png
+Open.png
+Save.png
+Compile.png
+Run.png
+Undo.png
+Redo.png
+Cut.png
+Copy.png
+Paste.png
+Delete.png
+Find.png
+Box - Toolbar.png
+View - Form.png
+View - Logic.png
+View - Question Text.png
+View - Questionnaire.png
+Edit - Dictionary.png
+Edit - Form.png
+Edit - Order.png
+Edit - Table.png
+Help.png
+Question Text - Font.png
+Question Text - Bullets.png
+Question Text - Ordered.png
+Question Text - Insert Image.png
+Question Text Type.png
+View - Logic.png
+View - Question Text.png

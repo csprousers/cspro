@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{9CFF378D-0D09-4800-866D-5FAB8DF44FBF}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <ProjectName>zCapiO</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;NDEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/yaml-cpp/include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;_DEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/yaml-cpp/include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CapiCondition.cpp" />
+    <ClCompile Include="CapiControl.cpp" />
+    <ClCompile Include="CapiFill.cpp" />
+    <ClCompile Include="CapiQuestion.cpp" />
+    <ClCompile Include="CapiQuestionFilePre76.cpp" />
+    <ClCompile Include="CapiQuestionManager.cpp" />
+    <ClCompile Include="CapiQuestionYaml.cpp" />
+    <ClCompile Include="CapiStyle.cpp" />
+    <ClCompile Include="CapiText.cpp" />
+    <ClCompile Include="ExtendedControl.cpp" />
+    <ClCompile Include="QSFView.cpp" />
+    <ClCompile Include="SelectCtrl.cpp" />
+    <ClCompile Include="SelectDlg.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="zCapiO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\next.ico" />
+    <None Include="res\prev.ico" />
+    <None Include="res\Cancel.ico" />
+    <None Include="res\Find.ico" />
+    <None Include="res\Invert.ico" />
+    <None Include="res\Ok.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zCapiO.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CapiLogicParameters.h" />
+    <ClInclude Include="CapiCondition.h" />
+    <ClInclude Include="CapiControl.h" />
+    <ClInclude Include="CapiFill.h" />
+    <ClInclude Include="CapiQuestion.h" />
+    <ClInclude Include="CapiQuestionYaml.h" />
+    <ClInclude Include="CapiQuestionFilePre76.h" />
+    <ClInclude Include="CapiQuestionManager.h" />
+    <ClInclude Include="CapiStyle.h" />
+    <ClInclude Include="CapiText.h" />
+    <ClInclude Include="ExtendedControl.h" />
+    <ClInclude Include="QSFView.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SelectCtrl.h" />
+    <ClInclude Include="SelectDlg.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="zCapiO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\rtf2html_dll\rtf2html_dll.vcxproj">
+      <Project>{f5702efd-6d1c-4591-bc10-184babf8c4e1}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\yaml-cpp\yaml-cpp.vcxproj">
+      <Project>{0476f3bc-79cc-4653-ba60-31bb8dead056}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEngineO\zEngineO.vcxproj">
+      <Project>{45dadbf6-072a-4a5f-94b3-39fb607807f2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormO\zFormO.vcxproj">
+      <Project>{0837641d-6f03-4f33-9eb5-c03d2ca8edb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="zCapiO.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B33D6166-52A8-453E-837E-E23B233149E9}</ProjectGuid>
+    <RootNamespace>zDictO</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZDICTO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZDICTO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CaptureInfo.cpp" />
+    <ClCompile Include="Definitions.cpp" />
+    <ClCompile Include="DictItem.cpp" />
+    <ClCompile Include="DictLevel.cpp" />
+    <ClCompile Include="DictRecord.cpp" />
+    <ClCompile Include="DictRelation.cpp" />
+    <ClCompile Include="DictValue.cpp" />
+    <ClCompile Include="DDClass.cpp" />
+    <ClCompile Include="DictionaryValidator.cpp" />
+    <ClCompile Include="DictionaryComparer.cpp" />
+    <ClCompile Include="DictNamedBase.cpp" />
+    <ClCompile Include="DictValuePair.cpp" />
+    <ClCompile Include="DictValueSet.cpp" />
+    <ClCompile Include="ItemIndexHelper.cpp" />
+    <ClCompile Include="DictBase.cpp" />
+    <ClCompile Include="Pre80SpecFile.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ValueProcessor.cpp" />
+    <ClCompile Include="ValueSetFixer.cpp" />
+    <ClCompile Include="ValueSetResponse.cpp" />
+    <ClCompile Include="zDictO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CaptureInfo.h" />
+    <ClInclude Include="DDClass.h" />
+    <ClInclude Include="DictBase.h" />
+    <ClInclude Include="DictionaryValidator.h" />
+    <ClInclude Include="Definitions.h" />
+    <ClInclude Include="DictionaryComparer.h" />
+    <ClInclude Include="DictionaryCreator.h" />
+    <ClInclude Include="DictionaryIterator.h" />
+    <ClInclude Include="DictionarySerializerHelper.h" />
+    <ClInclude Include="Rules.h" />
+    <ClInclude Include="DictItem.h" />
+    <ClInclude Include="DictLevel.h" />
+    <ClInclude Include="DictNamedBase.h" />
+    <ClInclude Include="DictRecord.h" />
+    <ClInclude Include="DictRelation.h" />
+    <ClInclude Include="DictValue.h" />
+    <ClInclude Include="DictValuePair.h" />
+    <ClInclude Include="DictValueSet.h" />
+    <ClInclude Include="ItemIndex.h" />
+    <ClInclude Include="ItemIndexHelper.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="ValueProcessor.h" />
+    <ClInclude Include="ValueSetFixer.h" />
+    <ClInclude Include="ValueSetResponse.h" />
+    <ClInclude Include="zDictO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

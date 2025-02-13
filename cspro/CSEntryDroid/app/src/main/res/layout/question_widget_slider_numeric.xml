@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:layout_margin="5dp"
+  android:orientation="vertical"
+  android:paddingBottom="20dp">
+
+  <gov.census.cspro.commonui.NumericFieldTextView
+    android:id="@+id/sliderReadingValue"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_margin="8dp"
+    android:background="@drawable/multibox_edittext_border"
+    android:gravity="center"
+    android:minWidth="40dp"
+    android:padding="10dp"
+    android:textAlignment="center"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:textColor="@color/dark" />
+
+  <gov.census.cspro.commonui.NumericSliderField
+    android:id="@+id/sliderField"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:theme="@style/MaterialDesignTheme"
+    app:trackColor="@color/cspro_green"
+    app:thumbColor="@color/cspro_green"
+    app:haloColor="@color/cspro_green_80"
+    app:labelBehavior="gone" />
+
+  <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <gov.census.cspro.commonui.NumericFieldTextView
+      android:id="@+id/minRange"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentLeft="true"
+      android:layout_alignParentStart="true"
+      android:layout_margin="5dp"
+      android:textAppearance="?android:attr/textAppearanceSmall"
+      android:textColor="@color/dark" />
+
+    <gov.census.cspro.commonui.NumericFieldTextView
+      android:id="@+id/maxRange"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentRight="true"
+      android:layout_alignParentEnd="true"
+      android:layout_margin="5dp"
+      android:textAppearance="?android:attr/textAppearanceSmall"
+      android:textColor="@color/dark" />
+
+  </RelativeLayout>
+</LinearLayout>

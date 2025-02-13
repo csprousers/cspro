@@ -1,0 +1,16 @@
+Quit.png
+Open.png
+Close.png
+Save.png
+Print - Page Setup.png
+Print - Preview.png
+Print.png
+Copy.png
+Table - Previous.png
+Table - Next.png
+BarChart-VS-modified.png
+Help.png
+Zoom - Out.png
+Placeholder.png
+Zoom - In.png
+Placeholder.png

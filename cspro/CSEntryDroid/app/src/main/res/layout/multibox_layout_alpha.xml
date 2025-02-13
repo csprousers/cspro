@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/multibox_layout"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="horizontal"
+  android:background="#121212">
+
+  <gov.census.cspro.commonui.AlphaFieldEditText
+    android:id="@+id/editText"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:imeOptions="actionNext"
+    android:background="@drawable/multibox_edittext_border"
+    android:contentDescription="@string/multibox_edittext_desc"
+    android:ems="10"
+    android:gravity="center"
+    android:textAlignment="center"
+    android:layout_gravity="center"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:layout_weight = "1"
+    />
+
+  <LinearLayout
+    android:id="@+id/multibox_relative_button_container"
+    android:layout_width="49dp"
+    android:layout_height="49dp"
+    android:layout_marginTop="1dp"
+    android:background="#121212" >
+    <ImageButton
+      android:id="@+id/multibox_more_button"
+      android:layout_width="48dp"
+      android:layout_height="48dp"
+      android:adjustViewBounds="false"
+      android:contentDescription="@string/multibox_image_button_desc"
+      android:src="@drawable/multibox_list_items_selector"
+      android:background="#FAFBFC" />
+  </LinearLayout>
+
+
+</LinearLayout>

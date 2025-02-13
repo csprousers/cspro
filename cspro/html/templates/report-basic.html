@@ -1,0 +1,61 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Report Title</title>
+
+    <!-- If you want to use the CSPro Action Invoker: -->
+    <script src="/action-invoker.js"></script>
+
+    <!-- If you want to use jQuery: -->
+    <script src="/external/jquery/jquery.min.js"></script>
+
+    <!-- If you want to use Bootstrap: -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css" />
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+
+    <!-- If you want to use Mustache: -->
+    <script src="/external/mustache/mustache.min.js"></script>
+
+    <!-- If you want to use some default styling for reports: -->
+    <link rel="stylesheet" href="/css/reports.css" />
+
+</head>
+
+<body>
+
+    <p>Report Content</p>
+
+    <?
+    // To start executing logic within a report, write < immediately followed by ?.
+    // To end the section of logic, write ? immediately followed by >.
+    //
+    // There are three ways of writing to CSPro logic-based reports:
+    //
+    //     1. ~~...~~ writes the results of the numeric or string expression specified between the tildes.
+    //
+    //     2. ~~~...~~~ is similar to the above version except that the text will not be automatically escaped for HTML.
+    //
+    //     3. $.write("...", ....); writes directly to the report. The text will not be escaped for HTML.
+    //        The $.write function uses the syntax of the errmsg/maketext family of functions.
+    //
+    // For example:
+    ?>
+
+    <p>The current date and time is: <b>~~timestring()~~</b>. The year, <b>~~sysdate("YYYY")~~</b>, is
+        <?
+            // Write out an italicised "not" if this is not a leap year:
+            numeric current_year = sysdate("YYYY");
+
+            if current_year % 4 <> 0 or ( current_year % 100 = 0 and current_year % 400 <> 0 ) then
+                $.write("<i>not</i>");
+            endif;
+
+        ?> a leap year.
+    </p>
+
+</body>
+
+</html>

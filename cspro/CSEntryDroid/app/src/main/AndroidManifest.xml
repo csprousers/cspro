@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:installLocation="auto"
+  android:versionCode="20240319"
+  android:versionName="8.0.1">
+
+  <supports-screens
+    android:anyDensity="true"
+    android:largeScreens="true"
+    android:normalScreens="true"
+    android:xlargeScreens="true" />
+
+  <uses-sdk tools:overrideLibrary="androidx.security" />
+
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission
+    android:name="android.permission.ACCESS_COARSE_LOCATION"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.ACCESS_FINE_LOCATION"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.GET_ACCOUNTS"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.CAMERA"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.INTERNET"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.ACCESS_NETWORK_STATE"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.ACCESS_WIFI_STATE"
+    android:required="false" />
+  <!-- Legacy BT permissions API 30 or less -->
+  <uses-permission
+    android:name="android.permission.BLUETOOTH"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.BLUETOOTH_ADMIN"
+    android:required="false" />
+  <!-- New BT permissions API 31+ -->
+  <uses-permission
+    android:name="android.permission.BLUETOOTH_SCAN"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.BLUETOOTH_ADVERTISE"
+    android:required="false" />
+  <uses-permission
+    android:name="android.permission.BLUETOOTH_CONNECT"
+    android:required="false" />
+  <!--
+    This permission is required for using SystemApp functionality. Enable it for sideloading as Google Play rejects apps with this option turned on
+    <uses-permission
+    android:name="android.permission.QUERY_ALL_PACKAGES"
+    android:required="false" />
+    -->
+  <!--
+    Instead of using QUERY_ALL_PACKAGES the query below will allow CSEntry to call
+    activities that implement the corresponding intent filter
+    -->
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.ALL_APPS" />
+      <category android:name="gov.census.cspro.csentry.callable" />
+    </intent>
+  <!--
+    It is also possible to declare packages by name to allow them to be called from CSEntry
+    <package android:name="com.dec.syncclient" />
+    -->
+    <package android:name="com.google.android.apps.maps" />
+    <package android:name="app.organicmaps" />
+  </queries>
+
+  <!--
+     This is required if crash reporting is turned on (see CrashReporter.java)
+     <uses-permission android:name="android.permission.READ_LOGS"/>
+    -->
+  <uses-feature
+    android:name="android.hardware.camera"
+    android:required="false" />
+  <uses-feature
+    android:name="android.hardware.camera.front"
+    android:required="false" />
+  <uses-feature
+    android:name="android.hardware.wifi"
+    android:required="false" />
+  <uses-feature
+    android:name="android.hardware.bluetooth"
+    android:required="false" />
+  <uses-feature
+    android:name="android.hardware.bluetooth_le"
+    android:required="false"/>
+  <uses-feature
+    android:name="android.hardware.location"
+    android:required="false" />
+  <uses-feature
+    android:name="android.hardware.location.gps"
+    android:required="false" />
+
+  <application
+    android:name=".CSEntry"
+    android:allowBackup="true"
+    android:icon="@drawable/ic_launcher"
+    android:label="@string/app_name"
+    android:requestLegacyExternalStorage="true"
+    android:preserveLegacyExternalStorage="true"
+    android:supportsRtl="false"
+    android:theme="@style/AppTheme"
+    android:usesCleartextTraffic="true"
+    android:resizeableActivity="false"
+    tools:ignore="AllowBackup">
+    <activity
+      android:name="gov.census.cspro.smartsync.addapp.UpdateApplicationsActivity"
+      android:exported="false" />
+    <activity
+      android:name=".AboutActivity"
+      android:exported="false"
+      android:label="@string/menu_applications_list_about" />
+    <activity
+      android:name=".SettingsActivity"
+      android:exported="false"
+      android:label="@string/menu_applications_settings" />
+    <activity
+      android:name=".ApplicationsListActivity"
+      android:exported="true"
+      android:label="@string/app_name">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+      android:name=".CaseListActivity"
+      android:exported="true"
+      android:label="@string/activity_case_list_name">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data
+          android:host="*"
+          android:mimeType="*/*"
+          android:pathPattern=".*\\.pff"
+          android:scheme="file" />
+      </intent-filter>
+    </activity>
+    <activity
+      android:name=".NonEntryApplicationActivity"
+      android:exported="false" />
+    <activity
+      android:name=".ViewQuestionnaireActivity"
+      android:exported="false" />
+    <activity
+      android:name=".ui.EntryActivity"
+      android:configChanges="orientation|screenSize|keyboardHidden"
+      android:exported="true"
+      android:launchMode="singleTop"
+      android:label="@string/activity_entry" />
+    <activity
+      android:name=".ui.ReviewNotesActivity"
+      android:exported="false"
+      android:label="@string/notes_title" />
+    <activity
+      android:name=".ui.GenericWebViewActivity"
+      android:exported="false"
+      android:label="@string/app_name" />
+    <activity
+      android:name=".ui.WebViewWithJavaScriptInterfaceActivity"
+      android:exported="false"
+      android:configChanges="orientation|screenSize|keyboardHidden"
+      android:label="@string/app_name" />
+    <activity
+      android:name=".ui.SelectStyleActivity"
+      android:exported="false"
+      android:label="@string/select_style_title" />
+    <activity
+      android:name=".ui.ServiceTermsActivity"
+      android:exported="false"
+      android:label="@string/app_name" />
+    <activity android:name=".ui.ChooseBluetoothDeviceActivity" />
+    <activity
+      android:name="com.dropbox.core.android.AuthActivity"
+      android:exported="true"
+      android:configChanges="orientation|keyboard"
+      android:launchMode="singleTask">
+      <intent-filter>
+        <!-- The scheme is db- followed by the app key -->
+        <data android:scheme="@string/dropbox_auth_scheme" />
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
+    <activity
+      android:name="gov.census.cspro.commonui.DeepLinkListener"
+      android:exported="true"
+      android:configChanges="orientation|keyboard">
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host" android:pathPrefix="@string/deeplink_path_prefix" />
+        <data android:scheme="@string/deeplink_http_scheme" />
+      </intent-filter>
+    </activity>
+    <activity
+      android:name="gov.census.cspro.camera.BarcodeCaptureActivity"
+      android:exported="false"
+      android:theme="@style/Theme.AppCompat.NoActionBar"/>
+
+    <activity
+      android:name="gov.census.cspro.camera.PictureCaptureActivity"
+      android:exported="false"
+      android:theme="@style/Theme.AppCompat.NoActionBar"/>
+
+    <activity
+      android:name="gov.census.cspro.signature.SignatureActivity"
+      android:exported="false"
+      android:theme="@style/Dialog.App"/>
+
+    <activity
+      android:name="gov.census.cspro.location.LocationActivity"
+      android:exported="false"
+      android:theme="@style/Dialog.App"
+      android:configChanges="orientation|screenSize|keyboardHidden"
+      />
+
+    <activity
+      android:name="gov.census.cspro.smartsync.addapp.AddApplicationActivity"
+      android:exported="false"/>
+
+    <!-- file provider to be able to share files on Android N and above -->
+    <provider
+      android:name="androidx.core.content.FileProvider"
+      android:authorities="gov.census.cspro.csentry.fileprovider"
+      android:exported="false"
+      android:grantUriPermissions="true">
+      <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/provider_paths" />
+    </provider>
+
+    <!--
+             The API key for Google Maps-based APIs is defined as a string resource.
+             (See the file "res/values/api_keys.xml").
+             Note that the API key is linked to the encryption key used to sign the APK.
+             You need a different API key for each encryption key, including the release key that is used to
+             sign the APK for publishing.
+             You can define the keys for the debug and release targets in src/debug/ and src/release/.
+        -->
+    <meta-data
+      android:name="com.google.android.geo.API_KEY"
+      android:value="@string/google_maps_key" />
+
+    <activity
+      android:name="gov.census.cspro.maps.MapsActivity"
+      android:exported="false"
+      android:configChanges="orientation|screenSize|keyboardHidden"
+      android:label="@string/title_activity_maps" />
+
+    <activity
+      android:name="gov.census.cspro.maps.CapturePolygonActivity"
+      android:exported="false"
+      android:label="@string/title_activity_maps" />
+
+    <activity
+      android:name="gov.census.cspro.media.player.AudioPlayerActivity"
+      android:exported="false"
+      android:theme="@style/Dialog.App"
+      >
+    </activity>
+
+    <activity
+      android:name="gov.census.cspro.media.recording.interactive.RecordingActivity"
+      android:exported="false"
+      android:launchMode="singleTop"
+      android:configChanges="screenSize|orientation|keyboardHidden"
+      android:theme="@style/Dialog.App"
+      >
+    </activity>
+
+    <activity
+      android:name="gov.census.cspro.fileshare.FileShareActivity"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.DEFAULT" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
+    <activity
+      android:name="gov.census.cspro.ActionInvokerActivity"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.DEFAULT" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
+    <receiver
+      android:name="gov.census.cspro.engine.ParadataDriver$LocationUpdatesBroadcastReceiver"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="gov.census.cspro.engine.ParadataDriver.LocationUpdatesBroadcastReceiver.action.PROCESS_UPDATESS" />
+      </intent-filter>
+    </receiver>
+
+    <service
+      android:name="gov.census.cspro.media.recording.background.RecorderService"
+      android:exported="false"
+      android:stopWithTask="true" />
+
+    <receiver
+      android:name="gov.census.cspro.media.recording.background.RecorderService$Companion$ServiceReceiver"
+      android:exported="true" />
+
+    <activity
+      android:name="com.karumi.dexter.DexterActivity"
+      android:exported="false"
+      tools:node="merge"
+      tools:replace="android:exported" />
+  </application>
+
+</manifest>

@@ -1,0 +1,7 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:id="@+id/menu_casetree_list_show_labels" android:title="@string/menu_casetree_list_show_labels"></item>
+  <item android:id="@+id/menu_casetree_list_hide_skipped" android:title="@string/menu_casetree_list_hide_skipped"></item>
+  <item android:id="@+id/menu_casetree_list_add_occ" android:title="@string/menu_casetree_list_add_occ"></item>
+  <item android:id="@+id/menu_casetree_list_insert_occ" android:title="@string/menu_casetree_list_insert_occ"></item>
+  <item android:id="@+id/menu_casetree_list_delete_occ" android:title="@string/menu_casetree_list_delete_occ"></item>
+</menu>

@@ -1,0 +1,822 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "../zDesignerF/resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\CSDocument.ico"
+
+IDR_CSDOC_FRAME         ICON                    "res\\CSDocument-csdoc.ico"
+
+IDR_DOCSET_SPEC_FRAME   ICON                    "res\\CSDocument.ico"
+
+IDR_DOCSET_COMPONENT_FRAME ICON                    "res\\CSDocument.ico"
+
+IDI_DOCSET              ICON                    "res\\VS-LibaryApplication.ico"
+
+IDI_DEFINITIONS         ICON                    "res\\VS-CodeDefinitionWindow.ico"
+
+IDI_INDEX               ICON                    "res\\VS-HelpIndexFile.ico"
+
+IDI_TOC                 ICON                    "res\\VS-HelpTableOfContents.ico"
+
+IDI_SETTINGS            ICON                    "res\\VS-LibrarySettings.ico"
+
+IDI_CONTEXT_IDS         ICON                    "res\\VS-CPPHeaderFile.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New Document\tCtrl+N",       ID_FILE_NEW
+        MENUITEM "New Document Set",            ID_FILE_NEW_DOCUMENT_SET
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "Global Settings",             ID_FILE_GLOBAL_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSDocument...",        ID_APP_ABOUT
+    END
+END
+
+IDR_CSDOC_FRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New Document\tCtrl+N",       ID_FILE_NEW
+        MENUITEM "New Document Set",            ID_FILE_NEW_DOCUMENT_SET
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
+        MENUITEM "Save All\tCtrl+Shift+S",      ID_FILE_SAVE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Global Settings",             ID_FILE_GLOBAL_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Find\tCtrl+F",               ID_EDIT_FIND
+        MENUITEM "Find &Next\tF3",              ID_EDIT_FIND_NEXT
+        MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
+        MENUITEM SEPARATOR
+        MENUITEM "Word Wrap",                   ID_EDIT_WORD_WRAP
+    END
+    POPUP "&Build"
+    BEGIN
+        MENUITEM "<placeholder>",               ID_BUILD_PLACEHOLDER
+    END
+    POPUP "For&mat"
+    BEGIN
+        MENUITEM "View Syntax",                 ID_FORMAT_VIEW_SYNTAX
+        MENUITEM SEPARATOR
+        MENUITEM "&Bold\tCtrl+B",               ID_FORMAT_BOLD
+        MENUITEM "&Italics\tCtrl+I",            ID_FORMAT_ITALICS
+        MENUITEM "&Font",                       ID_FORMAT_FONT_TAG
+        MENUITEM "Sub&header",                  ID_FORMAT_SUBHEADER
+        MENUITEM "&Center",                     ID_FORMAT_CENTER
+        MENUITEM "Lin&k",                       ID_FORMAT_LINK
+        MENUITEM "&Table",                      ID_FORMAT_TABLE
+        MENUITEM SEPARATOR
+        MENUITEM "Logic Color\tCtrl+Shift+L",   ID_FORMAT_LOGIC_COLOR
+        MENUITEM "Syntax Argument\tCtrl+Shift+G", ID_FORMAT_SYNTAX_ARG
+        MENUITEM SEPARATOR
+        MENUITEM "List Builder",                ID_FORMAT_LIST_BUILDER
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Build",                      ID_WINDOW_BUILD
+        MENUITEM "&Output",                     ID_WINDOW_OUTPUT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSDocument...",        ID_APP_ABOUT
+    END
+END
+
+IDR_TAB_CONTEXT MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM SEPARATOR
+        MENUITEM "Copy Full Path",              ID_COPY_FULL_PATH
+        MENUITEM "Copy Filename",               ID_COPY_FILENAME
+        MENUITEM "Open Containing Folder",      ID_OPEN_CONTAINING_FOLDER
+    END
+END
+
+IDR_DOCSET_SPEC_FRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New Document\tCtrl+N",       ID_FILE_NEW
+        MENUITEM "New Document Set",            ID_FILE_NEW_DOCUMENT_SET
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save All\tCtrl+Shift+S",      ID_FILE_SAVE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Global Settings",             ID_FILE_GLOBAL_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Find\tCtrl+F",               ID_EDIT_FIND
+        MENUITEM "Find &Next\tF3",              ID_EDIT_FIND_NEXT
+        MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
+        MENUITEM SEPARATOR
+        MENUITEM "Word Wrap",                   ID_EDIT_WORD_WRAP
+    END
+    POPUP "&Build"
+    BEGIN
+        MENUITEM "<placeholder>",               ID_BUILD_PLACEHOLDER
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Build",                      ID_WINDOW_BUILD
+        MENUITEM "&Output",                     ID_WINDOW_OUTPUT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSDocument...",        ID_APP_ABOUT
+    END
+END
+
+IDR_DOCSET_TREE_CONTEXT MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Edit Component\tEnter",       ID_EDIT_COMPONENT
+        MENUITEM SEPARATOR
+        MENUITEM "Copy Full Path",              ID_COPY_FULL_PATH_FROM_TREE
+        MENUITEM "Copy Filename",               ID_COPY_FILENAME_FROM_TREE
+        MENUITEM "Open Containing Folder",      ID_OPEN_CONTAINING_FOLDER_FROM_TREE
+    END
+END
+
+IDR_DOCSET_COMPONENT_FRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New Document\tCtrl+N",       ID_FILE_NEW
+        MENUITEM "New Document Set",            ID_FILE_NEW_DOCUMENT_SET
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save All\tCtrl+Shift+S",      ID_FILE_SAVE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Global Settings",             ID_FILE_GLOBAL_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Find\tCtrl+F",               ID_EDIT_FIND
+        MENUITEM "Find &Next\tF3",              ID_EDIT_FIND_NEXT
+        MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
+        MENUITEM SEPARATOR
+        MENUITEM "Word Wrap",                   ID_EDIT_WORD_WRAP
+    END
+    POPUP "&Build"
+    BEGIN
+        MENUITEM "<placeholder>",               ID_BUILD_PLACEHOLDER
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Build",                      ID_WINDOW_BUILD
+        MENUITEM "&Output",                     ID_WINDOW_OUTPUT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSDocument...",        ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "K",            ID_COMPILE,             VIRTKEY, CONTROL, NOINVERT
+    "K",            ID_COMPILE_DOCSET_COMPLETE, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_EDIT_FIND_NEXT,      VIRTKEY, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_FILE_CLOSE,          VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_FILE_CLOSE_ALL,      VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE_ALL,       VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "B",            ID_FORMAT_BOLD,         VIRTKEY, CONTROL, NOINVERT
+    "M",            ID_FORMAT_COMPONENT,    VIRTKEY, CONTROL, NOINVERT
+    "M",            ID_FORMAT_COMPONENT_DETAILED, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "I",            ID_FORMAT_ITALICS,      VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_FORMAT_LOGIC_COLOR,  VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "G",            ID_FORMAT_SYNTAX_ARG,   VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
+    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "CSDocument"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "CSDocument"
+            VALUE "OriginalFilename", "CSDocument.exe"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+END
+
+IDR_TOOLBAR_DOC TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_COMPILE
+    SEPARATOR
+    BUTTON      ID_EDIT_UNDO
+    BUTTON      ID_EDIT_REDO
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_EDIT_FIND
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+END
+
+IDR_TOOLBAR_EXTRA TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_CLOSE
+    BUTTON      ID_FILE_CLOSE_ALL
+    BUTTON      ID_FILE_SAVE_AS
+    BUTTON      ID_FILE_SAVE_ALL
+    BUTTON      ID_EDIT_CLEAR
+    BUTTON      ID_EDIT_SELECT_ALL
+    BUTTON      ID_COPY_FULL_PATH
+    BUTTON      ID_OPEN_CONTAINING_FOLDER
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// PNG
+//
+
+IDR_MAINFRAME           PNG                     "res\\Toolbar MainFrame.png"
+
+IDR_TOOLBAR_DOC         PNG                     "res\\Toolbar DocFrame.png"
+
+IDR_TOOLBAR_EXTRA       PNG                     "res\\Toolbar Extra Icons.png"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_GLOBAL_SETTINGS DIALOGEX 0, 0, 461, 188
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Global Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,169,167,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,242,167,50,14
+    GROUPBOX        "Options",IDC_STATIC,7,7,447,67
+    CONTROL         "Automatically try to associate CSPro Documents with Document Sets in the same or parent directories",IDC_AUTOMATICALLY_ASSOCIATE_DOCUMENTS_WITH_DOCSETS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,20,341,10
+    CONTROL         "Build CSPro Documents on open and activate",IDC_BUILD_DOCUMENTS_ON_OPEN,
+                    "Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,18,38,159,10
+    LTEXT           "Seconds between automatic compilation (blank to disable):",IDC_STATIC,18,56,188,8
+    EDITTEXT        IDC_AUTOMATIC_COMPILATION_SECONDS,216,53,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    GROUPBOX        "Paths",IDC_STATIC,7,80,447,79
+    LTEXT           "Microsoft HTML Help Compiler:",IDC_STATIC,18,95,98,8
+    EDITTEXT        IDC_HHC_PATH,125,92,284,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_HHC_BROWSE,419,92,29,14
+    LTEXT           "wkhtmltopdf:",IDC_STATIC,18,116,43,8
+    EDITTEXT        IDC_WKHTMLTOPDF_PATH,125,113,284,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_WKHTMLTOPDF_BROWSE,419,113,29,14
+    LTEXT           "CSPro Code:",IDC_STATIC,18,137,42,8
+    EDITTEXT        IDC_CSPRO_CODE_PATH,125,134,284,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_CSPRO_CODE_BROWSE,419,134,29,14
+END
+
+IDD_EXPORT_CSDOC DIALOGEX 0, 0, 549, 341
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Export CSPro Document"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,165,320,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,249,320,50,14
+    PUSHBUTTON      "Help",ID_HELP,333,320,50,14
+    GROUPBOX        "Output",IDC_STATIC,7,7,535,35
+    LTEXT           "File:",IDC_STATIC,18,22,14,8
+    EDITTEXT        IDC_OUTPUT_FILENAME,111,19,387,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_OUTPUT_FILENAME_BROWSE,505,19,27,14
+    GROUPBOX        "Settings",IDC_STATIC,7,48,535,263
+    CONTROL         "HTML (default settings)",IDC_SETTINGS_HTML,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,62,91,10
+    CONTROL         "PDF (default settings)",IDC_SETTINGS_PDF,"Button",BS_AUTORADIOBUTTON,18,78,86,10
+    CONTROL         "Build targets:",IDC_SETTINGS_FROM_BUILDS,"Button",BS_AUTORADIOBUTTON,18,94,59,10
+    COMBOBOX        IDC_SETTINGS_BUILD,111,93,387,104,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "...",IDC_SETTINGS_FILE_BROWSE,505,92,27,14
+    CONTROL         "Custom settings",IDC_SETTINGS_CUSTOM,"Button",BS_AUTORADIOBUTTON,18,110,67,10
+    EDITTEXT        IDC_SETTINGS_CUSTOM_TEXT,18,126,514,176,ES_AUTOHSCROLL
+END
+
+IDD_GENERATE DIALOGEX 0, 0, 695, 325
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Generate"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,638,304,50,14
+    LISTBOX         IDC_LOG,7,7,681,245,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,282,681,14
+    CONTROL         "Outputs: Building...",IDC_OUTPUTS_SYSLINK,"SysLink",LWS_NOPREFIX | WS_TABSTOP,7,262,681,14
+    CONTROL         "Close dialog automatically on successful completion",IDC_CLOSE_DIALOG_ON_COMPLETION,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,308,179,10
+    PUSHBUTTON      "Close",IDC_CLOSE,322,304,50,14,WS_DISABLED
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_GLOBAL_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 454
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 181
+    END
+
+    IDD_EXPORT_CSDOC, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 542
+        VERTGUIDE, 18
+        VERTGUIDE, 111
+        VERTGUIDE, 498
+        VERTGUIDE, 532
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 334
+    END
+
+    IDD_GENERATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 688
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 318
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_GLOBAL_SETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 0, 0, 0,
+    50, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0
+END
+
+IDD_EXPORT_CSDOC AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 100,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100
+END
+
+IDD_GENERATE AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    100, 100, 0, 0,
+    0, 0, 100, 100,
+    0, 100, 100, 0,
+    0, 100, 100, 0,
+    0, 100, 0, 0,
+    50, 100, 0, 0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "CSDocument"
+    IDR_CSDOC_FRAME         "\n\nCSPro Document\nCSPro Documents (*.csdoc)\n.csdoc\nCSProDoc.Document\nCSPro Document"
+    IDR_DOCSET_SPEC_FRAME   "\n\nCSPro Document Set\nCSPro Document Sets (*.csdocset)\n.csdocset\nCSProDocSet.Document\nCSPro Document Set"
+    IDR_DOCSET_COMPONENT_FRAME "\n\nCSPro Document Set Component\n\n\n\n"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "CSPro CSDocument"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+    ID_HELP_INDEX           "Opens Help\nHelp Topics"
+    ID_HELP_FINDER          "List Help topics\nHelp Topics"
+    ID_HELP_USING           "Display instructions about how to use help\nHelp"
+    ID_CONTEXT_HELP         "Display help for clicked on buttons, menus and windows\nHelp"
+    ID_HELP                 "Display help for current task or command\nHelp"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_FIND_NEXT       "Find next occurrence of search text\nFind Next"
+END
+
+STRINGTABLE
+BEGIN
+    ID_ASSOCIATE_WITH_DOCSET 
+                            "Link the CSPro Document with a Document Set\nLink With Document Set"
+    ID_BUILD_TO_CLIPBOARD   "Build the CSPro Document and copy the contents to the clipboard\nBuild Document to Clipboard"
+    ID_COMPILE              "Compile document\nCompile"
+    ID_COMPILE_DOCSET_COMPLETE 
+                            "Compile the entire Document Set\nCompile Entire Document Set"
+    ID_COMPILE_DOCSET_SPEC_ONLY 
+                            "Compile Document Set specification\nCompile Specification"
+    ID_DISASSOCIATE_WITH_DOCSET 
+                            "Remove the CSPro Document's link with a Document Set\nRemove Document Set Link"
+    ID_EDIT_COMPONENT       "Edit the selected component\nEdit Component"
+    ID_EDIT_WORD_WRAP       "Wrap lines on word boundaries\nWord Wrap"
+    ID_EXPORT_CSDOC         "Build the CSPro Document and save as HTML or PDF\nExport Document"
+    ID_EXPORT_DOCSET        "Build the Document Set and save in an exported format\nExport Document Set"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_CLOSE_ALL       "Close all documents\nClose All"
+    ID_FILE_GLOBAL_SETTINGS "Modify the global settings\nGlobal Settings"
+    ID_FILE_NEW_DOCUMENT_SET "Create a new Document Set\nNew Document Set"
+    ID_FILE_SAVE_ALL        "Save all documents\nSave All"
+    ID_FORMAT_BOLD          "Make the selection bold\nBold"
+    ID_FORMAT_ITALICS       "Make the selection italic\nItalics"
+    ID_FORMAT_FONT_TAG      "Wrap the selection in a font tag\nFont"
+    ID_FORMAT_SUBHEADER     "Make the selection a subheader\nSubheader"
+    ID_FORMAT_CENTER        "Center this paragraph\nCenter"
+    ID_FORMAT_TABLE         "Insert the shell of a table\nTable"
+    ID_FORMAT_LOGIC_COLOR   "Colorize the selection as CSPro Logic\nLogic Color"
+    ID_FORMAT_SYNTAX_ARG    "Colorize the selection as a syntax argument\nSyntax Argument"
+    ID_FORMAT_COMPONENT     "Format the component using a standard format\nFormat Component"
+    ID_FORMAT_JSON          "Format the JSON using a readable format\nFormat JSON"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FORMAT_LINK          "Wrap the selection in a link\nLink"
+    ID_FORMAT_LIST_BUILDER  "Creates a list from the selection\nListBuilder"
+    ID_FORMAT_VIEW_SYNTAX   "View the syntax of CSPro Documents\nView Syntax"
+    ID_STATUS_PANE_ASSOCIATED_DOCSET 
+                            "                                                                                     "
+    ID_STATUS_PANE_FILE_POS "                           "
+    ID_WINDOW_BUILD         "View the Build window\nBuild"
+    ID_WINDOW_OUTPUT        "View the Output window\nOutput"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

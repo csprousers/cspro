@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:background="#EFEFEF" 
+    android:orientation="vertical"
+	android:overScrollMode="ifContentScrolls"
+ 	android:scrollbarStyle="insideOverlay"
+ 	android:scrollbars="vertical">
+
+    <RelativeLayout
+        android:id="@+id/service_terms_census_banner_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="#0C3B72" >
+
+        <ImageView
+            android:id="@+id/service_terms_ic_census_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/about_census_logo_desc"
+            android:src="@drawable/ic_census_logo" />
+
+        <TextView
+            android:id="@+id/textview_terms_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="23dp"
+            android:layout_marginTop="5dp"
+            android:layout_toRightOf="@+id/service_terms_ic_census_logo"
+            android:text="@string/terms_title_text"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FEFEFE" />
+
+        <TextView
+            android:id="@+id/textview_terms_instructions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/textview_terms_title"
+            android:layout_below="@+id/textview_terms_title"
+            android:text="@string/terms_instructions"
+            android:layout_marginBottom="5dp"
+            android:textColor="#FEFEFE" />
+
+    	<RelativeLayout
+        	android:id="@+id/service_terms_title_seperator"
+        	android:layout_width="match_parent"
+        	android:layout_height="5dp"
+        	android:layout_alignParentBottom="true"
+        	android:background="#FEFEFE" />
+        
+    </RelativeLayout>
+    
+    <RelativeLayout
+        android:id="@+id/service_terms_text_container_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/service_terms_census_banner_layout"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="44dp"
+        android:background="#EFEFEF" >
+
+        <TextView
+            android:id="@+id/textview_terms_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="0dp"
+            android:scrollbars="vertical"
+            android:text="@string/about_disclaimer"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#000000"
+            android:textSize="18sp" />
+        
+    </RelativeLayout>    
+    
+  	<RelativeLayout
+    	android:id="@+id/service_terms_button_bar_container"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:background="#EFEFEF" >
+        
+        <View
+            android:id="@+id/service_terms_status_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="0dp"
+            android:background="#506970C7" 
+            android:visibility="visible"/>
+        
+  	   	<Button
+  	   	    android:id="@+id/button_terms_cancel"
+  	   	    android:layout_width="100dp"
+  	   	    android:layout_height="wrap_content"
+  	   	    android:layout_alignBaseline="@+id/button_terms_accept"
+  	   	    android:layout_alignBottom="@+id/button_terms_accept"
+  	   	    android:layout_marginRight="20dp"
+  	   	    android:layout_toLeftOf="@+id/button_terms_accept"
+  	   	    android:text="@string/modal_dialog_helper_cancel_text" />
+
+  	   	<Button
+  	   	    android:id="@+id/button_terms_accept"
+  	   	    android:layout_width="100dp"
+  	   	    android:layout_height="wrap_content"
+  	   	    android:layout_alignParentRight="true"
+  	   	    android:layout_marginRight="15dp"
+  	   	    android:text="@string/terms_accept_button_label" />
+ 	</RelativeLayout>
+    
+</RelativeLayout>

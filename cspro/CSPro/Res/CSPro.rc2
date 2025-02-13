@@ -1,0 +1,84 @@
+//
+// CSPro.rc2 - resources Microsoft Visual C++ does not edit directly
+//
+
+#ifdef APSTUDIO_INVOKED
+    #error this file is not editable by Microsoft Visual C++
+#endif //APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Add manually edited resources here...
+
+STRINGTABLE
+BEGIN
+    ID_FILE_CSPRO_SAVE      "Save the active document\nSave"
+    ID_FILE_CSPRO_SAVE_AS   "Save the active document with a new name\nSave As"
+    ID_FILE_CSPRO_CLOSE     "Close the active document\nClose"
+    ID_FILE_ADD_FILE        "Add a file to the selected application\nAdd File"
+    ID_FILE_DROP_FILE       "Drop the selected file from an application\nDrop File"
+    ID_FILE_SETTINGS        "Modify CSPro Settings\nCSPro Settings"
+END
+	
+STRINGTABLE
+BEGIN
+    ID_VIEW_NAMES           "Show names in tree instead of labels\nNames in Tree"
+    ID_VIEW_NAMES_WITH_LABELS "When showing names in the tree, include the labels with the names\nAppend Labels to Names in Tree"
+    ID_VIEW_FULLSCREEN      "Full Screen\nFull Screen"
+    ID_VIEW_COMMONSTORE     "View and edit user and configuration settings\nUser and Configuration Settings"
+	ID_VIEW_LISTING         "View the listing report\nView Listing"
+END
+
+STRINGTABLE
+BEGIN
+    ID_OPTIONS_PROPERTIES   "Modify application properties\nApplication Properties"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_DICTS         "Activate Dictionary Window\nDictionary"
+    ID_WINDOW_FORMS         "Activate Forms Window\nForms"
+    ID_WINDOW_ORDER         "Activate Edits Window\nEdits"
+    ID_WINDOW_TABLES        "Activate Tables Window\nTables"
+END
+
+STRINGTABLE
+BEGIN
+    ID_TOOLS_DATAVIEWER     "View CSPro data files\nData Viewer"
+    ID_TOOLS_TEXTVIEW       "View text files\nText Viewer"
+    ID_TOOLS_TABLEVIEW      "View CSPro tables\nTable Viewer"
+    ID_TOOLS_FREQ           "Produce frequency tables for data items\nFrequencies"
+    ID_TOOLS_DEPLOY         "Pack entire CSPro application into a file to distribute to interviewers\nDeploy"
+    ID_TOOLS_PACK           "Pack entire CSPro application into a ZIP file\nPack"
+    ID_TOOLS_COMPARE        "Compare two data files\nCompare"
+    ID_TOOLS_CONCAT         "Concatenate two or more data files\nConcatenate"
+    ID_TOOLS_EXCEL2CSPRO    "Convert Excel data to CSPro format\nExcel to CSPro"
+    ID_TOOLS_EXPORT         "Export data for other applications\nExport"
+    ID_TOOLS_INDEX          "Generate indices for data and external lookup files\nIndex Data"
+    ID_TOOLS_REFORMAT       "Reformat data files using two dictionaries\nReformat"
+    ID_TOOLS_SORT           "Sort data files\nSort"
+    ID_TOOLS_PARADATACONCAT "Combine two or more CSPro paradata logs\nParadata Concatenator"
+    ID_TOOLS_PARADATAVIEWER "View CSPro paradata logs\nParadata Viewer"
+    ID_TOOLS_CSCODE         "Open the CSCode tool\nCSCode"
+    ID_TOOLS_CSDOCUMENT     "Open the CSDocument tool\nCSDocument"
+    ID_TOOLS_CSVIEW         "Open the CSView tool\nCSView"
+    ID_TOOLS_PFFEDITOR      "Edit PFF files\nPFF Editor"
+    ID_TOOLS_PRODUCTIONRUNNER
+                            "Automate the execution of several data processing applications\nProduction Runner"
+    ID_TOOLS_OPERATORSTATSVIEWER
+                            "View and summarize operator statistics logs\nOperator Statistics Viewer"
+    ID_TOOLS_SAVEARRAYVIEWER "View save array files\nSave Array Viewer"
+    ID_TOOLS_TEXTCONVERTER  "Open the Text Encoding Converter tool\nText Encoding Converter"
+END
+
+STRINGTABLE
+BEGIN
+    ID_HELP_WHAT_IS_NEW     "Learn about what is new in this version of CSPro\nWhat's New in CSPro?"
+    ID_HELP_EXAMPLES        "Open the CSPro Examples folder\nExamples Folder"
+    ID_HELP_MAILING_LIST    "Sign up for the CSPro mailing list\nMailing List Signup"
+    ID_HELP_TROUBLESHOOTING "Learn about how to receive technical support\nTechnical Support"
+    ID_HELP_SHOW_SYNC_LOG   "Show where the sync.log file is located\nSync.log File"
+    ID_HELP_GOOGLEPLAY      "Download the Android application on Google Play\nGoogle Play"
+END
+
+/////////////////////////////////////////////////////////////////////////////

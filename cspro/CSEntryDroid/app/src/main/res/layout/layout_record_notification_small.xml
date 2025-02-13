@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/recording_notification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+    <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+      />
+
+    <ImageView
+            android:id="@+id/btn_play"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@+id/btn_stop"
+            android:visibility="gone"
+            android:layout_toLeftOf="@+id/btn_stop" />
+<!--            android:src="@drawable/ic_play"-->
+    <ImageView
+            android:id="@+id/btn_pause"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@+id/btn_stop"
+            android:layout_toLeftOf="@+id/btn_stop" />
+            <!--android:src="@drawable/ic_pause"-->
+
+    <ImageView
+            android:id="@+id/btn_stop"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_alignParentRight="true" />
+            <!--android:src="@drawable/ic_stop"-->
+
+</RelativeLayout>

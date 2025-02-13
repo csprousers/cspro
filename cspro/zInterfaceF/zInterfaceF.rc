@@ -1,0 +1,335 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#include ""afxres.rc""      // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "zInterfaceF DLL"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "zInterfaceF"
+            VALUE "OriginalFilename", "zInterfaceF.DLL"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_UNIVERSE DIALOGEX 0, 0, 519, 273
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit Universe"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_UNIVERSE_TEXT,7,214,505,31,ES_MULTILINE | WS_VSCROLL
+    PUSHBUTTON      "Clear",IDC_CLEAR,7,252,50,14
+    DEFPUSHBUTTON   "OK",IDOK,185,252,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,245,252,50,14
+    PUSHBUTTON      "Help",ID_HELP,462,252,50,14
+    CONTROL         "",IDC_DICTIONARY_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,18,224,177
+    PUSHBUTTON      "=",IDC_OPERATOR_EQ,247,18,20,15,WS_GROUP
+    PUSHBUTTON      "<>",IDC_OPERATOR_NOT_EQ,272,18,19,15
+    PUSHBUTTON      "and",IDC_OPERATOR_AND,297,18,19,15
+    PUSHBUTTON      "<",IDC_OPERATOR_LT,247,39,19,15
+    PUSHBUTTON      "<=",IDC_OPERATOR_LTE,272,39,19,15
+    PUSHBUTTON      "or",IDC_OPERATOR_OR,297,39,19,15
+    PUSHBUTTON      ">",IDC_OPERATOR_GT,247,60,19,15
+    PUSHBUTTON      ">=",IDC_OPERATOR_GTE,272,60,20,15,WS_GROUP
+    PUSHBUTTON      "not",IDC_OPERATOR_NOT,297,60,19,15
+    PUSHBUTTON      "(  )",IDC_OPERATOR_PARENTHESES,260,81,19,15
+    PUSHBUTTON      "in",IDC_OPERATOR_IN,297,81,19,15
+    LISTBOX         IDC_ITEM_VALUES,333,18,179,177,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
+    LTEXT           "Dictionary Tree:",IDC_STATIC,8,6,59,10,NOT WS_GROUP
+    LTEXT           "Item Values:",IDC_STATIC,333,7,46,10,NOT WS_GROUP
+    LTEXT           "Universe",IDC_STATIC,9,202,66,9,NOT WS_GROUP
+    LTEXT           "Operators:",IDC_STATIC,247,6,46,10,NOT WS_GROUP
+END
+
+IDD_BATCH_LOGIC_VIEWER DIALOGEX 0, 0, 575, 303
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Batch Logic"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDCANCEL,518,282,50,14
+    EDITTEXT        IDC_BATCH_LOGIC,7,7,561,267,ES_MULTILINE | ES_AUTOHSCROLL
+    PUSHBUTTON      "Copy to Clipboard",IDC_COPY_TO_CLIPBOARD,7,282,97,14
+    PUSHBUTTON      "Create Batch Application",IDC_CREATE_BATCH_APPLICATION,143,282,97,14
+END
+
+IDD_LANGDLGBAR DIALOGEX 0, 0, 150, 17
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Language:",IDC_LANG_STATIC,6,3,38,9,SS_CENTERIMAGE
+    COMBOBOX        IDC_LANGCOMBO,47,1,99,170,CBS_DROPDOWNLIST | WS_VSCROLL
+END
+
+IDD_LOGIC_SETTINGS DIALOGEX 0, 0, 337, 301
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Logic Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,107,280,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,181,280,50,14
+    PUSHBUTTON      "Help",ID_HELP,280,280,50,14
+    GROUPBOX        "Case Sensitivity",IDC_STATIC,7,7,323,48
+    LTEXT           "The compiler will enforce case sensitivity when processing:",IDC_STATIC,15,20,188,8
+    CONTROL         "Symbol names (dictionary and form names, logic variables, etc.)",IDC_CASE_SYMBOLS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,25,37,220,10
+    GROUPBOX        "Logic Version",IDC_STATIC,7,62,323,67
+    LTEXT           "The version controls how string literals and comparisons, and multiline comments, are handled. Detailed information about the differences is described in the helps.",IDC_STATIC,15,75,311,22
+    CONTROL         "Original (the only version up to CSPro 7.7)",IDC_LOGIC_VERSION_0,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,25,97,151,10
+    CONTROL         "CSPro 8.0+",IDC_LOGIC_VERSION_8_0,"Button",BS_AUTORADIOBUTTON,25,112,53,10
+    GROUPBOX        "Action Invoker",IDC_STATIC,7,138,323,85
+    CONTROL         "From CSPro logic, automatically convert results that are string, boolean, and undefined to CSPro formats",IDC_ACTION_INVOKER_CONVERT_RESULTS,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,15,146,308,22
+    LTEXT           "From external callers:",IDC_STATIC,15,172,70,8
+    COMBOBOX        IDC_ACTION_INVOKER_ACCESS_FROM_EXTERNAL_CALLER,118,170,205,85,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Registered access tokens (one per line):",IDC_STATIC,15,189,84,18
+    EDITTEXT        IDC_ACTION_INVOKER_ACCESS_TOKENS,118,189,205,27,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
+    GROUPBOX        "CSPro Default Settings",IDC_STATIC,7,229,323,40
+    LTEXT           "Make these settings the default logic settings for new applications, as well as for tools that use logic.",IDC_STATIC,15,242,235,18
+    PUSHBUTTON      "Set as Default",IDC_SET_AS_DEFAULT,253,242,70,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_UNIVERSE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 512
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 266
+    END
+
+    IDD_BATCH_LOGIC_VIEWER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 568
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 296
+    END
+
+    IDD_LANGDLGBAR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 124
+        TOPMARGIN, 7
+    END
+
+    IDD_LOGIC_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 330
+        VERTGUIDE, 323
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 294
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_UNIVERSE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_BATCH_LOGIC_VIEWER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_LANGDLGBAR AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_LOGIC_SETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_DICTIONARY          ICON                    "res\\dictionary.ico"
+
+IDI_DICTIONARY_LEVEL    ICON                    "res\\dictionary-level.ico"
+
+IDI_DICTIONARY_ID_RECORD ICON                    "res\\dictionary-id-record.ico"
+
+IDI_DICTIONARY_RECORD   ICON                    "res\\dictionary-record.ico"
+
+IDI_DICTIONARY_ITEM     ICON                    "res\\dictionary-item.ico"
+
+IDI_DICTIONARY_SUBITEM  ICON                    "res\\dictionary-subitem.ico"
+
+IDI_DICTIONARY_VALUESET ICON                    "res\\dictionary-valueset.ico"
+
+IDI_DICTIONARY_RELATION ICON                    "res\\dictionary-relation.ico"
+
+IDI_FORM_BLOCK          ICON                    "res\\form-block.ico"
+
+IDI_FORM_BLOCK_LOGIC    ICON                    "res\\form-block-logic.ico"
+
+IDI_FORM_BLOCK_QUESTION ICON                    "res\\form-block-question.ico"
+
+IDI_FORM_BLOCK_LOGIC_QUESTION ICON                    "res\\form-block-logic-question.ico"
+
+IDI_LOGIC_FILE          ICON                    "res\\logic-file.ico"
+
+IDI_REPORT_FILE         ICON                    "res\\report-file.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_SELECTION_STATES    BITMAP                  "res\\selection-states.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_LOGIC_SETTINGS DLGINIT
+BEGIN
+    IDC_ACTION_INVOKER_ACCESS_FROM_EXTERNAL_CALLER, 0x403, 36, 0
+0x6c41, 0x6177, 0x7379, 0x6120, 0x6c6c, 0x776f, 0x2820, 0x6977, 0x6874, 
+0x756f, 0x2074, 0x6361, 0x6563, 0x7373, 0x7420, 0x6b6f, 0x6e65, 0x0029, 
+
+    IDC_ACTION_INVOKER_ACCESS_FROM_EXTERNAL_CALLER, 0x403, 52, 0
+0x6c41, 0x6f6c, 0x2077, 0x7375, 0x7265, 0x7420, 0x206f, 0x7061, 0x7270, 
+0x766f, 0x2065, 0x6877, 0x6e65, 0x6e20, 0x206f, 0x6361, 0x6563, 0x7373, 
+0x7420, 0x6b6f, 0x6e65, 0x7020, 0x6f72, 0x6976, 0x6564, 0x0064, 
+    IDC_ACTION_INVOKER_ACCESS_FROM_EXTERNAL_CALLER, 0x403, 31, 0
+0x6c41, 0x6177, 0x7379, 0x7220, 0x7165, 0x6975, 0x6572, 0x6120, 0x206e, 
+0x6361, 0x6563, 0x7373, 0x7420, 0x6b6f, 0x6e65, "\000" 
+    0
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#include "afxres.rc"      // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

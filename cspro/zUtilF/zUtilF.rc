@@ -1,0 +1,379 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "zUtilF DLL"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "zUtilF"
+            VALUE "OriginalFilename", "zUtilF.DLL"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_BATCHMETER_DIALOG DIALOGEX 0, 0, 403, 185
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "CSPro Batch Meter"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Total",IDC_STATIC,141,118,25,8,NOT WS_GROUP
+    LTEXT           "Total",IDC_STATIC,260,118,25,8,NOT WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,347,38,50,14
+    PUSHBUTTON      "Details",IDC_DETAILS,347,54,50,14
+    RTEXT           "0",IDC_STATIC_MSGS_USR,175,84,33,8,NOT WS_GROUP
+    RTEXT           "0",IDC_STATIC_MSGS_WAR,175,94,33,8,NOT WS_GROUP
+    RTEXT           "0",IDC_STATIC_MSGS_ERR,175,104,33,8,NOT WS_GROUP
+    RTEXT           "0",IDC_STATIC_MSGS_TOT,175,118,33,8,NOT WS_GROUP
+    RTEXT           "0",IDC_STATIC_IGN_TOT,295,118,33,8,NOT WS_GROUP
+    RTEXT           "0",IDC_STATIC_IGN_UNK,295,94,33,8,NOT WS_GROUP
+    RTEXT           "0",IDC_STATIC_IGN_ERA,295,104,33,8,NOT WS_GROUP
+    LTEXT           "Case ID",IDC_STATIC_CASEID,14,28,319,8,NOT WS_GROUP
+    LTEXT           "Error",IDC_STATIC,141,104,32,8,NOT WS_GROUP
+    CONTROL         "Progress2",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,55,331,13
+    LTEXT           "Unknown",IDC_STATIC,260,94,32,8,NOT WS_GROUP
+    LTEXT           "Erased",IDC_STATIC,260,104,32,8,NOT WS_GROUP
+    LTEXT           "User",IDC_STATIC,141,84,16,8,NOT WS_GROUP
+    LTEXT           "Warning",IDC_STATIC,141,94,32,8,NOT WS_GROUP
+    LTEXT           "0",IDC_STATIC_RECORDSREAD,64,44,60,8,NOT WS_GROUP
+    RTEXT           "0",IDC_STATIC_PERC,297,44,33,8,NOT WS_GROUP
+    CONTROL         "List1",IDC_LIST_LEVEL,"SysListView32",LVS_REPORT | LVS_SORTASCENDING | LVS_NOSORTHEADER | WS_BORDER,122,136,217,42,WS_EX_CLIENTEDGE
+    LTEXT           "Records Read:",IDC_STATIC,14,44,49,8,NOT WS_GROUP
+    LTEXT           "%",IDC_STATIC,331,44,8,8,NOT WS_GROUP
+    GROUPBOX        "Case ID",IDC_STATIC,7,18,331,22
+    GROUPBOX        "Ignored",IDC_STATIC,239,73,100,57
+    GROUPBOX        "Messages",IDC_STATIC,122,73,100,57
+    RTEXT           "=============",IDC_STATIC,252,111,76,8
+    RTEXT           "=============",IDC_STATIC,131,111,77,8
+    LTEXT           "File:",IDC_STATIC_DFNAME,14,7,324,9
+    GROUPBOX        "Time",IDC_STATIC,7,73,100,57
+    LTEXT           "Start",IDC_STATIC,22,84,17,8,NOT WS_GROUP
+    LTEXT           "...",IDC_STATIC_TIME_START,65,84,37,8
+    LTEXT           "Elapsed",IDC_STATIC,22,94,26,8,NOT WS_GROUP
+    LTEXT           "...",IDC_STATIC_TIME_ELAPSED,65,94,37,8
+    LTEXT           "Remaining",IDC_STATIC,22,104,34,8,NOT WS_GROUP
+    LTEXT           "...",IDC_STATIC_TIME_REMAINING,65,104,34,8
+END
+
+IDD_MSGBOX_DIALOG DIALOGEX 0, 0, 241, 126
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+END
+
+IDD_CSPRO_SETTINGS DIALOGEX 0, 0, 229, 94
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CSPro Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDOK,56,73,50,14
+    PUSHBUTTON      "&Help",ID_HELP,124,73,50,14
+    PUSHBUTTON      "Clear Credentials",IDC_BUTTON_CLEAR_CREDENTIALS,136,44,77,14
+    GROUPBOX        "Saved Credentials",IDC_STATIC,7,7,215,59
+    LTEXT           "CSPro saves login credentials to synchronization servers as well as passwords to Encrypted CSPro DB files.",IDC_STATIC,17,19,196,18
+END
+
+IDD_TEXT_REPORT DIALOGEX 0, 0, 449, 221
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Report"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,199,200,50,14
+    DEFPUSHBUTTON   "Copy to Clipboard",IDC_COPY_TEXT_TO_CLIPBOARD,373,200,69,14
+    LTEXT           "...heading...",IDC_TEXT_REPORT_HEADING,7,7,435,17
+    EDITTEXT        IDC_TEXT_REPORT_CONTENT,7,29,435,165,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
+IDD_PROGRESS2 DIALOGEX 0, 0, 292, 143
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,120,122,50,14
+    GROUPBOX        "Current",IDC_GROUP_BOX_CURRENT,7,7,278,53
+    GROUPBOX        "Overall",IDC_GROUP_BOX_OVERALL,7,65,278,53
+    LTEXT           "Starting...",IDC_STATUS_CURRENT,15,19,262,8
+    CONTROL         "Progress1",IDC_PROGRESS_CURRENT,"msctls_progress32",WS_BORDER,14,42,262,14
+    LTEXT           "overall status",IDC_STATUS_OVERALL,15,77,262,8
+    CONTROL         "Progress2",IDC_PROGRESS_OVERALL,"msctls_progress32",WS_BORDER,14,100,262,14
+    CTEXT           "0%",IDC_CURRENT_PERCENT,129,30,34,8
+    CTEXT           "0%",IDC_OVERALL_PERCENT,133,89,25,8
+END
+
+IDD_PROGRESS DIALOGEX 0, 0, 386, 78
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,167,58,50,14
+    CONTROL         "Progress1",IDC_PROGDLG_PROGRESS,"msctls_progress32",WS_BORDER,10,34,365,13
+    CTEXT           "0%",IDC_PROGDLG_PERCENT,178,23,30,8
+    LTEXT           "",IDC_PROGDLG_STATUS,11,7,363,8
+END
+
+IDD_IMAGE_SELECTOR DIALOGEX 0, 0, 140, 28
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Modify",IDC_MODIFY_BUTTON,7,7,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE_BUTTON,83,7,50,14
+END
+
+IDD_WINDOWS_DOCS DIALOGEX 0, 0, 497, 214
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Windows"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,406,193,84,14
+    CONTROL         "",IDC_DOC_LIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,382,200
+    PUSHBUTTON      "&Activate",IDC_ACTIVATE,406,7,84,14
+    PUSHBUTTON      "&Save",IDC_SAVE,406,32,84,14
+    PUSHBUTTON      "&Close Window(s)",IDC_CLOSE_WINDOWS,406,57,84,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_BATCHMETER_DIALOG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 397
+        BOTTOMMARGIN, 183
+    END
+
+    IDD_MSGBOX_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 234
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 119
+    END
+
+    IDD_CSPRO_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 222
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_TEXT_REPORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 442
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 214
+    END
+
+    IDD_PROGRESS2, DIALOG
+    BEGIN
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+    END
+
+    IDD_IMAGE_SELECTOR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 133
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 21
+    END
+
+    IDD_WINDOWS_DOCS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 490
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 207
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_MSGBOX_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_CSPRO_SETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_BATCHMETER_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_TEXT_REPORT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_IMAGE_SELECTOR AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_WINDOWS_DOCS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_LOGGING_LIST_BOX MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Copy Selected Lines\tCtrl+C", ID_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "C&lear",                      ID_EDIT_CLEAR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Save to File",               ID_FILE_SAVE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_WINDOWS_WINDOWS      "View all open documents\nWindows"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

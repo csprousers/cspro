@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gov.census.cspro.commonui.CheckableRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:focusable="false"
+  	android:focusableInTouchMode="false" >
+
+    <View
+        android:id="@+id/style_item_navfrag_hero"
+        android:layout_width="10dp"
+        android:layout_height="34dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:background="#2C2F2D"
+        android:focusable="false"
+  		android:focusableInTouchMode="false" />
+
+    <View
+        android:id="@+id/style_item_textcolor_hero"
+        android:layout_width="5dp"
+        android:layout_height="15dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="0dp"
+        android:layout_alignTop="@id/style_item_navfrag_hero"
+        android:layout_toRightOf="@+id/style_item_navfrag_hero"
+        android:background="#FF0000"
+        android:focusable="false"
+  		android:focusableInTouchMode="false"/>
+
+    <View
+        android:id="@+id/style_item_subtextcolor_hero"
+        android:layout_width="5dp"
+        android:layout_height="15dp"
+        android:layout_below="@+id/style_item_textcolor_hero"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="4dp"
+        android:layout_toRightOf="@+id/style_item_navfrag_hero"
+        android:background="#222222"
+        android:focusable="false"
+  		android:focusableInTouchMode="false" />
+
+    <View
+        android:id="@+id/style_item_selectioncolor_hero"
+        android:layout_width="10dp"
+        android:layout_height="34dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="5dp"
+        android:layout_alignTop="@id/style_item_textcolor_hero" 
+        android:layout_toRightOf="@+id/style_item_subtextcolor_hero"
+        android:background="#2D7DD3"
+        android:focusable="false"
+  		android:focusableInTouchMode="false" />
+
+    <TextView
+        android:id="@+id/style_item_name_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="34dp"
+        android:layout_toRightOf="@+id/style_item_selectioncolor_hero"
+        android:text="@string/app_placeholder_1"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:focusable="false"
+  		android:focusableInTouchMode="false" />
+
+    <TextView
+        android:id="@+id/style_item_description_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/style_item_name_textview"
+        android:layout_below="@+id/style_item_name_textview"
+        android:layout_marginTop="2dp"
+        android:text="@string/app_placeholder_2"
+        android:textColor="#2C2F2D"
+        android:focusable="false"
+  		android:focusableInTouchMode="false"/>
+
+    <RadioButton
+        android:id="@+id/style_item_selected_radiobutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="10dp"
+        android:layout_alignTop="@+id/style_item_selectioncolor_hero"
+        android:text="" 
+        
+        android:focusable="false"
+  		android:focusableInTouchMode="false"/>
+
+</gov.census.cspro.commonui.CheckableRelativeLayout>

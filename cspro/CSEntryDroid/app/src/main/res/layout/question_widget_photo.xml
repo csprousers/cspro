@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <ImageView
+    android:id="@+id/image"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    app:layout_constraintHeight_max="300dp"
+    android:layout_marginBottom="8dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toTopOf="@id/buttonTakePicture"
+    tools:ignore="ContentDescription"
+    tools:src="@tools:sample/backgrounds/scenic"/>
+
+  <androidx.constraintlayout.helper.widget.Flow
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    app:layout_constraintTop_toBottomOf="@id/image"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:constraint_referenced_ids="buttonTakePicture,buttonChoosePicture,buttonDelete"
+    app:flow_wrapMode="chain"
+    app:flow_firstHorizontalStyle="spread_inside"
+    />
+
+  <Button
+    android:id="@+id/buttonTakePicture"
+    android:drawableLeft="@drawable/ic_baseline_photo_camera_24"
+    android:tint="@color/dark"
+    android:text="@string/take_photo"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:scaleType="fitCenter"
+    tools:ignore="ContentDescription" />
+
+  <Button
+    android:id="@+id/buttonChoosePicture"
+    android:text="@string/choose_photo"
+    android:drawableLeft="@drawable/ic_baseline_folder_24"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:tint="@color/dark"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:scaleType="fitCenter"
+    tools:ignore="ContentDescription" />
+
+  <Button
+    android:id="@+id/buttonDelete"
+    android:text="@string/clear"
+    android:drawableLeft="@drawable/ic_baseline_delete_24"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:tint="@color/dark"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:scaleType="fitCenter"
+    tools:ignore="ContentDescription" />
+</androidx.constraintlayout.widget.ConstraintLayout>

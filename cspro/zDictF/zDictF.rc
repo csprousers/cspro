@@ -1,0 +1,843 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "../zDesignerF/resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "zDictF DLL"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "zDictF"
+            VALUE "OriginalFilename", "zDictF.DLL"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_DICT_FRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New...\tCtrl+N",             ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close\tCtrl+F4",             ID_FILE_CSPRO_CLOSE
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_CSPRO_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_CSPRO_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "Add &Files...",               ID_FILE_ADD_FILE
+        MENUITEM "&Drop Files...",              ID_FILE_DROP_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Page Set&up...",              ID_FILE_PAGE_SETUP
+        MENUITEM "Print S&etup...",             ID_FILE_PRINT_SETUP
+        MENUITEM "Print Pre&view...",           ID_FILE_PRINT_PREVIEW
+        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "&Modify\tCtrl+M",             ID_EDIT_MODIFY
+        MENUITEM "&Add\tCtrl+A",                ID_EDIT_ADD
+        MENUITEM "&Insert\tIns",                ID_EDIT_INSERT
+        MENUITEM "&Delete\tDel",                ID_EDIT_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Langua&ges",                  ID_EDIT_LANGUAGES
+        MENUITEM "Security Options",            ID_EDIT_SECURITY_OPTIONS
+        MENUITEM SEPARATOR
+        MENUITEM "Relations",                   ID_EDIT_RELATION
+        MENUITEM SEPARATOR
+        MENUITEM "&Notes...\tCtrl+D",           ID_EDIT_NOTES
+        MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
+        MENUITEM SEPARATOR
+        MENUITEM "Convert to &Subitems",        ID_EDIT_MAKE_SUBITEMS
+        MENUITEM "Flatten &Occurrences",        ID_EDIT_FLATTEN_OCCURRENCES
+        MENUITEM "Occurrence &Labels",          ID_EDIT_OCCURRENCELABELS
+        MENUITEM SEPARATOR
+        MENUITEM "&Generate Value Set\tCtrl+G", ID_EDIT_GEN_VALUE_SET
+        MENUITEM SEPARATOR
+        MENUITEM "Dictionary Macros",           ID_DICTIONARY_MACROS
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Names in Tree\tCtrl+T",      ID_VIEW_NAMES
+        MENUITEM "Append Labels to Names in Tree", ID_VIEW_NAMES_WITH_LABELS
+        MENUITEM "&Full Screen\tCtrl+J",        ID_VIEW_FULLSCREEN
+        MENUITEM SEPARATOR
+        MENUITEM "Aliases",                     ID_VIEW_ALIASES
+        POPUP "Dictionary &Analysis"
+        BEGIN
+            MENUITEM "Numeric/Alpha Items Without Value Sets", ID_DICT_ANALYSIS_ITEMS_NO_VALUE_SETS
+            MENUITEM "Numeric Items Without Value Sets", ID_DICT_ANALYSIS_NUMERIC_ITEMS_NO_VALUE_SETS
+            MENUITEM "Numeric Items With Overlapping Value Sets", ID_DICT_ANALYSIS_NUMERIC_ITEMS_OVERLAPPING_VALUE_SETS
+            MENUITEM "Numeric Items With Mismatched ZeroFill or DecChar Options", ID_DICT_ANALYSIS_NUMERIC_ITEMS_MISMATCHED_ZF_DC
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Dictionary",                  ID_VIEW_DICTIONARY
+        MENUITEM "Questionnaire",               ID_VIEW_QUESTIONNAIRE
+        MENUITEM SEPARATOR
+        MENUITEM "&Layout\tCtrl+L",             ID_VIEW_LAYOUT
+        MENUITEM "&Property Panel\tAlt+Enter",  ID_VIEW_PROPERTIES
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Relative Positions",         ID_OPTIONS_ABS_REL
+        MENUITEM SEPARATOR
+        MENUITEM "&ZeroFill Default 'Yes'",     ID_OPTIONS_ZEROFILL
+        MENUITEM "&DecChar Default 'Yes'",      ID_OPTIONS_DECCHAR
+        MENUITEM SEPARATOR
+        MENUITEM "Enable Binary Items (experimental)", ID_OPTIONS_ENABLE_BINARY_ITEMS
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Data Viewer",                ID_TOOLS_DATAVIEWER
+        MENUITEM "&Text Viewer",                ID_TOOLS_TEXTVIEW
+        MENUITEM "Ta&ble Viewer",               ID_TOOLS_TABLEVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Tabulate &Frequencies",       ID_TOOLS_FREQ
+        MENUITEM SEPARATOR
+        MENUITEM "Deploy Application",          ID_TOOLS_DEPLOY
+        MENUITEM "&Pack Application",           ID_TOOLS_PACK
+        MENUITEM SEPARATOR
+        MENUITEM "&Compare Data",               ID_TOOLS_COMPARE
+        MENUITEM "Conc&atenate Data",           ID_TOOLS_CONCAT
+        MENUITEM "Excel to CSPro",              ID_TOOLS_EXCEL2CSPRO
+        MENUITEM "&Export Data",                ID_TOOLS_EXPORT
+        MENUITEM "&Index Data",                 ID_TOOLS_INDEX
+        MENUITEM "&Reformat Data",              ID_TOOLS_REFORMAT
+        MENUITEM "&Sort Data",                  ID_TOOLS_SORT
+        MENUITEM SEPARATOR
+        MENUITEM "Paradata Concatenator",       ID_TOOLS_PARADATACONCAT
+        MENUITEM "Paradata Viewer",             ID_TOOLS_PARADATAVIEWER
+        MENUITEM SEPARATOR
+        MENUITEM "CSCode",                      ID_TOOLS_CSCODE
+        MENUITEM "CSDocument",                  ID_TOOLS_CSDOCUMENT
+        MENUITEM "CSView",                      ID_TOOLS_CSVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "PFF Editor",                  ID_TOOLS_PFFEDITOR
+        MENUITEM "Production Runner",           ID_TOOLS_PRODUCTIONRUNNER
+        MENUITEM "Operator Statistics Viewer",  ID_TOOLS_OPERATORSTATSVIEWER
+        MENUITEM "Save Array Viewer",           ID_TOOLS_SAVEARRAYVIEWER
+        MENUITEM "Text Encoding Converter",     ID_TOOLS_TEXTCONVERTER
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile Top to Bottom",         ID_WINDOW_TILE_HORZ
+        MENUITEM "Tile &Side by Side",          ID_WINDOW_TILE_VERT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "What's &New in CSPro?",       ID_HELP_WHAT_IS_NEW
+        MENUITEM "&Examples Folder",            ID_HELP_EXAMPLES
+        MENUITEM SEPARATOR
+        MENUITEM "Mailing &List Signup",        ID_HELP_MAILING_LIST
+        POPUP "&Troubleshooting"
+        BEGIN
+            MENUITEM "&Technical Support",          ID_HELP_TROUBLESHOOTING
+            MENUITEM "&Sync.log file",              ID_HELP_SHOW_SYNC_LOG
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Android CS&Entry App",        ID_HELP_GOOGLEPLAY
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSPro",                ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_DICT_FRAME ACCELERATORS
+BEGIN
+    "L",            ID_CHANGE_LANGUAGE,     VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, SHIFT, NOINVERT
+    "A",            ID_EDIT_ADD,            VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      ID_EDIT_DELETE,         VIRTKEY, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "G",            ID_EDIT_GEN_VALUE_SET,  VIRTKEY, CONTROL, NOINVERT
+    "I",            ID_EDIT_INSERT,         VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_INSERT,         VIRTKEY, NOINVERT
+    "M",            ID_EDIT_MODIFY,         VIRTKEY, CONTROL, NOINVERT
+    "D",            ID_EDIT_NOTES,          VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          ID_FILE_CSPRO_CLOSE,    VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_CSPRO_SAVE,     VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
+    "V",            ID_PASTE_VS_LINK,       VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
+    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
+    "L",            ID_VIEW_LAYOUT,         VIRTKEY, CONTROL, NOINVERT
+    "T",            ID_VIEW_NAMES,          VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      ID_VIEW_PROPERTIES,     VIRTKEY, ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_DICT_FRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_CSPRO_SAVE
+    SEPARATOR
+    BUTTON      ID_FILE_PAGE_SETUP
+    BUTTON      ID_FILE_PRINT_PREVIEW
+    BUTTON      ID_FILE_PRINT
+    SEPARATOR
+    BUTTON      ID_EDIT_UNDO
+    BUTTON      ID_EDIT_REDO
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_EDIT_ADD
+    BUTTON      ID_EDIT_INSERT
+    BUTTON      ID_EDIT_DELETE
+    SEPARATOR
+    BUTTON      ID_EDIT_NOTES
+    BUTTON      ID_EDIT_FIND
+    SEPARATOR
+    BUTTON      ID_VIEW_LAYOUT
+    BUTTON      ID_VIEW_PROPERTIES
+    SEPARATOR
+    BUTTON      ID_VIEW_DICTIONARY
+    BUTTON      ID_VIEW_QUESTIONNAIRE
+    SEPARATOR
+    BUTTON      ID_WINDOW_DICTS
+    BUTTON      ID_WINDOW_FORMS
+    BUTTON      ID_WINDOW_ORDER
+    BUTTON      ID_WINDOW_TABLES
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_DICT_FRAME          BITMAP                  "Res\\Toolbar.bmp"
+
+IDB_NOTENO              BITMAP                  "Res\\noteno.bmp"
+
+IDB_NOTENO_GRAYED       BITMAP                  "Res\\notenog.bmp"
+
+IDB_NOTEYES             BITMAP                  "Res\\NoteYes.bmp"
+
+IDB_NOTEYES_GRAYED      BITMAP                  "Res\\noteyesg.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ITEM_USED           ICON                    "Res\\itemu.ico"
+
+IDR_DICT_FRAME          ICON                    "Res\\dict16.ico"
+
+IDI_SUBITEM_USED        ICON                    "Res\\subitemu.ico"
+
+IDI_REL                 ICON                    "Res\\rel.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FIND_DLG DIALOG 25, 25, 207, 59
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find Text"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "&Find What:",IDC_STATIC,2,7,40,9
+    COMBOBOX        IDC_SEARCH_TEXT,2,18,144,56,CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Match Case",IDC_CASE_SENSITIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,2,43,65,10
+    DEFPUSHBUTTON   "&Next",IDC_NEXT,154,5,50,14
+    PUSHBUTTON      "&Close",IDCLOSE,82,41,50,14
+    PUSHBUTTON      "&Help",ID_HELP,154,41,50,14
+    PUSHBUTTON      "&Previous",IDC_PREV,154,23,50,14
+END
+
+IDD_START_POSITION DIALOGEX 0, 0, 153, 52
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Start Position"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_START_POSITION,94,7,24,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,31,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,57,31,40,14
+    PUSHBUTTON      "Help",ID_HELP,106,31,40,14
+    LTEXT           "First Item Start:",IDC_STATIC,34,9,54,8,0,WS_EX_RIGHT
+END
+
+IDD_BEFORE_AFTER_DLG DIALOG 0, 0, 126, 47
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Paste"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Paste where?",IDC_STATIC,41,7,62,8
+    PUSHBUTTON      "&Before",IDC_BEFORE,7,26,50,14,NOT WS_TABSTOP
+    DEFPUSHBUTTON   "&After",IDC_AFTER,69,26,50,14
+END
+
+IDD_RELATION DIALOGEX 0, 0, 599, 319
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_NOPARENTNOTIFY
+CAPTION "Relation Specifications"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "&OK",IDOK,175,298,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,275,298,50,14
+    PUSHBUTTON      "Help",ID_HELP,375,298,50,14,NOT WS_TABSTOP
+    CTEXT           "",IDC_RELGRID,7,26,585,266,SS_NOTIFY | SS_CENTERIMAGE | SS_SUNKEN
+    PUSHBUTTON      "&Add",IDC_ADD,177,7,45,13
+    PUSHBUTTON      "&Delete",IDC_DELETE,377,7,45,13
+    PUSHBUTTON      "&Insert",IDC_INSERT,277,7,45,13
+END
+
+IDD_OCCURRENCE DIALOGEX 0, 0, 420, 276
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Occurrence Labels"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,106,257,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,185,257,50,14
+    CTEXT           "",IDC_OCCGRID,7,7,406,244,SS_NOTIFY | SS_CENTERIMAGE | SS_SUNKEN
+    PUSHBUTTON      "&Help",ID_HELP,264,257,50,14
+END
+
+IDD_PRINT_DLG DIALOG 0, 0, 175, 156
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Print"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,19,137,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,106,137,50,14
+    GROUPBOX        "Where",IDC_STATIC,7,7,161,37
+    CONTROL         "To Printer",IDC_PRINT_PRINTER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,16,17,81,10
+    CONTROL         "To Text File",IDC_PRINT_FILE,"Button",BS_AUTORADIOBUTTON,16,29,77,10
+    GROUPBOX        "Detail",IDC_STATIC,7,50,161,37
+    CONTROL         "Complete -- with values and notes",IDC_PRINT_DETAILED,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,16,60,126,10
+    CONTROL         "Brief -- without values and notes",IDC_PRINT_BRIEF,
+                    "Button",BS_AUTORADIOBUTTON,16,72,122,10
+    GROUPBOX        "Order",IDC_STATIC,7,93,161,37
+    CONTROL         "Label - Name",IDC_PRINT_LABEL_FIRST,"Button",BS_AUTORADIOBUTTON | WS_GROUP,16,103,57,10
+    CONTROL         "Name - Label",IDC_PRINT_NAME_FIRST,"Button",BS_AUTORADIOBUTTON,16,115,57,10
+END
+
+IDD_GENERATE_VSET DIALOGEX 0, 0, 275, 197
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Generate Value Set"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_GEN_VSET_LABEL,37,14,223,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_GEN_VSET_NAME,37,32,223,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_GEN_VSET_FROM,49,62,65,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_GEN_VSET_TO,49,80,65,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_GET_VSET_INTERVAL,49,108,65,14,ES_AUTOHSCROLL
+    CONTROL         "Use 1000 separator (,)",IDC_GEN_VSET_USE_THOUSANDS_SEPARATOR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,142,110,87,10
+    EDITTEXT        IDC_GEN_VSET_TEMPLATE,15,147,246,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,7,176,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,112,176,50,14
+    PUSHBUTTON      "&Help",ID_HELP,217,176,50,14
+    GROUPBOX        "Value Set",IDC_STATIC,7,3,261,49
+    LTEXT           "Label:",IDC_STATIC,13,16,20,8
+    LTEXT           "Name:",IDC_STATIC,13,34,22,8
+    LTEXT           "From:",IDC_STATIC,15,64,20,8
+    LTEXT           "To:",IDC_STATIC,15,82,12,8
+    LTEXT           "Interval:",IDC_STATIC,16,110,29,8
+    GROUPBOX        "Value Label Template",IDC_STATIC,7,136,261,33
+END
+
+IDD_DICTIONARY_MACROS DIALOGEX 0, 0, 296, 331
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dictionary Macros"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Dictionary Names and Labels",IDC_STATIC,7,7,138,91
+    PUSHBUTTON      "Copy All",IDC_COPY_DICTIONARY_NAMES,34,20,83,14
+    PUSHBUTTON      "Paste All",IDC_PASTE_DICTIONARY_NAMES,34,38,83,14
+    LTEXT           "Include:",IDC_STATIC,33,73,27,8
+    CONTROL         "All Languages",IDC_ITEM_ALL_LANGUAGES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,65,73,61,10
+    CONTROL         "Item Lengths",IDC_ITEM_LENGTHS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,65,84,58,10
+    GROUPBOX        "Value Sets",IDC_STATIC,151,7,138,91
+    PUSHBUTTON      "Copy All",IDC_COPY_VALUE_SETS,180,20,83,14
+    PUSHBUTTON      "Paste",IDC_PASTE_VALUE_SETS,180,38,83,14
+    PUSHBUTTON      "Delete All",IDC_DELETE_VALUE_SETS,180,55,83,14
+    LTEXT           "Include:",IDC_STATIC,171,73,27,8
+    CONTROL         "All Languages",IDC_VS_ALL_LANGUAGES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,202,73,62,10
+    CONTROL         "Value Set Images",IDC_VS_IMAGES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,202,84,70,10
+    GROUPBOX        "Add Items to Records",IDC_STATIC,7,105,138,66
+    LTEXT           "Number of Items",IDC_STATIC,14,118,54,8
+    EDITTEXT        IDC_NUM_ITEMS,99,116,40,14,ES_AUTOHSCROLL
+    LTEXT           "Record",IDC_STATIC,14,134,24,8
+    COMBOBOX        IDC_RECORD_LISTING,56,134,83,87,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add Items",IDC_ADD_ITEMS,56,151,83,14
+    GROUPBOX        "Records",IDC_STATIC,151,105,138,66
+    PUSHBUTTON      "Set All to Required",IDC_REQUIRE_RECORDS_YES,177,122,83,14
+    PUSHBUTTON      "Set All to Not Required",IDC_REQUIRE_RECORDS_NO,177,141,83,14
+    GROUPBOX        "Generate Random Data File",IDC_STATIC,7,179,138,90
+    LTEXT           "Number of Cases",IDC_STATIC,14,196,56,8
+    EDITTEXT        IDC_NUMBER_CASES,99,193,40,14,ES_AUTOHSCROLL
+    LTEXT           "Percent Not Applicable",IDC_STATIC,14,212,73,8
+    EDITTEXT        IDC_NOTAPPL_PERCENT,99,210,40,14,ES_AUTOHSCROLL
+    LTEXT           "Percent Invalid",IDC_STATIC,14,229,49,8
+    EDITTEXT        IDC_INVALID_PERCENT,99,227,40,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Generate File",IDC_GENERATE_DATA_FILE,56,248,83,14
+    GROUPBOX        "Sample Data File",IDC_STATIC,151,179,138,90
+    LTEXT           "Selection",IDC_STATIC,158,196,30,8
+    CONTROL         "Random",IDC_RANDOM_FILE,"Button",BS_AUTORADIOBUTTON,194,195,42,10
+    CONTROL         "Sequential",IDC_SEQUENTIAL_FILE,"Button",BS_AUTORADIOBUTTON,238,195,49,10
+    LTEXT           "Percent",IDC_STATIC,158,212,26,8
+    EDITTEXT        IDC_PERCENT,244,210,40,14,ES_AUTOHSCROLL
+    LTEXT           "Start Position",IDC_STATIC,158,229,44,8
+    EDITTEXT        IDC_START_POS,244,227,40,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Create Sample",IDC_CREATE_SAMPLE,201,248,83,14
+    GROUPBOX        "Data File Tasks",IDC_STATIC,7,273,282,31
+    PUSHBUTTON      "Compact Data",IDC_COMPACT_DATA_FILE,15,284,83,14
+    PUSHBUTTON      "Sort Data in ID Order",IDC_SORT_DATA_FILE,107,284,83,14
+    PUSHBUTTON      "Create Notes Dictionary",IDC_CREATE_NOTES_DICT,199,284,83,14
+    PUSHBUTTON      "Close",IDCANCEL,123,310,50,14
+    PUSHBUTTON      "&Help",ID_HELP,232,310,50,14
+END
+
+IDD_VSET_LABEL_RENAMER DIALOGEX 0, 0, 146, 97
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Formatted String"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_VSET_LABEL_TEMPLATE,12,52,120,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,76,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,89,76,50,14
+    LTEXT           "%s = current string",IDC_STATIC,40,18,64,8
+    LTEXT           "%f = from value",IDC_STATIC,40,28,54,8
+    LTEXT           "%t = to value",IDC_STATIC,40,38,46,8
+    GROUPBOX        "Value Label Template",IDC_STATIC,7,7,132,64
+END
+
+IDD_CAPI_LANGDLG DIALOGEX 0, 0, 319, 164
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_NOPARENTNOTIFY
+CAPTION "Languages"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "&OK",IDOK,69,143,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,135,143,50,14
+    PUSHBUTTON      "Help",ID_HELP,201,143,50,14,NOT WS_TABSTOP
+    CTEXT           "",IDC_LANGGRID,6,22,306,115,SS_NOTIFY | SS_CENTERIMAGE | SS_SUNKEN
+    PUSHBUTTON      "&Add",IDC_ADD,68,3,50,14
+    PUSHBUTTON      "&Remove",IDC_DELETE,134,3,50,14
+    PUSHBUTTON      "&Modify",IDC_MODIFY,200,3,50,14
+END
+
+IDD_SECURITY_OPTIONS DIALOGEX 0, 0, 203, 120
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Security Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,99,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,77,99,50,14
+    PUSHBUTTON      "Help",ID_HELP,145,99,50,14,NOT WS_TABSTOP
+    CONTROL         "Allow the use of Data Viewer to modify data",IDC_CHECK_ALLOW_DATA_VIEWER_MODIFICATIONS,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,7,7,157,10
+    CONTROL         "Allow exporting data to other formats",IDC_CHECK_ALLOW_EXPORTS,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,7,21,137,10
+    COMBOBOX        IDC_COMBO_PASSWORD_CACHE_MINUTES,7,70,81,103,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_PASSWORD_CACHE_MINUTES,102,70,51,14,ES_AUTOHSCROLL
+    LTEXT           "minutes",IDC_STATIC,158,73,27,8
+    LTEXT           "When using Encrypted CSPro DB files with this dictionary, allow passwords to be cached for:",IDC_STATIC,7,43,189,19
+END
+
+IDD_DICT_PROP_DLGBAR DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION
+CAPTION "Dictionary Properties"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_DICT_PROP_PLACE_HOLDER,"Static",SS_BLACKFRAME | NOT WS_VISIBLE,0,1,309,175
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_FIND_DLG, DIALOG
+    BEGIN
+    END
+
+    IDD_START_POSITION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 146
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 45
+    END
+
+    IDD_BEFORE_AFTER_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 119
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
+    END
+
+    IDD_RELATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 592
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 312
+    END
+
+    IDD_OCCURRENCE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 351
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 179
+    END
+
+    IDD_PRINT_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 168
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 151
+    END
+
+    IDD_GENERATE_VSET, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 268
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 190
+    END
+
+    IDD_DICTIONARY_MACROS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 289
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 324
+    END
+
+    IDD_VSET_LABEL_RENAMER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 90
+    END
+
+    IDD_CAPI_LANGDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 312
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 157
+    END
+
+    IDD_SECURITY_OPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 196
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 113
+    END
+
+    IDD_DICT_PROP_DLGBAR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_ROW                 CURSOR                  "Res\\row.cur"
+
+IDC_ROWSTAR             CURSOR                  "Res\\rowstar.cur"
+
+IDC_ROWPLUS             CURSOR                  "Res\\rowplus.cur"
+
+IDC_ROWSTARPLUS         CURSOR                  "Res\\rowstarp.cur"
+
+IDC_COL                 CURSOR                  "Res\\col.cur"
+
+IDC_COLPLUS             CURSOR                  "Res\\colplus.cur"
+
+IDC_COLSTAR             CURSOR                  "Res\\colstar.cur"
+
+IDC_COLSTARPLUS         CURSOR                  "Res\\colstarp.cur"
+
+IDC_NODROP              CURSOR                  "Res\\nodrop.cur"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DICTIONARY_MACROS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_SECURITY_OPTIONS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DICT_PROP_DLGBAR AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_DICT_FRAME          "DataDict\n\nDCF\nCSPro Data Dictionary Files (*.dcf)\n.dcf\nCSProDataDict.Document\nCSPro Dictionary Document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_PAGE_SETUP      "Change the page margins, headers and footers\nPage Setup"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
+    ID_FILE_PRINT           "Print the active document\nPrint"
+    ID_FILE_PRINT_PREVIEW   "Preview the printing of the active document\nPrint Preview"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_ADD             "Add level, record, item, or value to end of list\nAdd"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_ADD_NEXT        "Add"
+    ID_EDIT_DELETE          "Delete selected level, record, item, or value\nDelete"
+    ID_EDIT_FLATTEN_OCCURRENCES 
+                            "Convert multiply occurring items to singly occurring items\nFlatten Occurrences"
+    ID_EDIT_INSERT          "Insert level, record, item, or value at selection point\nInsert"
+    ID_EDIT_LANGUAGES       "Edit Dictionary Languages"
+    ID_EDIT_MAKE_SUBITEMS   "Make selected items into subitems\nConvert to Subitems"
+    ID_EDIT_MODIFY          "Modify a level, record, item, or value\nModify"
+    ID_EDIT_NOTES           "Edit notes for this dictionary element\nNotes"
+    ID_EDIT_OCCURRENCELABELS 
+                            "Label multiple record or item occurrences\nOccurrence Labels"
+    ID_EDIT_RELATION        "Define relations between items and record\nRelations"
+    ID_EDIT_SECURITY_OPTIONS "Modify the dictionary's security options"
+END
+
+STRINGTABLE
+BEGIN
+    ID_OPTIONS_ABS_REL      "Toggles between relative and absolute item positions\nRelative/Absolute"
+END
+
+STRINGTABLE
+BEGIN
+    ID_OPTIONS_ENABLE_BINARY_ITEMS 
+                            "Enable the use of binary items\nEnable Binary Items"
+    ID_VIEW_DICTIONARY      "View dictionary layout\nDictionary"
+    ID_VIEW_LAYOUT          "Show or hide the layout view\nLayout"
+    ID_VIEW_PROPERTIES      "Show or hide additional properties\nProperties"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_NOTE_TITLE          " (Note)"
+    IDS_OPTIONS_ABS_WARN    "From now on, all starting positions will be Absolute!\nNo items can be created or moved to positions that are not empty.\nCurrent starting positions WILL NOT CHANGE.\n\nDo you want to continue?"
+    IDS_OPTIONS_REL_WARN    "From now on, all starting positions will be Relative!\nItems will be arranged in the following order with NO gaps:\n        Record Type and Level Ids for each level\n        Records items\nCurrent starting positions WILL BE CHANGED to conform to this arrangement..\n\nDo you want to continue?"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade"
+    ID_WINDOW_TILE_HORZ     "Arrange the windows top to bottom"
+    ID_WINDOW_TILE_VERT     "Arrange the windows side by side"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find label or name\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the last action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Displays program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+    ID_HELP_FINDER          "Show help contents and index\nHelp Topics"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

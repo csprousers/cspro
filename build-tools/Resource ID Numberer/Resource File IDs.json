@@ -1,0 +1,371 @@
+﻿{
+  "notes": [
+    "Some projects share resource IDs in a resource_shared.h file.", 
+    "Some resource IDs need to be ordered so that ON_COMMAND_RANGE works properly", 
+    "Information about message IDs is in: zUtilO/UWM.h (messages start with WM_APP [32768])"
+  ], 
+  "codeRoot": "../../cspro", 
+  "resourceExclusions": [
+    "zScintilla/win32/ScintRes.rc"
+  ], 
+  "projects": {
+    "default": {
+      "resource": 101, 
+      "command": 40001, 
+      "control": 1000
+    }, 
+    "zUtilO": {
+      "resource": 2001, 
+      "command": 41001, 
+      "control": 2500
+    }, 
+    "zUtilF": {
+      "resource": 3001, 
+      "command": 41501, 
+      "control": 3500
+    }, 
+    "zUToolO": {
+      "resource": 4001, 
+      "command": 42501, 
+      "control": 4500
+    }, 
+    "zHtml": {
+      "resource": 5001, 
+      "command": 42001, 
+      "control": 5500
+    }, 
+    "zDictF": {
+      "resource": 6001, 
+      "command": 43001, 
+      "control": 6500
+    }, 
+    "zFormO": {
+      "resource": 7001, 
+      "command": 43501, 
+      "control": 7500
+    }, 
+    "zFormF": {
+      "resource": 8001, 
+      "command": 44001, 
+      "control": 8500
+    }, 
+    "zDesignerF": {
+      "resource": 9001, 
+      "command": 44501, 
+      "control": 9500
+    }, 
+    "zEdit2O": {
+      "resource": 10001, 
+      "command": 45001, 
+      "control": 10500
+    }, 
+    "zOrderF": {
+      "resource": 11001, 
+      "command": 45501, 
+      "control": 11500
+    }, 
+    "zTableF": {
+      "resource": 12001, 
+      "command": 46001, 
+      "control": 12500
+    }, 
+    "zExTab": {
+      "resource": 13001, 
+      "command": 46501, 
+      "control": 13500
+    }, 
+    "zBridgeO": {
+      "resource": 14001, 
+      "command": 47001, 
+      "control": 14500
+    }, 
+    "zDataO": {
+      "resource": 15001, 
+      "command": 47501, 
+      "control": 15500
+    }, 
+    "zSyncF": {
+      "resource": 16001, 
+      "command": 48001, 
+      "control": 16500
+    }, 
+    "zInterfaceF": {
+      "resource": 17001, 
+      "command": 48501, 
+      "control": 17500
+    }, 
+    "zEngineF": {
+      "resource": 18001, 
+      "command": 49001, 
+      "control": 18500
+    }, 
+    "zCaseTreeF": {
+      "resource": 19001, 
+      "command": 49501, 
+      "control": 19500
+    }, 
+    "zCapiO": {
+      "resource": 20001, 
+      "command": 50001, 
+      "control": 20500
+    }
+  }, 
+  "orderedRanges": {
+    "CSCode": [
+      [
+        "ID_STATUS_PANE_FILE_POS", 
+        "ID_STATUS_PANE_FILE_TYPE"
+      ], 
+      [
+        "ID_LANGUAGE_CSPRO_LOGIC", 
+        "ID_LANGUAGE_CSPRO_REPORT_HTML", 
+        "ID_LANGUAGE_CSPRO_REPORT", 
+        "ID_LANGUAGE_CSPRO_MESSAGES", 
+        "ID_LANGUAGE_CSPRO_ACTION_INVOKER", 
+        "ID_LANGUAGE_CSPRO_HTML_DIALOG", 
+        "ID_LANGUAGE_CSPRO_DOCUMENT", 
+        "ID_LANGUAGE_CSPRO_SPEC_FILE_JSON", 
+        "ID_LANGUAGE_CSPRO_SPEC_FILE_INI", 
+        "ID_LANGUAGE_HTML", 
+        "ID_LANGUAGE_JAVASCRIPT", 
+        "ID_LANGUAGE_JSON", 
+        "ID_LANGUAGE_SQL", 
+        "ID_LANGUAGE_YAML", 
+        "ID_LANGUAGE_NONE"
+      ], 
+      [
+        "ID_RUN_FORMAT_JSON", 
+        "ID_RUN_COMPRESS_JSON"
+      ], 
+      [
+        "ID_RUN_CSPRO_LOGIC_V0", 
+        "ID_RUN_CSPRO_LOGIC_V8"
+      ], 
+      [
+        "ID_RUN_CSPRO_SPEC_FILE_APP", 
+        "ID_RUN_CSPRO_SPEC_FILE_CMP", 
+        "ID_RUN_CSPRO_SPEC_FILE_CSDS", 
+        "ID_RUN_CSPRO_SPEC_FILE_CSPACK", 
+        "ID_RUN_CSPRO_SPEC_FILE_CSPROPS", 
+        "ID_RUN_CSPRO_SPEC_FILE_DCF", 
+        "ID_RUN_CSPRO_SPEC_FILE_EXF", 
+        "ID_RUN_CSPRO_SPEC_FILE_FQF", 
+        "ID_RUN_CSPRO_SPEC_FILE_SSF", 
+        "ID_RUN_CSPRO_SPEC_FILE_XL2CS"
+      ], 
+      [
+        "ID_RUN_JAVASCRIPT_MODULE_AUTODETECT", 
+        "ID_RUN_JAVASCRIPT_MODULE_GLOBAL", 
+        "ID_RUN_JAVASCRIPT_MODULE_MODULE"
+      ], 
+      [
+        "ID_WINDOW_BUILD", 
+        "ID_WINDOW_OUTPUT", 
+        "ID_WINDOW_HTML_VIEWER"
+      ], 
+      [
+        "ID_LOCALHOST_COPY_MAPPING", 
+        "ID_LOCALHOST_OPEN_IN_HTML_VIEWER", 
+        "ID_LOCALHOST_OPEN_IN_WEB_BROWSER"
+      ]
+    ], 
+    "CSDocument": [
+      [
+        "ID_WINDOW_BUILD", 
+        "ID_WINDOW_OUTPUT"
+      ], 
+      [
+        "ID_FORMAT_BOLD", 
+        "ID_FORMAT_ITALICS", 
+        "ID_FORMAT_FONT_TAG", 
+        "ID_FORMAT_SUBHEADER", 
+        "ID_FORMAT_CENTER", 
+        "ID_FORMAT_LIST", 
+        "ID_FORMAT_TABLE", 
+        "ID_FORMAT_LOGIC_COLOR", 
+        "ID_FORMAT_SYNTAX_ARG"
+      ], 
+      [
+        "ID_FORMAT_COMPONENT", 
+        "ID_FORMAT_COMPONENT_DETAILED"
+      ]
+    ], 
+    "CSFreq": [
+      [
+        "IDC_FREQ_FORMAT_TABLE", 
+        "IDC_FREQ_FORMAT_HTML", 
+        "IDC_FREQ_FORMAT_JSON", 
+        "IDC_FREQ_FORMAT_TEXT", 
+        "IDC_FREQ_FORMAT_EXCEL"
+      ]
+    ], 
+    "CSPack": [
+      [
+        "IDC_INCLUDE_VALUE_SET_IMAGES", 
+        "IDC_INCLUDE_PFF", 
+        "IDC_INCLUDE_RESOURCE_FOLDERS", 
+        "IDC_INCLUDE_INPUT_DATA_FILE", 
+        "IDC_INCLUDE_EXTERNAL_DATA_FILES", 
+        "IDC_INCLUDE_USER_FILES", 
+        "IDC_INCLUDE_RECURSIVE_DIRECTORIES"
+      ]
+    ], 
+    "CSPro": [
+      [
+        "IDC_PARADATA_EVENTS_ALL", 
+        "IDC_PARADATA_EVENTS_SOME", 
+        "IDC_PARADATA_EVENTS_NO"
+      ], 
+      [
+        "IDC_SAVE_PROPERTIES_TO_APPLICATION", 
+        "IDC_SAVE_PROPERTIES_TO_CSPROPS"
+      ]
+    ], 
+    "zEdit2O": [
+      [
+        "IDC_FIND_COMBO", 
+        "IDC_REPLACE_COMBO"
+      ]
+    ], 
+    "zDictF": [
+      [
+        "ID_OPEN_DATA_FILE0", 
+        "ID_OPEN_DATA_FILE1", 
+        "ID_OPEN_DATA_FILE2", 
+        "ID_OPEN_DATA_FILE3", 
+        "ID_OPEN_DATA_FILE4", 
+        "ID_OPEN_DATA_FILE5", 
+        "ID_OPEN_DATA_FILE6", 
+        "ID_OPEN_DATA_FILE7", 
+        "ID_OPEN_DATA_FILE8", 
+        "ID_OPEN_DATA_FILE9"
+      ], 
+      [
+        "ID_OPEN_WITH_CSDIFF", 
+        "ID_OPEN_WITH_EXCEL2CSPRO", 
+        "ID_OPEN_WITH_CSEXPORT", 
+        "ID_OPEN_WITH_CSFREQ", 
+        "ID_OPEN_WITH_CSINDEX", 
+        "ID_OPEN_WITH_CSSORT"
+      ], 
+      [
+        "ID_REMOVE_VS_LINK", 
+        "ID_REMOVE_VS_ALL_LINKS"
+      ], 
+      [
+        "ID_VS_CASE_FORMAT", 
+        "ID_VS_CASE_UPPER", 
+        "ID_VS_CASE_LOWER", 
+        "ID_VS_CASE_MIXED_FIRST_WORD", 
+        "ID_VS_CASE_MIXED_ALL_WORDS"
+      ]
+    ], 
+    "zFormF": [
+      [
+        "IDC_ROSTER_HORIZONTAL", 
+        "IDC_ROSTER_VERTICAL", 
+        "IDC_ROSTER_NONE"
+      ], 
+      [
+        "IDC_FIELD_COLORS_UNVISITED", 
+        "IDC_FIELD_COLORS_VISITED", 
+        "IDC_FIELD_COLORS_CURRENT", 
+        "IDC_FIELD_COLORS_SKIPPED"
+      ], 
+      [
+        "ID_LAYOUT_ALIGN_LEFT", 
+        "ID_LAYOUT_ALIGN_RIGHT", 
+        "ID_LAYOUT_ALIGN_TOP", 
+        "ID_LAYOUT_ALIGN_BOTTOM"
+      ], 
+      [
+        "ID_LAYOUT_HORIZONTALLY_SPACE_EVENLY", 
+        "ID_LAYOUT_VERTICALLY_SPACE_EVENLY"
+      ], 
+      [
+        "ID_SELITEMS_FROMTB", 
+        "ID_DRAW_ETCHED", 
+        "ID_DRAW_RAISED", 
+        "ID_DRAW_THINBOX", 
+        "ID_DRAW_THICKBOX"
+      ]
+    ], 
+    "zDesignerF": [
+      [
+        "ID_CODE_FOLDING_FOLD_ALL", 
+        "ID_CODE_FOLDING_UNFOLD_ALL", 
+        "ID_CODE_FOLDING_TOGGLE"
+      ], 
+      [
+        "ID_CODE_FOLDING_LEVEL_NONE", 
+        "ID_CODE_FOLDING_LEVEL_PROCS_FUNCS", 
+        "ID_CODE_FOLDING_LEVEL_ALL"
+      ], 
+      [
+        "ID_CODE_DEPRECATION_WARNINGS_NONE", 
+        "ID_CODE_DEPRECATION_WARNINGS_MOST", 
+        "ID_CODE_DEPRECATION_WARNINGS_ALL"
+      ], 
+      [
+        "ID_TOOLS_DATAVIEWER", 
+        "ID_TOOLS_TEXTVIEW", 
+        "ID_TOOLS_TABLEVIEW", 
+        "ID_TOOLS_FREQ", 
+        "ID_TOOLS_DEPLOY", 
+        "ID_TOOLS_PACK", 
+        "ID_TOOLS_COMPARE", 
+        "ID_TOOLS_CONCAT", 
+        "ID_TOOLS_EXCEL2CSPRO", 
+        "ID_TOOLS_EXPORT", 
+        "ID_TOOLS_INDEX", 
+        "ID_TOOLS_REFORMAT", 
+        "ID_TOOLS_SORT", 
+        "ID_TOOLS_PARADATAVIEWER", 
+        "ID_TOOLS_PARADATACONCAT", 
+        "ID_TOOLS_CSCODE", 
+        "ID_TOOLS_CSDOCUMENT", 
+        "ID_TOOLS_CSVIEW", 
+        "ID_TOOLS_PFFEDITOR", 
+        "ID_TOOLS_PRODUCTIONRUNNER", 
+        "ID_TOOLS_OPERATORSTATSVIEWER", 
+        "ID_TOOLS_SAVEARRAYVIEWER", 
+        "ID_TOOLS_TEXTCONVERTER"
+      ], 
+      [
+        "IDC_PATH_SELECT", 
+        "IDC_RELATIVE_TO_PATH_SELECT"
+      ], 
+      [
+        "IDC_PATH_LOGIC_COPY", 
+        "IDC_RELATIVE_PATH_COPY", 
+        "IDC_RELATIVE_PATH_LOGIC_COPY"
+      ], 
+      [
+        "IDC_STRING_TEXT", 
+        "IDC_STRING_LOGIC", 
+        "IDC_STRING_JSON", 
+        "IDC_STRING_PERCENT_ENCODING"
+      ], 
+      [
+        "IDC_COPY_TEXT", 
+        "IDC_COPY_LOGIC", 
+        "IDC_COPY_JSON", 
+        "IDC_COPY_PERCENT_ENCODING"
+      ]
+    ], 
+    "zInterfaceF": [
+      [
+        "IDC_OPERATOR_EQ", 
+        "IDC_OPERATOR_NOT_EQ", 
+        "IDC_OPERATOR_LT", 
+        "IDC_OPERATOR_LTE", 
+        "IDC_OPERATOR_GTE", 
+        "IDC_OPERATOR_GT", 
+        "IDC_OPERATOR_IN", 
+        "IDC_OPERATOR_AND", 
+        "IDC_OPERATOR_OR", 
+        "IDC_OPERATOR_NOT"
+      ]
+    ]
+  }
+}

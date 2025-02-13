@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical">
+
+  <TextView
+    android:id="@+id/text_recording_title_notification"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:layout_gravity="center_vertical"
+    android:gravity="center_vertical"
+    android:drawableStart="@drawable/ic_launcher"
+    android:drawableLeft="@drawable/ic_launcher"
+    android:drawablePadding="10dp"
+    android:paddingTop="10dp"
+    android:text="@string/app_name" />
+  <!--android:src="@drawable/ic_stop"-->
+
+
+  <TextView
+    android:id="@+id/text_recording_body_notification"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:paddingBottom="10dp"
+    android:layout_gravity="center_horizontal"
+    android:drawableStart="@color/cspro_green"
+    android:drawableLeft="@color/cspro_green"
+    android:text="Recording is in progress ..." />
+  <!--android:src="@drawable/ic_stop"-->
+
+</LinearLayout>

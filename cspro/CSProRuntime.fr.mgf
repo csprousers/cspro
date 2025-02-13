@@ -1,0 +1,89 @@
+﻿/* --- CSPro Runtime Messages - French */
+
+Language=FR
+
+/* --- Common Messages Used by CSEntry */
+
+/* --- Out of Range */
+88888  ATTENTION: Hors valeurs valides! Accepter cette valeur pour %s%s?
+88889  ATTENTION: Hors valeurs valides! Entrer une valeur valide pour %s%s
+
+89201  HORS VALEUR VALIDE
+89202  HORS SEQUENCE VALIDE
+89203  Entrer une valeur valide.
+89204  "Entrer une valeur valide\nou appuyer sur F2 pour forcer."
+89205  Entrer une valeur correcte.
+89206  Appuyer sur F8 pour effacer
+
+/* --- Go To Field */
+89211  Variable non trouvée
+89212  Valeur de l'occurrence invalide
+
+/* --- Partial Save */
+89221  Enregistrement partiel
+89222  Ceci est un questionnaire partiellement enregistré. Voulez-vous repartir à la dernière position (dernière variable avant enregistrement) ?
+89223  Vous ne pouvez pas basculer pour voir un questionnaire partiellement enregistré qui n'est pas en mode modifié. Arrêter la modification et ouvrir le questionnaitre .
+89224  Le cas actuel a été enregistré
+89225  Erreur d'enregistrement du cas
+
+/* --- Interactive Edit */
+89231  Impossible de saisir un questionnaire partiellement enregistré. Arrêt du contrôle interactif.
+89232  Voulez-vous annuler le contrôle interactif ?
+
+/* --- Verify */
+89241  Enregistré en mode vérification
+89242  CE CHAMP NE CORRESPOND PAS
+89243  Saisir de nouveau cette valeur.
+
+/* --- Case Management */
+89251  Etes-vous sûr de vouloir effacer ce questionnaire ?
+89252  Etes-vous sûr de vouloir effacer ce (node)?
+89253  Etes-vous sure de vouloir effacer le questionnaire ayant pour identifiant '%s'?
+89254  Voulez-vous enregistrer ce questionnaire ?
+89255  Voulez-vous accepter ceci %s?
+
+/* --- Miscellaneous Entry */
+89261  Impossible d'aller à une occurrence qui n'existe pas
+89263  "%s\nCe fichier n'existe pas.\n\nCréer le fichier?"
+
+/* --- Entry Errors */
+89271  Echec de démarrage du questionnaire en mode modifier
+89272  Mode defini dans l'application incorrect. Echec d'arrêt de l'application de saisie
+89273  Erreur de lecture du fichier (binaire) %s
+89274  Erreur fatale pour CSEntry. Abandon de la saisie.
+
+/* --- Index */
+89291  Fichier index non créé
+89292  "Identifiants du questionnaire dupliqué: '%s'\n\ndans le fichier %s"
+
+/* --- Portable Messages */
+110001 OK
+110002 Annuler
+110003 Oui
+110004 Non
+110006 Supprimer
+
+110011 Erreur
+110012 Avertissement
+110013 Message
+110014 Abandon
+
+110041 Arrêtez les ajouts?
+110042 Arrêtez les modifications?
+110043 Sauvegarder les modifications
+110044 Annuler les modifications
+110045 Aller à la fin
+
+110051 Sélectionner une langue
+110052 Il n'y a qu'une langue définie
+
+/* --- ... */
+
+
+/* --- Html */
+2036   %s est non valide. Utiliser le nom de la couleur HTML standard comme "red" ou "green" ou une code couleur HTML comme "#FFFF00".
+
+/* --- Notes */
+46511  Revoir les notes
+46512  Il n'y a aucune note
+46513  Aller au champ

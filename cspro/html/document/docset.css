@@ -1,0 +1,61 @@
+.toc_ul {
+    padding: 0 20px 0;
+}
+
+.toc_li_chapter {
+    margin: 5px 0 5px 0;
+    list-style-image: url('toc-chapter-closed.png');
+}
+
+.toc_li_chapter_current {
+    margin: 5px 0 5px 0;
+    list-style-image: url('toc-chapter-open.png');
+}
+
+.toc_li_topic {
+    margin: 5px 0 5px 0;
+    list-style-image: url('toc-topic.png');
+}
+
+.toc_li_topic_current {
+    margin: 5px 0 5px 0;
+    list-style-image: url('toc-topic-current.png');
+}
+
+#container, html, body {
+    height: 99%;
+}
+
+#left {
+    float: left;
+    width: 200px;
+    height: 100%;
+    overflow: auto;
+    white-space: nowrap;
+}
+
+#middle_spacing1 {
+    float: left;
+    width: 10px;
+    height: 100%;
+}
+
+#middle {
+    float: left;
+    width: 1px;
+    height: 100%;
+    background-color: black;
+}
+
+#middle_spacing2 {
+    float: left;
+    width: 10px;
+    height: 100%;
+}
+
+#right {
+    float: left;
+    width: calc(100% - 225px);
+    height: 100%;
+    overflow: auto;
+}

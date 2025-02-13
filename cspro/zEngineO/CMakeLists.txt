@@ -1,0 +1,105 @@
+project(zEngineO)
+
+include(../WASM/Definitions.cmake)
+
+include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${EXTERNAL_DIRECTORY}/geometry.hpp/include
+    ${EXTERNAL_DIRECTORY}/variant/include
+)
+
+add_library(${PROJECT_NAME}
+    Audio.cpp
+    Array.cpp
+    BinarySymbol.cpp
+    BinarySymbolData.cpp
+    Block.cpp
+    Document.cpp
+    EngineCase.cpp
+    EngineData.cpp
+    EngineDataRepository.cpp
+    EngineDictionary.cpp
+    EngineItem.cpp
+    EngineRecord.cpp
+    File.cpp
+    Flow.cpp
+    Geometry.cpp
+    HashMap.cpp
+    Image.cpp
+    Imputation.cpp
+    List.cpp
+    LogicByteCode.cpp
+    LoopStack.cpp
+    Map.cpp
+    NamedFrequency.cpp
+    PenReaderApplicationLoader.cpp
+    PersistentVariableProcessor.cpp
+    Pff.cpp
+    PffExecutor.cpp
+    PreinitializedVariable.cpp
+    ProcType.cpp
+    Report.cpp
+    ReportTokenizer.cpp
+    ResponseProcessor.cpp
+    RunnableSymbol.cpp
+    RuntimeEvent.cpp
+    SaveArrayFile.cpp
+    SymbolCalculator.cpp
+    SystemApp.cpp
+    UserFunction.cpp
+    UserFunctionArgumentChecker.cpp
+    UserFunctionLocalSymbolsManager.cpp
+    ValueSet.cpp
+    Versioning.cpp
+    WorkString.cpp
+    WorkVariable.cpp
+
+    Compiler/ActionInvokerCC.cpp
+    Compiler/ArgumentSpecificationCompiler.cpp
+    Compiler/ArrayCC.cpp
+    Compiler/AudioCC.cpp
+    Compiler/BarcodeCC.cpp
+    Compiler/CaseCC.cpp
+    Compiler/CompilerHelper.cpp
+    Compiler/ControlFlowCC.cpp
+    Compiler/DataAccessCC.cpp
+    Compiler/DictionaryCC.cpp
+    Compiler/DocumentCC.cpp
+    Compiler/EngineDictionaryCC.cpp
+    Compiler/ExpressionsCC.cpp
+    Compiler/FileCC.cpp
+    Compiler/FreqCC.cpp
+    Compiler/FunctionsGenericCC.cpp
+    Compiler/FunctionsVariousCC.cpp
+    Compiler/GeometryCC.cpp
+    Compiler/GpsCC.cpp
+    Compiler/HashMapCC.cpp
+    Compiler/ImageCC.cpp
+    Compiler/ImputeCC.cpp
+    Compiler/ItemCC.cpp
+    Compiler/JsonCC.cpp
+    Compiler/ListCC.cpp
+    Compiler/LogicCompiler.cpp
+    Compiler/MapCC.cpp
+    Compiler/MessagesCC.cpp
+    Compiler/NextTokenCC.cpp
+    Compiler/NodeCreationCC.cpp
+    Compiler/NumbersCC.cpp
+    Compiler/OptionalNamedArgumentsCompiler.cpp
+    Compiler/PathCC.cpp
+    Compiler/PffCC.cpp
+    Compiler/QueryCC.cpp
+    Compiler/ReportCC.cpp
+    Compiler/StringsCC.cpp
+    Compiler/SwitchCC.cpp
+    Compiler/SymbolsCC.cpp
+    Compiler/SyncCC.cpp
+    Compiler/SystemAppCC.cpp
+    Compiler/TokenCC.cpp
+    Compiler/TraceCC.cpp
+    Compiler/UserbarCC.cpp
+    Compiler/UserFunctionCC.cpp
+    Compiler/UserInterfaceCC.cpp
+    Compiler/ValueSetCC.cpp
+    Compiler/VariableCC.cpp
+)

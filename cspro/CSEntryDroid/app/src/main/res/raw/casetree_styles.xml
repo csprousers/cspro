@@ -1,0 +1,58 @@
+<resources>
+
+    <!-- Gray Elegy (CSEntry Default) -->
+    <style name="Gray Elegy" desc="CSEntry Default">
+       <item name="dividerColor">ff423e34</item>
+       <item name="groupBackgroundColor">FFEFEFEF</item>
+       <item name="headerTextColor">FF2C2F2D</item>
+       <item name="itemBackgroundColor">FFEFEFEF</item>
+       <item name="itemVisitedBackgroundColor">FFD3D3D3</item>
+       <item name="itemSkippedBackgroundColor">FF696969</item>
+       <item name="itemNeverVisitedBackgroundColor">FFEFEFEF</item>
+       <item name="itemProtectedBackgroundColor">FF696969</item>
+       <item name="itemCurrentBackgroundColor">FFEFEFEF</item>
+       <item name="itemLabelTextColor">FF2C2F2D</item>
+       <item name="itemValueTextColor">FF625368</item>
+       <item name="listBackgroundColor">FFBFBFBF</item>
+       <item name="rowCounterTextColor">FFFFFFFF</item>
+       <item name="selectionColor">FFA1A2B3</item>
+    </style>
+
+    <!-- Year of the Horse -->
+    <style name="Year of the Horse" desc="2014 CSEntry Color Scheme">
+       <item name="dividerColor">ff423e34</item>
+       <item name="groupBackgroundColor">FF2C2F2D</item>
+       <item name="headerTextColor">FFFFFFFF</item>
+       <item name="itemBackgroundColor">FF2C2F2D</item>
+       <item name="itemVisitedBackgroundColor">FFD3D3D3</item>
+       <item name="itemSkippedBackgroundColor">FF696969</item>
+       <item name="itemNeverVisitedBackgroundColor">FF2C2F2D</item>
+       <item name="itemProtectedBackgroundColor">FF696969</item>
+       <item name="itemCurrentBackgroundColor">FF2C2F2D</item>
+       <item name="itemLabelTextColor">FFFFFFFF</item>
+       <item name="itemValueTextColor">FFBAC7C3</item>
+       <item name="listBackgroundColor">FF2C2F2D</item>
+       <item name="rowCounterTextColor">FFFFFFFF</item>
+       <item name="selectionColor">FF2D7DD3</item>
+    
+	</style>
+
+    <!-- Oregon Wonder -->
+    <style name="Oregon Wonder" desc="Flesh Tones">
+       <item name="dividerColor">ffae6532</item>
+       <item name="groupBackgroundColor">ffe7c6b3</item>
+       <item name="headerTextColor">ff000000</item>
+       <item name="itemBackgroundColor">ffddae92</item>
+       <item name="itemVisitedBackgroundColor">FFD3D3D3</item>
+       <item name="itemSkippedBackgroundColor">FF696969</item>
+       <item name="itemNeverVisitedBackgroundColor">ffddae92</item>
+       <item name="itemProtectedBackgroundColor">FF696969</item>
+       <item name="itemCurrentBackgroundColor">ffddae92</item>
+       <item name="itemLabelTextColor">ff000000</item>
+       <item name="itemValueTextColor">ff000000</item>
+       <item name="listBackgroundColor">ffd49470</item>
+       <item name="rowCounterTextColor">ff000000</item>
+       <item name="selectionColor">ffffcc99</item>
+    </style>
+    
+</resources>

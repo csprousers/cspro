@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{727d4f8e-604b-4e00-bdae-819360ea36dd}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{d5c3689c-4d9f-47c4-aa94-893a691e0d5d}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{90b5a22f-ef9e-4f83-9e18-da1c977e6d5b}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OrdChWnd.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OrdDoc.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OrdTrCtl.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSView.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zOrderF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OrdChWnd.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OrdDoc.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OrdTrCtl.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSView.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zOrderF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\FIELD32.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FORM.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FORMFILE.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FORMLOOP.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\FRMFRAME.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\ico00001.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\ico00003.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\LEVEL.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\levelc.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\ord_fiel.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Res\ord_rost.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ROSTER32.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\TOOLBAR.BMP">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zOrderF.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

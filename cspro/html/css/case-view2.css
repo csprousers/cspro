@@ -1,0 +1,88 @@
+/* set the sidebar width */
+.w-sidebar {
+    width: 200px;
+    max-width: 200px;
+}
+
+.row.collapse {
+    margin-left: -200px;
+    left: 0;
+    transition: margin-left .15s linear;
+}
+
+    .row.collapse.show {
+        margin-left: 0 !important;
+    }
+
+.row.collapsing {
+    margin-left: -200px;
+    left: -0.05%;
+    transition: all .15s linear;
+}
+
+/* optional */
+.vh-100 {
+    min-height: 100vh;
+}
+
+.menu-button {
+    color: white;
+    font-size: 2rem;
+    text-decoration: none;
+}
+
+    .menu-button:hover {
+        color: #aaa;
+    }
+
+/* optional for overlay sidebar on small screens */
+@media (max-width:1600px) {
+    .row.collapse, .row.collapsing {
+        margin-left: 0 !important;
+        left: 0 !important;
+        overflow: visible;
+    }
+
+    .row > .sidebar.collapse {
+        display: flex !important;
+        margin-left: -100% !important;
+        transition: all .3s linear;
+        position: fixed;
+        z-index: 1050;
+        max-width: 0;
+        min-width: 0;
+        flex-basis: auto;
+    }
+
+        .row > .sidebar.collapse.show {
+            margin-left: 0 !important;
+            width: 100%;
+            max-width: 100%;
+            min-width: initial;
+        }
+
+    .row > .sidebar.collapsing {
+        display: flex !important;
+        margin-left: -10% !important;
+        transition: all .2s linear !important;
+        position: fixed;
+        z-index: 1050;
+        min-width: initial;
+    }
+}
+
+.cs-view-container {
+    -webkit-transform:scale(1);
+    -ms-transform:scale(1);
+    transform:scale(1);
+    -webkit-transform-origin:0 0; 
+    -ms-transform-origin:0 0; 
+    transform-origin:0 0;
+}
+
+div.spinner-border {
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    z-index: 2000;
+}

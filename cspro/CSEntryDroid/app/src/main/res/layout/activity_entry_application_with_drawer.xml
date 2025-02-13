@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"    
+    android:id="@+id/activity_entry_application_with_drawer"     
+    android:layout_width="match_parent"     
+    android:layout_height="match_parent">
+
+    <!-- The main content view -->
+    <fragment
+        android:id="@+id/fragment_questionnaire_layout"
+        android:name="gov.census.cspro.csentry.ui.QuestionnaireFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+   <!-- The navigation drawer -->
+
+	<fragment
+		android:id="@+id/fragment_navigation_layout"
+		android:name="gov.census.cspro.csentry.ui.NavigationFragment"
+		android:layout_width="320dp"
+		android:layout_height="match_parent"
+		android:layout_gravity="start" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

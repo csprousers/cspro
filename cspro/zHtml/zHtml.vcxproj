@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCDLLProj</Keyword>
+    <RootNamespace>zHtml</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZHTML_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <PostBuildEvent>
+      <Command>xcopy /D /Y /F /R /S /I "$(SolutionDir)html" "$(TargetDir)html"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZHTML_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <PostBuildEvent>
+      <Command>xcopy /D /Y /F /R /S /I "$(SolutionDir)html" "$(TargetDir)html"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AccessUrlSerializer.cpp" />
+    <ClCompile Include="CSHtmlDlgRunner.cpp" />
+    <ClCompile Include="CSProHostObject.cpp" />
+    <ClCompile Include="CssStyleParser.cpp" />
+    <ClCompile Include="DocumentVirtualFileMappingHandler.cpp" />
+    <ClCompile Include="FileSystemVirtualFileMappingHandler.cpp" />
+    <ClCompile Include="HtmlDlgBase.cpp" />
+    <ClCompile Include="HtmlDlgBaseRunner.cpp" />
+    <ClCompile Include="HtmlEditorCtrl.cpp" />
+    <ClCompile Include="HtmlViewCtrl.cpp" />
+    <ClCompile Include="HtmlViewDlg.cpp" />
+    <ClCompile Include="HtmlTextConverter.cpp" />
+    <ClCompile Include="HtmlBrowserView.cpp" />
+    <ClCompile Include="HtmlViewerView.cpp" />
+    <ClCompile Include="InsertLinkDlg.cpp" />
+    <ClCompile Include="LocalFileServer.cpp" />
+    <ClCompile Include="LocalhostUrl.cpp" />
+    <ClCompile Include="ModalDialogSimulator.cpp" />
+    <ClCompile Include="PortableLocalhostWindows.cpp" />
+    <ClCompile Include="SharedHtmlLocalFileServer.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="UriResolver.cpp" />
+    <ClCompile Include="VirtualFileMappingHandlers.cpp" />
+    <ClCompile Include="WebViewSyncOperationMarker.cpp" />
+    <ClCompile Include="zHtml.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AccessUrlSerializer.h" />
+    <ClInclude Include="CSHtmlDlgRunner.h" />
+    <ClInclude Include="CSProHostObject.h" />
+    <ClInclude Include="DocumentVirtualFileMappingHandler.h" />
+    <ClInclude Include="FileSystemVirtualFileMappingHandler.h" />
+    <ClInclude Include="HtmlDlgBase.h" />
+    <ClInclude Include="HtmlDlgBaseRunner.h" />
+    <ClInclude Include="HtmlEditorCtrl.h" />
+    <ClInclude Include="HtmlViewCtrl.h" />
+    <ClInclude Include="HtmlViewDlg.h" />
+    <ClInclude Include="HtmlBrowserView.h" />
+    <ClInclude Include="HtmlViewerView.h" />
+    <ClInclude Include="HtmlWriter.h" />
+    <ClInclude Include="HtmlTextConverter.h" />
+    <ClInclude Include="InsertLinkDlg.h" />
+    <ClInclude Include="LocalFileServer.h" />
+    <ClInclude Include="LocalhostSettings.h" />
+    <ClInclude Include="LocalhostUrl.h" />
+    <ClInclude Include="ModalDialogSimulator.h" />
+    <ClInclude Include="NavigationAddress.h" />
+    <ClInclude Include="PortableLocalhost.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SharedHtmlLocalFileServer.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="UriResolver.h" />
+    <ClInclude Include="UseHtmlDialogs.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="VirtualFileMapping.h" />
+    <ClInclude Include="WebViewSyncOperationMarker.h" />
+    <ClInclude Include="zHtml.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zHtml.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.1823.32\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.230411.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
+  </Target>
+</Project>

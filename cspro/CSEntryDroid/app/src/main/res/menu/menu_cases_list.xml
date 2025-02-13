@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:csentry="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menuitem_cases_sort"
+        android:checkable="true"
+        android:checked="false"
+        android:title="@string/menu_cases_list_sort"/>
+    <item
+        android:id="@+id/menuitem_cases_partial_saves"
+        android:checkable="true"
+        android:checked="false"
+        android:enabled="true"
+        android:title="@string/menu_cases_list_show_partials"/>
+    <item
+        android:id="@+id/menuitem_cases_case_labels"
+        android:checkable="true"
+        android:checked="true"
+        android:enabled="true"
+        android:title="@string/menu_cases_list_case_labels"/>
+    <item
+        android:id="@+id/menuitem_cases_action_search"
+        android:icon="@drawable/ic_menu_cspro_search"
+        csentry:showAsAction="always"
+        android:title="@string/searchview_prompt"/>
+    <item
+        android:id="@+id/menuitem_cases_sync"
+        android:icon="@android:drawable/ic_popup_sync"
+        csentry:showAsAction="ifRoom"
+        android:title="@string/menu_cases_list_synchronize"/>
+    <item
+        android:id="@+id/menuitem_cases_help"
+        android:title="@string/menu_applications_list_help">
+    </item>
+
+</menu>

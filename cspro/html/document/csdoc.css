@@ -1,0 +1,119 @@
+body {
+    margin: 10px;
+    padding: 0px;
+}
+
+body, td, h1, h2 {
+    background-color: white;
+    font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    color: black;
+}
+
+h1 {
+    text-align: center;
+    font-size: 4em;
+    font-weight: bold;
+    color: #003050;
+    page-break-before: always;
+}
+
+a {
+    color: #5080ff;
+}
+
+li {
+    margin: 0 0 10px 0;
+}
+
+table {
+    margin: 0;
+}
+
+th, td {
+    text-align: left;
+    vertical-align:top;
+    padding-right: 20px;
+}
+
+th {
+    font-weight: bold;
+    color: #002050;
+    text-decoration: underline;
+}
+
+.bordered_table {
+    border-collapse: collapse;
+}
+
+.bordered_table_cell {
+    border: solid 1px gainsboro;
+    white-space: nowrap;
+    padding-left: 10px;
+}
+
+.header_size {
+    font-size: 2.2em;
+}
+
+.header {
+    font-weight: bold;
+    color: #006080;
+    page-break-before: always !important;
+}
+
+.subheader_size {
+    font-size: 1.2em;
+}
+
+.subheader {
+    font-weight: bold;
+    color: #002050;
+    page-break-after: avoid;
+}
+
+.monospace {
+    font-family: Consolas, monaco, monospace;
+}
+
+.indent {
+    margin-left: 20px;
+    page-break-inside: avoid !important;
+}
+
+.paragraph {
+    margin-bottom: 20px;
+}
+
+.code_colorization {
+    word-wrap: break-word;
+    font-family: Consolas, monaco, monospace;
+    page-break-inside: avoid !important;
+}
+
+.code_colorization_keyword_link {
+    color: powderblue;
+    text-decoration: underline;
+}
+
+.code_colorization_argument {
+    color: darkred;
+    font-weight: bold;
+    font-style: oblique;
+}
+
+.code_colorization_bracket {
+    color: darkgreen;
+    opacity: 0.5;
+    font-weight: bold;
+}
+
+.code_colorization_optional_text {
+    background-color: whitesmoke;
+}
+
+@media print {
+    .new-page {
+        page-break-before: always !important;
+    }
+}

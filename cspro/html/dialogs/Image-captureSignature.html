@@ -1,0 +1,66 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+
+    <title>CSPro Signature Capture</title>
+</head>
+<body>
+    <p id="message" style="visibility: hidden"></p>
+    <p><img id="signature" /></p>
+
+    <p><a href="#" onclick="saveSignature(); return false;">Save</a> - <a href="#" onclick="clearSignature(); return false;">Clear</a></p>
+
+    <script>
+        const CS = new CSProActionInvoker("39169c42dbb624374c502936637c36b6");
+
+        const message = document.getElementById("message");
+        const signature = document.getElementById("signature");
+
+        // size the dialog at half the screen
+        const dimensions = CS.UI.getMaxDisplayDimensions();
+        CS.UI.setDisplayOptions({
+            width: dimensions.width / 2,
+            height: dimensions.height / 2,
+            keyboard: false
+        });
+
+        const input = CS.UI.getInputData();
+
+        // if set, display the message
+        if( input.message ) {
+            message.innerText = input.message;
+            message.style.visibility = "visible";
+        }
+
+        // if a signature already exists, show it
+        if( input.url ) {
+            // TODO
+            signature.src = input.url;
+        }
+
+        function saveSignature() {
+            // TODO ... make sure not blank
+            // https://stackoverflow.com/questions/934012/get-image-data-url-in-javascript
+            const canvas = document.createElement("canvas");
+            canvas.width = signature.width;
+            canvas.height = signature.height;
+
+             // Copy the image contents to the canvas
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(signature, 0, 0);
+
+            CS.UI.closeDialog({ result: { url: canvas.toDataURL() } });
+        }
+
+        function clearSignature() {
+            // TODO
+            signature.removeAttribute("src");
+        }
+    </script>
+</body>
+</html>

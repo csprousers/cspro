@@ -1,0 +1,20 @@
+Quit.png
+Open.png
+Close.png
+Save.png
+Program - DataViewer.png
+Print - Page Setup.png
+Print - Preview.png
+Print.png
+Copy.png
+Copy as Spreadsheet.png
+Find.png
+Go To Line.png
+Ruler.png
+Font.png
+Window - Cascade.png
+Window - Tile (Top to Bottom).png
+Window - Tile (Side by Side).png
+Window - Previous.png
+Window - Next.png
+Help.png

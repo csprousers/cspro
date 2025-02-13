@@ -1,0 +1,8 @@
+﻿[Run Information]
+Version=CSPro 8.0
+AppType=Entry
+Description=Simple CAPI (Sample Questionnaire)
+
+[Files]
+Application=.\Simple CAPI.ent
+InputData=.\Simple CAPI Data.csdb

@@ -1,0 +1,6 @@
+
+    <menu xmlns:android="http://schemas.android.com/apk/res/android">
+        <item android:id="@+id/menu_cases_list_view_questionnaire" android:title="@string/menu_cases_list_view_questionnaire"></item>
+        <item android:id="@+id/menu_cases_list_insert_case" android:title="@string/menu_cases_list_insert_case"></item>
+        <item android:id="@+id/menu_cases_list_delete_case" android:title="@string/menu_cases_list_delete_case"></item>
+    </menu>

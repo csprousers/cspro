@@ -1,0 +1,753 @@
+﻿<!–– Template Engine Definitions ––>
+
+	<script	type="application/vnd.cspro.template-engine"
+			data-template-engine-name="mustache"
+			data-script-type="application/javascript"
+			data-include-src="mustache.min.js"
+			data-include-type="application/javascript">
+
+		var template = document.getElementById('cspro_report_template').innerHTML;
+		var json = JSON.parse(document.getElementById('cspro_report_data').innerHTML);
+		var templateResult = Mustache.render(template,json);
+		document.getElementById('cspro_report').innerHTML = templateResult;
+
+	</script>
+
+
+<!–– Paradata Queries ––>
+
+	<!-- Messages -->
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_logtext_messages"
+				data-description="LogText Messages"
+				data-paradata-viewer-grouping="Messages"
+				data-paradata-viewer-report-types="table"
+				data-paradata-viewer-label-column-1="Time"
+				data-paradata-viewer-type-column-1="timestamp"
+				data-paradata-viewer-label-column-2="LogText Message">
+
+			SELECT	`event`.`time`,
+					`text`.`text`
+			FROM `message_event`
+			JOIN `event` ON `message_event`.`id` = `event`.`id`
+			JOIN `text` ON `message_event`.`message_text` = `text`.`id`
+			WHERE `message_event`.`source` = 3;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_displayed_message_frequency"
+				data-description="Displayed Message Frequency"
+				data-paradata-viewer-grouping="Messages"
+				data-paradata-viewer-report-types="summary_table"
+				data-paradata-viewer-label-column-1="Message Number"
+				data-paradata-viewer-label-column-2="Message Source"
+				data-paradata-viewer-label-column-3="Unformatted Message Text"
+				data-paradata-viewer-label-column-4="Display Frequency">
+
+			SELECT	`message_event`.`number`,
+					`metadata_code_info`.`value`,
+					`text`.`text`,
+					COUNT(*)
+			FROM `message_event`
+			JOIN `event` ON `message_event`.`id` = `event`.`id`
+			JOIN `text` ON `message_event`.`unformatted_message_text` = `text`.`id`
+			JOIN `metadata_table_info` ON `metadata_table_info`.`table` = 'message_event'
+			JOIN `metadata_column_info` ON `metadata_table_info`.`id` = `metadata_column_info`.`metadata_table_info` AND `metadata_column_info`.`column` = 'source'
+			JOIN `metadata_code_info` ON `metadata_column_info`.`id` = `metadata_code_info`.`metadata_column_info` AND `message_event`.`source` = `metadata_code_info`.`code`
+			WHERE `message_event`.`source` != 3
+			GROUP BY `message_event`.`number`
+			ORDER BY 4 DESC;
+
+		</script>
+
+
+	<!-- Data Entry -->
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_field_entry_info"
+				data-description="Field Entry Information"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="Field Name"
+				data-paradata-viewer-label-column-2="Number of Fields Entered"
+				data-paradata-viewer-label-column-3="Average Duration of Entry (seconds)"
+				data-paradata-viewer-format-column-3="F2"
+				data-paradata-viewer-label-column-4="Percent of Fields Validated"
+				data-paradata-viewer-format-column-4="P"
+				data-paradata-viewer-label-column-5="Percent of Fields Reached via Forward Movement"
+				data-paradata-viewer-format-column-5="P">
+
+			SELECT	`name`.`name`,
+					COUNT(*),
+					AVG(`field_entry_event`.`display_duration`),
+					CAST(SUM(`field_validation_event`.`validated`) AS DOUBLE) / COUNT(`field_validation_event`.`validated`),
+					CAST(SUM(`field_movement_type_info`.`forward_movement`) AS DOUBLE) / COUNT(`field_movement_type_info`.`forward_movement`)
+
+			FROM `field_entry_event`
+			JOIN `event` ON `field_entry_event`.`id` = `event`.`id`
+
+			JOIN `field_entry_instance` ON `field_entry_event`.`field_entry_instance` = `field_entry_instance`.`id`
+			JOIN `field_info` ON `field_entry_instance`.`field_info` = `field_info`.`id`
+			JOIN `name` ON `field_info`.`field_name` = `name`.`id`
+
+			LEFT JOIN `field_validation_event` ON `field_entry_event`.`field_entry_instance` = `field_validation_event`.`field_entry_instance`
+
+			JOIN `field_movement_instance` ON `field_entry_event`.`arrival_field_movement_instance` = `field_movement_instance`.`id`
+			JOIN `field_movement_type_info` ON `field_movement_instance`.`final_field_movement_type_info` = `field_movement_type_info`.`id`
+
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_field_info_by_capture_type"
+				data-description="Field Information by Capture Type"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="Capture Type"
+				data-paradata-viewer-label-column-2="Number of Fields Entered"
+				data-paradata-viewer-label-column-3="Average Duration of Entry (seconds)"
+				data-paradata-viewer-format-column-3="F2">
+
+			SELECT	`metadata_code_info`.`value`,
+			`grouped_field_entry_events`.num_events,
+			`grouped_field_entry_events`.avg_duration
+			FROM (
+			SELECT	`field_entry_event`.`actual_capture_type`,
+			COUNT(*) as num_events,
+			AVG(`field_entry_event`.`display_duration`) as avg_duration
+			FROM `field_entry_event`
+			GROUP BY `field_entry_event`.`actual_capture_type`
+			ORDER By 2 DESC) AS grouped_field_entry_events
+			JOIN `metadata_table_info` ON `metadata_table_info`.`table` = 'field_entry_event'
+			JOIN `metadata_column_info` ON `metadata_table_info`.`id` = `metadata_column_info`.`metadata_table_info` AND `metadata_column_info`.`column` = 'actual_capture_type'
+			JOIN `metadata_code_info` ON `metadata_column_info`.`id` = `metadata_code_info`.`metadata_column_info` AND `grouped_field_entry_events`.`actual_capture_type` = `metadata_code_info`.`code`;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_invalid_capture_types"
+				data-description="Fields with Invalid Capture Type"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="summary_table"
+				data-paradata-viewer-label-column-1="Field Name"
+				data-paradata-viewer-label-column-2="Requested Capture Type"
+				data-paradata-viewer-label-column-3="Actual Capture Type"
+				data-paradata-viewer-label-column-4="Number of Invalid Fields Entered">
+
+			SELECT	`name`.`name`,
+			`metadata_code_info_requested`.`value`,
+			`metadata_code_info_actual`.`value`,
+			invalid_events.num_events
+
+			FROM (
+			SELECT field_entry_instance, actual_capture_type, requested_capture_type, COUNT(*) as num_events
+			FROM `field_entry_event`
+			WHERE `field_entry_event`.`actual_capture_type` != `field_entry_event`.`requested_capture_type`
+			GROUP BY 1, 2, 3
+			ORDER BY 1) as invalid_events
+			JOIN `field_entry_instance` ON `invalid_events`.`field_entry_instance` = `field_entry_instance`.`id`
+			JOIN `field_info` ON `field_entry_instance`.`field_info` = `field_info`.`id`
+			JOIN `name` ON `field_info`.`field_name` = `name`.`id`
+
+			JOIN `metadata_table_info` `metadata_table_info_requested` ON `metadata_table_info_requested`.`table` = 'field_entry_event'
+			JOIN `metadata_column_info` `metadata_column_info_requested` ON `metadata_table_info_requested`.`id` = `metadata_column_info_requested`.`metadata_table_info` AND `metadata_column_info_requested`.`column` = 'requested_capture_type'
+			JOIN `metadata_code_info` `metadata_code_info_requested` ON `metadata_column_info_requested`.`id` = `metadata_code_info_requested`.`metadata_column_info` AND `requested_capture_type` = `metadata_code_info_requested`.`code`
+
+			JOIN `metadata_table_info` `metadata_table_info_actual` ON `metadata_table_info_actual`.`table` = 'field_entry_event'
+			JOIN `metadata_column_info` `metadata_column_info_actual` ON `metadata_table_info_actual`.`id` = `metadata_column_info_actual`.`metadata_table_info` AND `metadata_column_info_actual`.`column` = 'actual_capture_type'
+			JOIN `metadata_code_info` `metadata_code_info_actual` ON `metadata_column_info_actual`.`id` = `metadata_code_info_actual`.`metadata_column_info` AND `actual_capture_type` = `metadata_code_info_actual`.`code`
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_reentered_fields_frequency"
+				data-description="Reentered Fields Frequency"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="Field Name"
+				data-paradata-viewer-label-column-2="Reenter Frequency">
+
+			SELECT	`name`.`name`,
+					COUNT(*)
+
+			FROM `field_movement_event`
+			JOIN `event` ON `field_movement_event`.`id` = `event`.`id`
+
+			JOIN `field_movement_instance` ON `field_movement_event`.`field_movement_instance` = `field_movement_instance`.`id`
+			JOIN `field_entry_instance` ON `field_movement_instance`.`to_field_entry_instance` = `field_entry_instance`.`id`
+			JOIN `field_info` ON `field_entry_instance`.`field_info` = `field_info`.`id`
+			JOIN `name` ON `field_info`.`field_name` = `name`.`id`
+
+			JOIN `field_movement_type_info` ON `field_movement_instance`.`final_field_movement_type_info` = `field_movement_type_info`.`id`
+			JOIN `metadata_table_info` ON `metadata_table_info`.`table` = 'field_movement_type_info'
+			JOIN `metadata_column_info` ON `metadata_table_info`.`id` = `metadata_column_info`.`metadata_table_info` AND `metadata_column_info`.`column` = 'request_type'
+			JOIN `metadata_code_info` ON `metadata_column_info`.`id` = `metadata_code_info`.`metadata_column_info` AND `field_movement_type_info`.`request_type` = `metadata_code_info`.`code`
+
+			WHERE `metadata_code_info`.`value` = 'reenter'
+			GROUP BY 1
+			ORDER BY 2 DESC;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_keying_session_stats"
+				data-description="Keying Statistics (by Session)"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="table"
+				data-paradata-viewer-label-column-1="Username"
+				data-paradata-viewer-label-column-2="Operator ID"
+				data-paradata-viewer-label-column-3="Start Time"
+				data-paradata-viewer-type-column-3="timestamp"
+				data-paradata-viewer-label-column-4="End Time"
+				data-paradata-viewer-type-column-4="timestamp"
+				data-paradata-viewer-label-column-5="Elapsed Duration (seconds)"
+				data-paradata-viewer-format-column-5="F2"
+				data-paradata-viewer-label-column-6="Keying Duration (seconds)"
+				data-paradata-viewer-format-column-6="F2"
+				data-paradata-viewer-label-column-7="Number of Pauses"
+				data-paradata-viewer-label-column-8="Pause Duration (seconds)"
+				data-paradata-viewer-format-column-8="F2"
+				data-paradata-viewer-label-column-9="Records Written"
+				data-paradata-viewer-label-column-10="Keystrokes / Hour"
+				data-paradata-viewer-format-column-10="F0"
+				data-paradata-viewer-label-column-11="Keystrokes"
+				data-paradata-viewer-label-column-12="Keying Errors"
+				data-paradata-viewer-label-column-13="Verified Fields"
+				data-paradata-viewer-label-column-14="Verified Field Errors (Keyer)"
+				data-paradata-viewer-label-column-15="Verified Field Errors (Verifier)">
+
+			SELECT	`device_info`.`username`,
+					`operatorid_info`.`operatorid`,
+					`event_start`.`time`,
+					`event_end`.`time`,
+					`event_end`.`time` - `event_start`.`time`,
+					`event_end`.`time` - `event_start`.`time` - `keying_instance`.`pause_duration`,
+					`keying_instance`.`pause_count`,
+					`keying_instance`.`pause_duration`,
+					`keying_instance`.`records_written`,
+					`keying_instance`.`keystrokes` / ( `event_end`.`time` - `event_start`.`time` - `keying_instance`.`pause_duration` ) * 3600,
+					`keying_instance`.`keystrokes`,
+					`keying_instance`.`keying_errors`,
+					`keying_instance`.`fields_verified`,
+					`keying_instance`.`fields_verified_keyer_error`,
+					`keying_instance`.`fields_verified_verifier_error`
+
+			FROM `case_event` AS `case_event_start`
+			JOIN `event` AS `event_start` ON `case_event_start`.`id` = `event_start`.`id`
+
+			JOIN `case_event` AS `case_event_end`
+			JOIN `event` AS `event_end` ON `case_event_end`.`id` = `event_end`.`id` AND `event_start`.`case_instance` = `event_end`.`case_instance`
+
+			JOIN `application_instance` ON `event_start`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+
+			JOIN `session_instance` ON `event_start`.`session_instance` = `session_instance`.`id`
+			JOIN `session_info` ON `session_instance`.`session_info` = `session_info`.`id`
+			JOIN `operatorid_info` ON `session_info`.`operatorid_info` = `operatorid_info`.`id`
+
+			JOIN `keying_instance` ON `case_event_end`.`keying_instance` = `keying_instance`.`id`
+
+			WHERE `case_event_start`.`action` = 1 AND `case_event_end`.`action` = 0
+			ORDER BY 3;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_keying_summary_stats"
+				data-description="Keying Statistics (Summary)"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="table"
+				data-paradata-viewer-label-column-1="Username"
+				data-paradata-viewer-label-column-2="Operator ID"
+				data-paradata-viewer-label-column-3="Earliest Start Time"
+				data-paradata-viewer-type-column-3="timestamp"
+				data-paradata-viewer-label-column-4="Latest End Time"
+				data-paradata-viewer-type-column-4="timestamp"
+				data-paradata-viewer-label-column-5="Total Elapsed Duration (minutes)"
+				data-paradata-viewer-format-column-5="F2"
+				data-paradata-viewer-label-column-6="Total Keying Duration (minutes)"
+				data-paradata-viewer-format-column-6="F2"
+				data-paradata-viewer-label-column-7="Total Pause Duration (minutes)"
+				data-paradata-viewer-format-column-7="F2"
+				data-paradata-viewer-label-column-8="Total Sessions"
+				data-paradata-viewer-label-column-9="Total Records Written"
+				data-paradata-viewer-label-column-10="Keystrokes / Hour"
+				data-paradata-viewer-format-column-10="F0"
+				data-paradata-viewer-label-column-11="Total Keystrokes">
+
+			SELECT	`device_info`.`username`,
+					`operatorid_info`.`operatorid`,
+					MIN(`event_start`.`time`),
+					MAX(`event_end`.`time`),
+					SUM(`event_end`.`time` - `event_start`.`time`) / 60,
+					SUM(`event_end`.`time` - `event_start`.`time` - `keying_instance`.`pause_duration`) / 60,
+					SUM(`keying_instance`.`pause_duration`) / 60,
+					COUNT(*),
+					SUM(`keying_instance`.`records_written`),
+					SUM(`keying_instance`.`keystrokes`) / SUM(`event_end`.`time` - `event_start`.`time` - `keying_instance`.`pause_duration`) * 3600,
+					SUM(`keying_instance`.`keystrokes`)
+
+			FROM `case_event` AS `case_event_start`
+			JOIN `event` AS `event_start` ON `case_event_start`.`id` = `event_start`.`id`
+
+			JOIN `case_event` AS `case_event_end`
+			JOIN `event` AS `event_end` ON `case_event_end`.`id` = `event_end`.`id` AND `event_start`.`case_instance` = `event_end`.`case_instance`
+
+			JOIN `application_instance` ON `event_start`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+
+			JOIN `session_instance` ON `event_start`.`session_instance` = `session_instance`.`id`
+			JOIN `session_info` ON `session_instance`.`session_info` = `session_info`.`id`
+			JOIN `operatorid_info` ON `session_info`.`operatorid_info` = `operatorid_info`.`id`
+
+			JOIN `keying_instance` ON `case_event_end`.`keying_instance` = `keying_instance`.`id`
+
+			WHERE `case_event_start`.`action` = 1 AND `case_event_end`.`action` = 0
+			GROUP BY 1, 2
+			ORDER BY 1, 2;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_out_of_range_values_entered"
+				data-description="Out of Range Values Entered"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="summary_table"
+				data-paradata-viewer-label-column-1="Field Name"
+				data-paradata-viewer-label-column-2="Value Set Name"
+				data-paradata-viewer-label-column-3="Out of Range Value"
+				data-paradata-viewer-label-column-4="Frequency of Entry"
+				data-paradata-viewer-label-column-5="Percent of Times Operator Overrode Out of Range"
+				data-paradata-viewer-format-column-5="P">
+
+			SELECT	`f_name`.`name`,
+					`vs_name`.`name`,
+					`field_value_info`.`value`,
+					COUNT(*),
+					CAST(SUM(`field_validation_event`.`operator_confirmed`) AS DOUBLE) / COUNT(*)
+
+			FROM `field_validation_event`
+			JOIN `event` ON `field_validation_event`.`id` = `event`.`id`
+
+			JOIN `field_validation_info` ON `field_validation_event`.`field_validation_info` = `field_validation_info`.`id`
+			JOIN `name` AS `f_name` ON `field_validation_info`.`field_name` = `f_name`.`id`
+			JOIN `name` AS `vs_name` ON `field_validation_info`.`value_set_name` = `vs_name`.`id`
+
+			JOIN `field_value_info` ON `field_validation_event`.`field_value_info` = `field_value_info`.`id`
+
+			WHERE `field_validation_event`.`invalueset` = 0
+			GROUP BY 1, 2, 3
+			ORDER BY 1, 2, 3;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_refused_values_entered"
+				data-description="Refused Values Entered"
+				data-paradata-viewer-grouping="Data Entry"
+				data-paradata-viewer-report-types="summary_table"
+				data-paradata-viewer-label-column-1="Field Name"
+				data-paradata-viewer-label-column-2="Frequency of Entry"
+				data-paradata-viewer-label-column-3="Percent of Times OnRefused Callback Prevented Refusal"
+				data-paradata-viewer-format-column-3="P">
+
+			SELECT	`f_name`.`name`,
+					COUNT(*),
+					CAST(SUM(`field_validation_event`.`onrefused_result` = 0) AS DOUBLE) / COUNT(*)
+
+			FROM `field_validation_event`
+			JOIN `event` ON `field_validation_event`.`id` = `event`.`id`
+
+			JOIN `field_validation_info` ON `field_validation_event`.`field_validation_info` = `field_validation_info`.`id`
+			JOIN `name` AS `f_name` ON `field_validation_info`.`field_name` = `f_name`.`id`
+
+			JOIN `field_value_info` ON `field_validation_event`.`field_value_info` = `field_value_info`.`id`
+
+			JOIN `metadata_table_info` ON `metadata_table_info`.`table` = 'field_value_info'
+			JOIN `metadata_column_info` ON `metadata_table_info`.`id` = `metadata_column_info`.`metadata_table_info` AND `metadata_column_info`.`column` = 'special_type'
+			JOIN `metadata_code_info` ON `metadata_column_info`.`id` = `metadata_code_info`.`metadata_column_info` AND `field_value_info`.`special_type` = `metadata_code_info`.`code`
+
+			WHERE `metadata_code_info`.`value` = 'refused'
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+	<!-- Durations -->
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_case_entry_duration"
+				data-description="Sessions by Case ID"
+				data-paradata-viewer-grouping="Durations"
+				data-paradata-viewer-report-types="table"
+				data-paradata-viewer-label-column-1="Case ID"
+				data-paradata-viewer-label-column-2="Number of Sessions"
+				data-paradata-viewer-label-column-3="Duration (minutes)"
+				data-paradata-viewer-format-column-3="F2">
+
+			SELECT	`case_key_info`.`key`,
+					COUNT(*),
+					SUM(`event_end`.`time` - `event_start`.`time`) / 60
+
+			FROM `case_event` AS `case_event_start`
+			JOIN `event` AS `event_start` ON `case_event_start`.`id` = `event_start`.`id`
+
+			JOIN `case_event` AS `case_event_end`
+			JOIN `event` AS `event_end` ON `case_event_end`.`id` = `event_end`.`id` AND `event_start`.`case_instance` = `event_end`.`case_instance`
+
+			JOIN `case_instance` ON `event_start`.`case_instance` = `case_instance`.`id`
+			JOIN `case_info` ON `case_instance`.`case_info` = `case_info`.`id`
+
+			LEFT JOIN ( SELECT MAX(`case_key_info`.`id`) AS `max_id`, `case_info`.`uuid` FROM `case_instance` JOIN `case_info` ON `case_instance`.`case_info` = `case_info`.`id` JOIN `case_key_info` ON `case_info`.`id` = `case_key_info`.`case_info` GROUP BY `case_info`.`uuid` ) AS `cases` ON `case_info`.`uuid` = `cases`.`uuid`
+			LEFT JOIN `case_key_info` ON `max_id` = `case_key_info`.`id`
+
+			WHERE `case_event_start`.`action` = 1 AND `case_event_end`.`action` = 0
+			GROUP BY `case_info`.`uuid`
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_session_operatorid_duration"
+				data-description="Sessions by Operator ID"
+				data-paradata-viewer-grouping="Durations"
+				data-paradata-viewer-report-types="table"
+				data-paradata-viewer-label-column-1="Operator ID"
+				data-paradata-viewer-label-column-2="Number of Sessions"
+				data-paradata-viewer-label-column-3="Duration (minutes)"
+				data-paradata-viewer-format-column-3="F2">
+
+			SELECT	`operatorid_info`.`operatorid`,
+					COUNT(*),
+					SUM(`event_end`.`time` - `event_start`.`time`) / 60
+
+			FROM `session_event` AS `session_event_start`
+			JOIN `event` AS `event_start` ON `session_event_start`.`id` = `event_start`.`id`
+
+			JOIN `session_event` AS `session_event_end`
+			JOIN `event` AS `event_end` ON `session_event_end`.`id` = `event_end`.`id` AND `event_start`.`session_instance` = `event_end`.`session_instance`
+
+			JOIN `session_instance` ON `event_start`.`session_instance` = `session_instance`.`id`
+			JOIN `session_info` ON `session_instance`.`session_info` = `session_info`.`id`
+
+			JOIN `operatorid_info` ON `session_info`.`operatorid_info` = `operatorid_info`.`id`
+
+			WHERE `session_event_start`.`action` = 1 AND `session_event_end`.`action` = 0
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_session_username_duration"
+				data-description="Sessions by Username"
+				data-paradata-viewer-grouping="Durations"
+				data-paradata-viewer-report-types="table"
+				data-paradata-viewer-label-column-1="Username"
+				data-paradata-viewer-label-column-2="Number of Sessions"
+				data-paradata-viewer-label-column-3="Duration (minutes)"
+				data-paradata-viewer-format-column-3="F2">
+
+			SELECT	`device_info`.`username`,
+					COUNT(*),
+					SUM(`event_end`.`time` - `event_start`.`time`) / 60
+
+			FROM `session_event` AS `session_event_start`
+			JOIN `event` AS `event_start` ON `session_event_start`.`id` = `event_start`.`id`
+
+			JOIN `session_event` AS `session_event_end`
+			JOIN `event` AS `event_end` ON `session_event_end`.`id` = `event_end`.`id` AND `event_start`.`session_instance` = `event_end`.`session_instance`
+
+			JOIN `application_instance` ON `event_start`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+
+			WHERE `session_event_start`.`action` = 1 AND `session_event_end`.`action` = 0
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_session_day_duration"
+				data-description="Sessions by Day"
+				data-paradata-viewer-grouping="Durations"
+				data-paradata-viewer-report-types="table"
+				data-paradata-viewer-label-column-1="Day"
+				data-paradata-viewer-label-column-2="Number of Sessions"
+				data-paradata-viewer-label-column-3="Duration (minutes)"
+				data-paradata-viewer-format-column-3="F2">
+
+			SELECT	strftime('%Y-%m-%d',`event_start`.`time`,'unixepoch','localtime'),
+					COUNT(*),
+					SUM(`event_end`.`time` - `event_start`.`time`) / 60
+
+			FROM `session_event` AS `session_event_start`
+			JOIN `event` AS `event_start` ON `session_event_start`.`id` = `event_start`.`id`
+
+			JOIN `session_event` AS `session_event_end`
+			JOIN `event` AS `event_end` ON `session_event_end`.`id` = `event_end`.`id` AND `event_start`.`session_instance` = `event_end`.`session_instance`
+
+			WHERE `session_event_start`.`action` = 1 AND `session_event_end`.`action` = 0
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+	<!-- Device Information	-->
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_os_device_info"
+				data-description="Operating System"
+				data-paradata-viewer-grouping="Device Information"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="Operating System"
+				data-paradata-viewer-label-column-2="Number of Devices"
+				data-paradata-viewer-label-column-3="Number of Application Runs"
+				data-paradata-viewer-label-column-4="Earliest Application Run"
+				data-paradata-viewer-type-column-4="timestamp"
+				data-paradata-viewer-label-column-5="Lastest Application Run"
+				data-paradata-viewer-type-column-5="timestamp">
+
+			SELECT	`device_info`.`os` || ' ' || `device_info`.`os_detailed`,
+					COUNT(DISTINCT `device_info`.`deviceid`),
+					COUNT(*),
+					MIN(`event`.`time`),
+					MAX(`event`.`time`)
+
+			FROM `application_event`
+			JOIN `event` ON `application_event`.`id` = `event`.`id`
+
+			JOIN `application_instance` ON `event`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+
+			WHERE `application_event`.`action` = 1
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_screen_resolution_device_info"
+				data-description="Screen Resolution"
+				data-paradata-viewer-grouping="Device Information"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="Screen Resolution"
+				data-paradata-viewer-label-column-2="Number of Devices"
+				data-paradata-viewer-label-column-3="Number of Application Runs"
+				data-paradata-viewer-label-column-4="Earliest Application Run"
+				data-paradata-viewer-type-column-4="timestamp"
+				data-paradata-viewer-label-column-5="Lastest Application Run"
+				data-paradata-viewer-type-column-5="timestamp">
+
+			SELECT	`device_info`.`screen_width` || ' x ' || `device_info`.`screen_height`,
+					COUNT(DISTINCT `device_info`.`deviceid`),
+					COUNT(*),
+					MIN(`event`.`time`),
+					MAX(`event`.`time`)
+
+			FROM `application_event`
+			JOIN `event` ON `application_event`.`id` = `event`.`id`
+
+			JOIN `application_instance` ON `event`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+
+			WHERE `application_event`.`action` = 1
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_device_model_device_info"
+				data-description="Device Model"
+				data-paradata-viewer-grouping="Device Information"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="Device Model"
+				data-paradata-viewer-label-column-2="Number of Devices"
+				data-paradata-viewer-label-column-3="Number of Application Runs"
+				data-paradata-viewer-label-column-4="Earliest Application Run"
+				data-paradata-viewer-type-column-4="timestamp"
+				data-paradata-viewer-label-column-5="Lastest Application Run"
+				data-paradata-viewer-type-column-5="timestamp">
+
+			SELECT	`device_info`.`device_model`,
+					COUNT(DISTINCT `device_info`.`deviceid`),
+					COUNT(*),
+					MIN(`event`.`time`),
+					MAX(`event`.`time`)
+
+			FROM `application_event`
+			JOIN `event` ON `application_event`.`id` = `event`.`id`
+
+			JOIN `application_instance` ON `event`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+
+			WHERE `application_event`.`action` = 1
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_software_version_device_info"
+				data-description="CSPro Version"
+				data-paradata-viewer-grouping="Device Information"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="CSPro Version"
+				data-paradata-viewer-label-column-2="Number of Devices"
+				data-paradata-viewer-label-column-3="Number of Application Runs"
+				data-paradata-viewer-label-column-4="Earliest Application Run"
+				data-paradata-viewer-type-column-4="timestamp"
+				data-paradata-viewer-label-column-5="Lastest Application Run"
+				data-paradata-viewer-type-column-5="timestamp">
+
+			SELECT	`diagnostics_info`.`version_detailed` || CASE `diagnostics_info`.`beta` WHEN 1 THEN ' (beta)' ELSE '' END,
+					COUNT(DISTINCT `device_info`.`deviceid`),
+					COUNT(*),
+					MIN(`event`.`time`),
+					MAX(`event`.`time`)
+
+			FROM `application_event`
+			JOIN `event` ON `application_event`.`id` = `event`.`id`
+
+			JOIN `application_instance` ON `event`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+			JOIN `diagnostics_info` ON `application_instance`.`diagnostics_info` = `diagnostics_info`.`id`
+
+			WHERE `application_event`.`action` = 1
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+	<!-- Languages -->
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_system_locale_device_info"
+				data-description="Device System Locale"
+				data-paradata-viewer-grouping="Languages"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="System Locale"
+				data-paradata-viewer-label-column-2="Number of Devices"
+				data-paradata-viewer-label-column-3="Number of Application Runs">
+
+			SELECT	`application_instance`.`system_locale`,
+					COUNT(DISTINCT `device_info`.`deviceid`),
+					COUNT(*)
+
+			FROM `application_event`
+			JOIN `event` ON `application_event`.`id` = `event`.`id`
+
+			JOIN `application_instance` ON `event`.`application_instance` = `application_instance`.`id`
+			JOIN `device_info` ON `application_instance`.`device_info` = `device_info`.`id`
+
+			WHERE `application_event`.`action` = 1
+			GROUP BY 1
+			ORDER BY 1;
+
+		</script>
+
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_language_change_info"
+				data-description="Language Change Information"
+				data-paradata-viewer-grouping="Languages"
+				data-paradata-viewer-report-types="summary_table"
+				data-paradata-viewer-label-column-1="Source"
+				data-paradata-viewer-label-column-2="Specified Language"
+				data-paradata-viewer-label-column-3="Resultant Question Text Language"
+				data-paradata-viewer-label-column-4="Resultant Dictionary Language"
+				data-paradata-viewer-label-column-5="Resultant System Messages Language"
+				data-paradata-viewer-label-column-6="Resultant Application Messages Language"
+				data-paradata-viewer-label-column-7="Number of Changes">
+
+			SELECT	`metadata_code_info`.`value`,
+					`language_change_event`.`specified_language_name`,
+					`ql_name`.`name`,
+					`dl_name`.`name`,
+					`sml_name`.`name`,
+					`aml_name`.`name`,
+					COUNT(*)
+
+			FROM `language_change_event`
+			JOIN `event` ON `language_change_event`.`id` = `event`.`id`
+
+			JOIN `language_info` ON `language_change_event`.`language_info` = `language_info`.`id`
+
+			JOIN `metadata_table_info` ON `metadata_table_info`.`table` = 'language_change_event'
+			JOIN `metadata_column_info` ON `metadata_table_info`.`id` = `metadata_column_info`.`metadata_table_info` AND `metadata_column_info`.`column` = 'source'
+			JOIN `metadata_code_info` ON `metadata_column_info`.`id` = `metadata_code_info`.`metadata_column_info` AND `language_change_event`.`source` = `metadata_code_info`.`code`
+
+			JOIN `name` AS `ql_name` ON `language_info`.`question_language_name` = `ql_name`.`id`
+			JOIN `name` AS `dl_name` ON `language_info`.`dictionary_language_name` = `dl_name`.`id`
+			JOIN `name` AS `sml_name` ON `language_info`.`system_message_language_name` = `sml_name`.`id`
+			JOIN `name` AS `aml_name` ON `language_info`.`application_message_language_name` = `aml_name`.`id`
+
+			GROUP BY 1, 2, 3, 4, 5, 6
+			ORDER BY 1, 2, 3, 4, 5, 6;
+
+		</script>
+
+
+	<!-- Paradata Metadata -->
+
+		<script type="application/vnd.cspro.query"
+				data-source="paradata"
+				data-query-name="cspro_event_frequency"
+				data-description="Logged Event Frequency"
+				data-paradata-viewer-grouping="Paradata Metadata"
+				data-paradata-viewer-report-types="summary_table chart"
+				data-paradata-viewer-label-column-1="Event Name"
+				data-paradata-viewer-label-column-2="Number of Events">
+
+			SELECT	`metadata_code_info`.`value`,
+					COUNT(*)
+			FROM `event`
+			JOIN `metadata_table_info` ON `metadata_table_info`.`table` = 'event'
+			JOIN `metadata_column_info` ON `metadata_table_info`.`id` = `metadata_column_info`.`metadata_table_info` AND `metadata_column_info`.`column` = 'type'
+			JOIN `metadata_code_info` ON `metadata_column_info`.`id` = `metadata_code_info`.`metadata_column_info` AND `event`.`type` = `metadata_code_info`.`code`
+			GROUP BY `event`.`type`
+			ORDER BY 2 DESC;
+
+		</script>

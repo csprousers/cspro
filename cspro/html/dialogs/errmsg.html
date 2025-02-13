@@ -1,0 +1,224 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/external/mustache/mustache.min.js"></script>
+
+    <title>Error Message</title>
+
+    <style>
+        .my-button {
+            height:auto;
+        }
+            .my-button:focus {
+                border: 1px solid #aaa !important;
+            }
+    </style>
+
+    <script id="errmsgTemplate" type="text/template">
+        <div id="mWidth" style="display:inline-block;">
+            <div>
+                <span class="col withNewline" style="white-space: nowrap;">
+                    {{message}}
+                </span>
+            </div>
+            <div>
+                <span class="col withNewline" style="white-space: nowrap;padding-right:48px;">
+                    {{title}}
+                </span>
+            </div>
+            {{#buttons}}
+            <div>
+                <span class="col withNewline" style="white-space: nowrap;">
+                    {{caption}}
+                </span>
+            </div>
+            {{/buttons}}
+        </div>
+        <div id="mContainer" class="container-fluid my-dialog errmsg-dialog" style="overflow-y:auto;">
+            <div id="mTitle" class="row my-dialog-header">
+                <div class="col withNewline">
+                    {{title}}
+                </div>
+                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                </div>
+            </div>
+            <div class="row my-dialog-body" style="padding-top:12px;">
+                <div class="col withNewline" style="word-wrap:break-word;">
+                    {{message}}
+                </div>
+            </div>
+            <div class="row text-end my-dialog-footer">
+                {{#buttons}}
+                <div class="col col-lg-{{split}} col-md-{{split}} col-sm-{{split}} my-dialog-button-col {{btnAlign}}">
+                    <button id="b{{index}}" class="btn btn-light {{btnType}} text-center my-button withNewline" type="button" onclick="dialogReturn({{index}})" tabindex="-1">
+                        {{caption}}
+                    </button>
+                </div>
+                {{/buttons}}
+            </div>
+        </div>
+    </script>
+
+    <script>
+        const CS = new CSProActionInvoker("2fdd7429f354f24ae73647d5a2ae672f");
+        var focusedIndex = 0;
+
+        function replaceNewline() {
+            $('.withNewline').each(function (index) {
+                $(this).html($(this).html().trim().replace(/(?:\r\n|\r|\n)/g, "<br>"));
+            });
+        }
+
+        var minWidth = 240; //minimum dialog width in px
+        function setMaxWH() {
+            const maxDisplayDimensions = CS.UI.getMaxDisplayDimensions();
+
+            $("#mContainer").css("min-width", minWidth);
+            $("#mContainer").css("max-width", maxDisplayDimensions.width);
+
+            $("#mContainer").css("max-height", maxDisplayDimensions.height);
+        }
+
+        function buildDialog() {
+            var template = $("#errmsgTemplate").html();
+            $("#dialogDynamicContainer").html(Mustache.render(template, input));
+
+            replaceNewline();
+        }
+
+        //Doing some stuff differently based on the OS
+        function osProfile() {
+            const onAndroid = ( navigator.userAgent.toLowerCase().indexOf("android") > -1 );
+            if (onAndroid) {
+                //hiding "x" button
+                $(".close").hide();
+
+                //hiding title if it's empty
+                if ($("#mTitle").children().first().html().trim().length == 0) {
+                    $("#mTitle").hide();
+                }
+            }
+            else {
+                minWidth = 480;
+            }
+        }
+
+        function dialogReturn(idx) {
+            CS.UI.closeDialog({ result: { index: idx } });
+        }
+
+        function adjustButtonsHeight() {
+            //finding tallest button
+            var tallestButton = 0;
+
+            for (var i = 0; i < input.buttons.length; i++) {
+                var bId = '#b' + (i + 1);
+                if ($(bId).outerHeight() > tallestButton) {
+                    tallestButton = $(bId).outerHeight();
+                }
+            }
+
+            //setting height to tallest
+            if (tallestButton > 0) {
+                for (var i = 0; i < input.buttons.length; i++) {
+                    var bId = '#b' + (i + 1);
+                    $(bId).css("height", tallestButton);
+                }
+            }
+        }
+
+        function setDefaultButton() {
+            if (input.defaultButtonIndex > 0) {
+                focusedIndex = input.defaultButtonIndex;
+                setTimeout(function () {
+                    $("#b" + focusedIndex).focus();
+                }, 100);
+            }
+        }
+
+        $(document).ready(function () {
+            adjustButtonsHeight();
+
+            setDefaultButton();
+
+            var w = $("#mContainer").outerWidth();
+            var h = $("#mContainer").outerHeight();
+
+            CS.UI.setDisplayOptions({
+                width: w,
+                height: h,
+                keyboard: false,
+                titleBarColor: $('.my-dialog-header').css('background-color')
+            });
+        });
+
+        $(document).keydown(function (e) {
+            if (e.keyCode === 27) { //ESC
+                CS.UI.closeDialog();
+            } else if (e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 9) { //down arrow, right arrow, tab
+                focusedIndex++;
+                if (focusedIndex > input.buttons.length) {
+                    focusedIndex = 1;
+                }
+                $('#b' + focusedIndex).focus();
+                e.preventDefault();
+            } else if (e.keyCode === 37 || e.keyCode === 38) { //up arrow, left arrow
+                focusedIndex--;
+                if (focusedIndex < 1) {
+                    focusedIndex = input.buttons.length;
+                }
+                $('#b' + focusedIndex).focus();
+                e.preventDefault();
+            }
+        });
+    </script>
+</head>
+<body>
+    <!--Dialog container-->
+    <div id="dialogDynamicContainer" style="position:fixed;top:0;"></div>
+
+    <script>
+        var input = CS.UI.getInputData();
+
+        if (!Array.isArray(input.buttons)) {
+            input.buttons = [
+                {
+                    caption: "OK",
+                    index: 1
+                }
+            ];
+        }
+
+        if (input.buttons.length > 1) {
+            input.btnType = "col-12";
+            input.btnAlign = "text-center"
+        }
+        else {
+            input.btnType = "";
+            input.btnAlign = "text-end"
+        }
+
+        buildDialog();
+
+        osProfile();
+
+        setMaxWH();
+
+        $("#mContainer").css("width", $("#mWidth").outerWidth());
+
+        $("#mWidth").hide();
+    </script>
+</body>
+</html>

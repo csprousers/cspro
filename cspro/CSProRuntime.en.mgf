@@ -1,0 +1,687 @@
+﻿/* --- CSPro Runtime Messages - English */
+
+Language=EN
+
+/* --- Common Messages Used by CSEntry */
+
+/* --- Out of Range */
+88888  WARNING: Out of range! Accept this value for %s%s?
+88889  WARNING: Out of range! Please enter a valid value for %s%s
+
+89201  OUT OF RANGE
+89202  OUT OF SEQUENCE
+89203  Enter valid value.
+89204  "Enter valid value\nor Press F2 to force."
+89205  Enter correct value.
+89206  Press F8 to clear
+
+/* --- Go To Field */
+89211  Item not found
+89212  The occurrence value is invalid
+
+/* --- Partial Save */
+89221  Partial Save
+89222  This is a partially saved case. Do you want to go to the last position?
+89223  You cannot switch to viewing a partially saved case that is not in modify mode. Stop modifying this case and then open the case.
+89224  The current case has been saved
+89225  There was an error saving the case
+
+/* --- Interactive Edit */
+89231  Cannot enter a partially saved case. Stopping Interactive Edit.
+89232  Do you want to cancel Interactive Edit?
+
+/* --- Verify */
+89241  Done with Verify Mode
+89242  THIS FIELD DOES NOT MATCH
+89243  Reenter the value.
+
+/* --- Case Management */
+89251  Do you want to discard the current questionnaire?
+89252  Are you sure you want to delete this node?
+89253  Are you sure you want to delete the case with ID '%s'?
+89254  Accept this case?
+89255  Accept this %s?
+89256  Accept Case
+
+/* --- Miscellaneous Entry */
+89261  Cannot go to an occurrence that does not exist
+89263  "%s\nThis file doesn't exist.\n\nCreate the file?"
+89265  Operator ID
+89266  You cannot run the application without entering an operator ID.
+
+/* --- Entry Errors */
+89271  Failed to start questionnaire in modify mode.
+89272  Invalid Application Mode. Failed to stop entry application.
+89273  There was an error reading from the binary file %s
+89274  Fatal Error in entry engine. Aborting the entry operation.
+
+/* --- Index */
+89291  Index not created.
+89292  "Duplicate case ids: '%s'\n\nin file %s"
+
+/* --- Symbol Modifiers */
+94107  No persistent variables will be set because the Common Store could not be opened
+94108  The persistent variable '%s' was set to its default value because its saved value was no longer valid: %s: '%s'
+
+/* --- Mapping */
+94205  There was a problem setting the base map for '%s': %s
+94206  There was a problem saving the map snapshot for '%s': %s
+
+/* --- Encrypted CSPro DB Files */
+94301  Passwords must be at least %d characters
+94302  The connection string contained an invalid password for the file %s
+94303  No valid password specified for the file %s
+94304  Password for: %s
+94305  Enter the password previously used to encrypt the file %s:
+94306  Enter a new password for the file %s. The password must be at %d characters and it should be something that you will remember as there is no way to decrypt this file without the password:
+94307  The password is invalid
+
+/* --- Saved Credentials */
+94331  There are no saved credentials
+94332  Are you sure that you want to delete %d credential(s)?
+
+/* --- Frequency */
+94531  There was a problem interacting with the frequency file: %s
+94532  The Frequency '%s' was not tallied because of an invalid weight
+94533  The Frequency '%s' cannot be saved to '%s' because only HTML reports are supported
+
+/* --- Portable Messages */
+110001 OK
+110002 Cancel
+110003 Yes
+110004 No
+110005 Not Applicable
+110006 Delete
+110007 Restore
+
+110011 Error
+110012 Warning
+110013 Message
+110014 Abort
+110015 Confirm
+
+110041 Stop Adding?
+110042 Stop Modifying?
+110043 Save Changes
+110044 Discard Changes
+110045 Advance to End
+
+110051 Select a Language
+110052 There is only one language defined.
+
+110061 No text provided for message %d
+110062 <message argument expected but none provided>
+110063 <%s argument was expected but a %s was provided instead>
+
+
+/* --- ... */
+
+
+/* --- LevelId clause */
+77     The LevelId list of variables is empty or too many id items
+
+/* --- LIS: FOR-DICT and NMEMBERS function messages */
+753    Cannot call '%s' while inside a loop already using the dictionary '%s'
+
+/* --- Procedure errors */
+821    %s can only be used in batch applications
+822    %s cannot appear in this procedure: %p
+
+/* --- ValueSet */
+941    A value set of type '%s' expected
+
+/* --- List Objects */
+963    You cannot add or insert a List ('%s') into itself
+964    The index %d is not valid (the List '%s' has %d elements)
+965    The List '%s' is read-only and cannot be modified
+
+/* --- Applications execution */
+1000   Cannot allocate memory for %s table
+1001   Unable to open file %s - please check file status
+1003   Warning: input variable assignment to %s
+1004   No room for character object descriptor
+1005   Invalid operation code
+1006   This application uses functions only available in a newer version of this CSPro release. Please update your program.
+1007   No occurrence: %s(%d) -- %p
+1008   Invalid subscript: %s(%s) -- %p
+1009   Table %s will not be generated - no memory available
+1010   Application error: protected field %s is out of range - value is %f
+1011   Application error: protected field %s is out of range
+
+1026   All of the ID fields were not filled, please reenter
+
+1031   Table expression ignored - empty dimension in %s table %s
+1032   Table expression ignored - dimensions do not agree in left table %s and right table %s
+1033   Table expression ignored - left table %s should have one dimension less than right table %s
+1034   Table expression ignored - left table %s should have same dimension than right table %s
+
+1044   The case identification can't be changed because the application has some Export, Crosstab/Table or Freq command
+1046   Export, Crosstab/Table or Freq command can't be used because the case identification is being changed by the application
+
+1081   Can't insert: invalid subscript: %s(%d) -- %p
+1082   Can't insert: subscript %s(%d), occs = %d -- %p
+1083   Can't insert; occurrences at maximum: %s, occs = %d -- %p
+1085   Can't delete; occurrence doesn't exist: %s(%d), occs = %d -- %p
+1086   Can't delete; one occurrence required: %s(1) -- %p
+1088   Invalid subscript: %s(%f) -- %p
+1089   Invalid subscript in swap: %s(%d and %d), occs = %d -- %p
+
+1100   The parameter %s is invalid
+1101   The parameter %s does not support %d arguments
+
+1102   The property %s is read only and cannot be set
+1103   Using the GetProperty function, you can only access %s on items
+1104   Using the GetProperty function, you can only access %s on fields
+1105   You cannot access the item or field property %s without specifying a dictionary symbol
+1106   You cannot access the %s property %s when specifying a dictionary symbol
+1107   The property '%s' does not support the value '%s'
+1108   You must specify a dictionary or form symbol (a dictionary, form, group, block, or field)
+1109   The property '%s' expects a string value, not the number '%s'
+
+2001   Cannot open file %s
+2004   No memory for corrector data structures
+2013   Record occurrences %s for record %s
+2014   Section occurrences %s for section %s because there is no information in the corresponding level
+
+2017   New file %s
+2018   Cannot create a new index file '%s' for an existing data file
+2019   Data file did not exist for the existing index file '%s'
+2020   Data file for input dictionary is NULL
+
+/* --- Html */
+2031   The dialog of type '%s' will not appear because the dialog source could not be found: %s
+2032   There was an error processing the results of the dialog of type '%s': %s
+2033   When specifying a width or height, you must specify both values.
+2034   The specified %s of %d is not valid and will be ignored as the maximum value is %d.
+2035   The specified dimensions of (%d, %d) are not valid and will be modified to fit the screen.
+2036   "'%s' is not a valid color. Use a standard HTML color name like \"red\" or \"green\" or an HTML color code like \"#FFFF00\"."
+2037   The specified %s '%s' is not valid.
+
+/* --- CsCalc */
+2300   Cannot load slice %s for table '%s' in file '%s'. The table data will be set to zero
+2302   Invalid slice %s for table '%s' in file '%s'. The table data will be set to zero
+2304   Slice %s not found for table '%s' in file '%s'. The table data will be set to zero
+
+/* --- External dictionary operations */
+4003   In file %s, cannot '%s' key
+4017   Unknown error when processing '%s' - failure
+4018   Cannot use a special output dictionary for this function
+
+/* --- IsPartial */
+8050   SavePartial cannot be executed from Level 0 procedures
+8052   You cannot execute SavePartial until the ID items are filled in
+
+/* --- IMPUTE messages */
+8111   The imputation frequencies will not be written; you must specify a filename to see these frequencies
+8112   The imputation stat data file will not be written; you must specify a connection string to see these statistics
+8113   There was a problem creating the stat dictionary
+8114   There was a problem writing to the stat data file: %s
+8115   There was a problem interacting with the imputation frequencies file: %s
+
+/* --- Paradata + SqlQuery + Reports */
+8291   Paradata concatenation error%s: %s
+8292   SqlQuery%s error: %s
+8293   The report attribute %s is not a valid name
+8294   Report creation error: %s
+8295   Paradata sync error: %s
+
+/* --- List functions */
+8351   An invalid subscript was passed to the countnonspecial function: %s(%d), all records will be examined -- %p
+
+/* --- Select Dialog */
+9010   Number of elements (%d) exceeds the maximum allowed: %d. Use a where clause.
+9011   Number of columns (%d) exceeds the maximum allowed: %d.
+
+/* --- Special Functions */
+9100   Skip/Advance/Reenter/Move/NoInput/EndSect/EndGroup/EndLevel/Enter/Stop can't be executed from the On_Focus or OnSystemMessage functions
+
+9190   EndSect/EndGroup not allowed in Group Postproc/KillFocus or in LEVEL procedures. Instruction will be ignored.
+9192   Stop/EndLevel not allowed in group or items of external dictionaries
+9194   EndLevel not allowed in level 0 KillFocus/PostProc
+
+/* --- Action Invoker */
+9201   An action name must be specified
+9202   The action name '%s' is invalid
+9203   The component of the action name must be specified in the proper case: '%s' -> '%s'
+9204   You must provide the required arguments for action '%s': %s
+9205   An error occurred parsing the JSON arguments for action '%s': %s
+9206   Action Invoker error running action '%s': %s
+9207   Action Invoker error: %s
+9208   A web page or program is attempting to access CSPro functionality, which can include access to data or to files on your device. Do you want to allow this? You should only allow this if you trust this source.
+
+/* --- executors - common messages */
+10000  Cannot open executor report file
+10001  Cannot open input data file - no process performed
+10004  Cannot load Application %s (%s)
+10006  Too many occurrences for Record or Group %s (Case: '%s')
+10007  Invalid Record Type for Dictionary %s: '%s'
+10008  Required Record or Group %s not found
+10009  A blank record was added for the Required Record %s (Case: '%s')
+10010  Cannot run '%s' because %d syntax errors detected
+
+10014  Invalid command line (missing "=")
+10015  Invalid dictionary name %s in command line
+
+10102  Could not open the data source %s: %s
+10103  There was an error reading from the data source: %s
+10104  There was an error writing to the data source: %s
+10105  There was an error accessing the data source: %s
+10106  Due to errors, the data source for %s is set to an empty data source
+10107  The data source attached to %s does not support these types: %s
+10108  The data source attached to %s does not support the sync features used in the program.
+10109  There was an error %s binary data for %s: %s
+10110  The value of %s with type %s could not be converted to type %s
+
+14010  Disk full!
+14011  There was an error running the concatenation: %s
+14012  Text file is not encoded in a format supported by CSPro: %s
+14013  Error concatenating cases from file %s: %s. Remaining cases in this file will be skipped.
+
+/* --- Save Array + Array Messages */
+19001  File I/O error writing to the save array file %s: %s
+19002  Failed to open the save array file %s for reading: %s
+19003  File I/O error reading from the save array file %s: %s
+19005  Error reading save array: %s
+19006  Error reading save array file %s on line %d, expected '[Array]'
+19007  Error reading save array file %s on line %d, expected '[Saved Arrays]'
+19008  Error reading save array file %s on line %d, version number does not match CSPro version
+19009  Array '%s' not found in save array file, all values will be set to DEFAULT for numeric arrays and "" for string arrays
+19010  Error reading save array file %s, [Arrays] record not found
+19011  Found Array '%s' in save array file that is not declared in the program
+19012  Invalid array name in save array file on line %d, array name cannot be blank
+19013  Array '%s' found in the save array file but it is no longer declared as a save array in the program
+19014  Inconsistent Array size or dimensions in save array file for Array '%s'
+19015  Invalid or inconsistent array type in save array file for Array '%s', must be numeric or alpha
+19016  Missing array name in saved array file on line %d
+19017  Error reading save array file at line %d for array %s, expected 'Cell' with valid attributes
+19018  Error reading save array file at line %d for array %s, expected '[Slice]'
+19019  Error reading save array file at line %d for array %s, unrecognized line, expected 'Row', 'Get', 'Put', or '[Slice]'
+19020  Error reading save array file at line %d for array %s, cell data for column %d is not numeric
+19021  Error reading save array file at line %d for array %s, cell data for column %d is not of correct size, must be %d characters
+19022  Error reading save array file at line %d for array %s, cell data for column %d missing delimiter character '|'
+19023  Error reading saved array file at line %d for array %s, number of rows/columns/slices of data is different than number in header
+19024  Error reading save array file at line %d, array %s listed more than once in the save array file
+19025  The Save Array Viewer can only display Arrays of three dimensions or fewer so %d-dimensional Array '%s' cannot be viewed
+19041  The array %s does not have a dimension %d
+
+29005  The output file %s could not be opened: %s
+29006  The setoutput function only works in batch applications and will be ignored
+29007  The setoutput function could not open %s: %s
+
+/* --- EXPORT messages */
+31040  Cannot generate CSPro dictionary '%s' (%s)
+31050  Requested EXPORT will be ignored because the subitems specified doesn't follow the same order as the input dictionary
+31055  Requested EXPORT will be ignored because it contains a duplicated item name
+31056  Requested EXPORT will be ignored because it contains a duplicated record type
+31058  Requested EXPORT will be ignored because it contains an invalid record name (%s)
+
+/* --- ... multi-exports */
+31072  Unable to generate EXPORT' file-name '%s' because of conflicting with another EXPORT command (seq # %d). Only one record type is supported for this model.
+31073  Requested EXPORT will be ignored because cannot open '%s' file
+31074  Requested EXPORT will be ignored because cannot create the area for the exported record(s)
+31075  Requested EXPORT will be ignored because case id items doesn't match with case id items specified in a previous export
+31076  Requested EXPORT will be ignored because record type length doesn't match with the record type length specified in a previous export
+31077  Requested EXPORT will be ignored because the export model doesn't match with the export model specified in a previous export
+31078  Requested EXPORT will be ignored because the record name was already specified in a previous export
+31079  Requested EXPORT will be ignored because the models CSPro/TabDelim/CommaDelim/SemiColonDelim don't allow other models activated
+31080  Requested EXPORT will be ignored because the export level is incompatible with the export level of a previous export. Export must be executed ordered by level. Moving the EXPORT to the PREPROC could fix the problem
+31081  Requested EXPORT will be ignored because the item '%s' already exist in this or in a previous export
+31082  Requested EXPORT will be ignored because the exportation type (ItemOnly/SubItemOnly/ItemSubItem) doesn't match with the specified by a previous export
+
+/* --- ... new ENSEMBLED RECORD model */
+31090  Invalid dimension specified for item '%s' in the export command
+
+31101  The %s exporter cannot handle items of type: %s
+31102  Using a %s exporter, %s
+31103  %s exporters can only be used to write data so you cannot %s
+
+/* --- Generic Messages */
+32001  %s
+32002  Error executing '%s': %s
+
+/* --- File */
+33056  Wildcard expression not supported for the target filename or folder
+33057  Target folder '%s' is invalid or doesn't exist
+
+/* --- Relation Run-Time */
+33108  Multiple Relation can only be used in tables/crosstab in %p
+33200  Index for variable %s is solved by a multiple relation in %p. NOTAPPL index will be used.
+
+/* --- 3-dim messages */
+34008  Invalid subscript: %s(%d) -- %p
+34088  Invalid subscript: %s(%d) -- %p
+34089  Invalid subscript: %s(%d) -- %p
+34090  Cannot assign value %s no record in case -- %p
+34091  Not enough indexes to calculate expression value around %s
+34092  Cannot access value %s, no record #%d -- %p
+34093  Invalid subscript: %s(%d, %d) -- %p
+36000  Fatal 3d Exception: Error code %d
+
+/* --- TBD execution */
+46000  Null String Found
+
+/* --- Notes */
+46501  The note function will not be executed. The current PROC or function is not valid for the element
+46511  Review Notes
+46512  There are no notes to review.
+46513  Go to Field
+
+/* --- Value Sets */
+47110  Invalid symbol number (%d). Must be between 1 and %d
+47156  String array expected
+47158  Numeric array expected
+47161  The dynamic value set created for '%s' contains some values that cannot be stored by the field
+47164  Symbol '%s' is not a valid '%s'
+47165  Symbol '%s' does not exist
+
+47170  You cannot apply the operation '%s' on the dictionary value set '%s'
+47172  You cannot add a value set ('%s') to itself
+
+/* --- Pffs */
+47191  The PFF "%s" does not exist or could not be read
+47192  The PFF is not valid or could not be saved to "%s"
+47194  The PFF property "%s" cannot accept a dictionary argument
+47195  There was an error executing "%s": %s
+
+/* --- Question Text */
+48000  Invalid expression (%s) in CAPI text
+48001  User-defined function (%s) with arguments cannot be used in CAPI text
+48002  Invalid subscript (%s) in CAPI text
+48003  Invalid variable (%s) passed to the GetValueLabel call in CAPI text
+
+/* --- Reports */
+48111  Error generating the report %s: %s
+
+/* --- User-Defined Function Messages */
+
+/* --- Dynamic Logic Evaluation */
+50051  Error calling '%s' on '%s': %s
+
+/* --- Userbar */
+50106  Userbar error: %s
+
+/* --- Program Control */
+90545  Unable to Enter %s - this Flow has already been entered
+
+91200  Unable to 'reenter %s' - unknown symbol name {in %p}
+91201  Unable to 'reenter %s' - there is no field entered yet {in %p}
+91204  Unable to 'reenter %s' - occurrence outside structural bound {in %p}
+91205  Unable to 'reenter %s' - it's a never-keyed field {in %p}
+91206  Unable to 'reenter %s' - it's a skipped field {in %p}
+91209  Unable to 'reenter %s' - it's after current field {in %p}
+91402  Unable to 'skip to %s' - can't be used as target {in %p}
+91404  Unable to 'skip to %s' - occurrence outside structural bound {in %p}
+91406  Unable to 'skip to %s' - it's a skipped field {in %p}
+91407  Unable to 'skip to %s' - it's a highlighted field {in %p}
+91409  Unable to 'skip to %s' - it's before current field {in %p}
+91500  Unable to 'advance to %s' - unknown symbol name {in %p}
+91502  Unable to 'advance to %s' - can't be used as target {in %p}
+91504  Unable to 'advance to %s' - occurrence outside structural bound {in %p}
+91506  Unable to 'advance to %s' - it's a skipped field {in %p}
+91507  Unable to 'advance to %s' - it's a highlighted field {in %p}
+91509  Unable to 'advance to %s' - it's before current field {in %p}
+
+91601  Ignoring operator EndLevel - the EndLevel switch is currently disabled
+91602  Ignoring operator EndLevel - a NextLevel %d (meaning "stop-the-session") was requested. A session-stop can only be requested to the interface once a new case is started!
+91603  Ignoring operator EndLevel - a NextLevel %d was requested, but it is beyond the %d Levels available!
+91604  Ignoring operator EndLevel - a NextLevel %d was requested while currently at Level %d. Please remind that intermediate Levels cannot be "skipped"!
+91605  Ignoring operator EndLevel - no-write was requested for current Level %s node. This node is being modified and comes from data file!
+91606  Ignoring operator EndLevel - no-write was requested for current Level %s node along with opening a Level %s son-node. This is an inconsistent request!
+91607  Ignoring operator EndLevel - this Level %s node already has written children!
+91608  Ignoring operator EndLevel - this Level %s node has %s Level %s son-node in process!
+91612  Operator EndLevel asks for starting a new Level %s brother-node after abandoning current Level node
+91613  Operator EndLevel asks for starting a new Level %s parent-node after abandoning current Level %s node
+91614  Operator EndLevel asks for starting a new Level %s ascendant-node after abandoning current Level %s node
+91621  Operator EndLevel asks for starting a new Level %s son-node after completing current Level %s node
+91622  Operator EndLevel asks for starting a new Level %s brother-node after completing current Level node
+91623  Operator EndLevel asks for starting a new Level %s parent-node after completing current Level %s node
+91624  Operator EndLevel asks for starting a new Level %s ascendant-node after completing current Level %s node
+91631  Operator EndLevel asks for starting a new Level %s son-node after advancing to the end of current Level %s node
+91632  Operator EndLevel asks for starting a new Level %s brother-node after advancing to the end of current Level node
+91633  Operator EndLevel asks for starting a new Level %s parent-node after advancing to the end of current Level %s node
+91634  Operator EndLevel asks for starting a new Level %s ascendant-node after advancing to the end of current Level %s node
+
+91111  Cannot execute command Set Behavior %s - only allowed in Level-0 PreProc
+91112  Cannot execute command Set Behavior %s - only allowed in Path OFF environments
+
+91118  Language '%s' not found. Set Language ignored.
+
+/* --- CsDriver updated messages for skip/advance/move/reenter */
+91159  Unable to 'skip to %s' - target-item is the current item {in %p}
+91160  Unable to 'skip to %s' - invalid target {in %p}
+91161  Unable to 'skip to %s' - target-group is not specified in a FormFile {in %p}
+91162  Unable to 'skip to %s' - target-item has no field {in %p}
+91163  Unable to 'skip to %s' - target occurrence is less than 1 or exceeds group defined maximum {in %p}
+91164  Unable to 'skip to %s' - target-item occurrence exceeds owner' group defined maximum {in %p}
+91165  Unable to 'skip to %s' - target-group is located backward in the flow {in %p}
+91166  Unable to 'skip to %s' - target-item is located backward in the flow {in %p}
+91167  Unable to 'skip to %s' - target-item field is a highlighted field {in %p}
+91168  Unable to 'skip to %s' - target-item field is a skipped field {in %p}
+91169  Unable to 'skip to %s' - please report the problem to CSPro staff {in %p}
+
+91170  Unable to 'advance to %s' - invalid target {in %p}
+91171  Unable to 'advance to %s' - target-group is not specified in a FormFile {in %p}
+91172  Unable to 'advance to %s' - target-item has no field {in %p}
+91173  Unable to 'advance to %s' - target occurrence is less than 1 or exceeds group defined maximum {in %p}
+91174  Unable to 'advance to %s' - target-item occurrence exceeds owner' group defined maximum {in %p}
+91175  Unable to 'advance to %s' - target-group is located backward in the flow {in %p}
+91176  Unable to 'advance to %s' - target-item is located backward in the flow {in %p}
+91177  Unable to 'advance to %s' - target-item field is a highlighted field {in %p}
+91178  Unable to 'advance to %s' - target-item field is a skipped field {in %p}
+91179  Unable to 'advance to %s' - please report the problem to CSPro staff {in %p}
+
+91180  Unable to 'reenter %s' - invalid target {in %p}
+91181  Unable to 'reenter %s' - target-group is not specified in a FormFile {in %p}
+91182  Unable to 'reenter %s' - target-item has no field {in %p}
+91183  Unable to 'reenter %s' - target occurrence is less than 1 or exceeds group defined maximum {in %p}
+91184  Unable to 'reenter %s' - target-item occurrence exceeds owner' group defined maximum {in %p}
+91185  Unable to 'reenter %s' - target-group is located forward in the flow {in %p}
+91186  Unable to 'reenter %s' - target-item is located forward in the flow {in %p}
+91187  Unable to 'reenter %s' - target-item field is a never-keyed field {in %p}
+91188  Unable to 'reenter %s' - target-item field is a skipped field {in %p}
+91189  Unable to 'reenter %s' - please report the problem to CSPro staff {in %p}
+
+91190  The requested node is no longer available, probably due to an 'EndLevel' command issued by the application
+
+92000  No filename provided for %s Dictionary %s - process will be cancelled
+92001  At %s Dictionary %s, no IDX file was found for existing DAT file %s - process will be cancelled
+92002  At %s Dictionary %s, no DAT file was found for existing IDX file %s - process will be cancelled
+92003  At %s Dictionary %s, nor the DAT file %s neither the IDX file %s could be found - process will be cancelled
+92004  At %s Dictionary %s, the existing IDX file %s could not be opened - process will be cancelled
+92005  At %s Dictionary %s, the IDX file %s could not be created - process will be cancelled
+92006  At %s Dictionary %s, the existing DAT file %s could not be opened - process will be cancelled
+92007  At %s Dictionary %s, the DAT file %s could not be created - process will be cancelled
+92008  At %s Dictionary %s, nor the existing DAT file %s neither the existing IDX file %s could be open - process will be cancelled
+92009  At %s Dictionary %s, nor the DAT file %s neither the IDX file %s could be created - process will be cancelled
+
+92101  Case ids '%s' duplicate an existing case! Case ids must be unique.
+92102  New case ids '%s' duplicate an existing case! Case ids must be unique. Old ids were '%s'.
+92103  New case ids '%s'. Old ids were '%s'.
+
+/* --- solving at-references at execution time */
+88111  Ignoring 'skip to @%s': referred target '%s' is an unknown symbol%s {%p}
+88112  Ignoring 'skip to next @%s': referred Var '%s' is not multiple-occs%s {%p}
+88113  Ignoring 'skip to next @%s' (referred Var '%s'): it was not issued from a Var' proc%s {%p}
+88114  Ignoring 'skip to next @%s': referred Var '%s' is not at the same Group than the source of the skip%s {%p}
+88115  Ignoring 'skip to @%s': referred target '%s' is not an Var nor a Group%s {%p}
+
+88121  Ignoring 'reenter @%s': referred target '%s' is an unknown symbol%s {%p}
+88125  Ignoring 'reenter @%s': referred target '%s' is not an Var {%p}
+
+88131  Ignoring 'advance @%s': referred target '%s' is an unknown symbol%s {%p}
+88135  Ignoring 'advance @%s': referred target '%s' is not an Var {%p}
+
+88141  Ignoring 'move to @%s': referred target '%s' is an unknown symbol%s {%p}
+88142  Ignoring 'move' command. Invalid specification
+88145  Ignoring 'move to @%s': referred target '%s' is not an Var nor a Group%s {%p}
+
+88151  Ignoring '%s' as it occurs in an invalid procedure
+
+/* --- executing selected ENTRY commands in BATCH */
+88180  %s
+88182  %s
+88184  Inconsistent field detected
+88190  Inconsistent field detected following a %s command in %s
+88200  %d inconsistent fields detected following a 'skip to' command in %p
+88201  %d inconsistent fields detected following a 'skip to %s' (Group) command in %p
+88202  %d inconsistent fields detected following a 'skip to next %s' command in %p
+88203  %d inconsistent fields detected following a 'skip to %s' command in %p
+88204  %d inconsistent fields detected following a 'skip to %s(%d)' command in %p
+88205  %d inconsistent fields detected following a 'skip to %s(invalid index)' command in %p
+88206  %d inconsistent fields detected following an 'endsect/engroup' command in %p
+88207  %d inconsistent fields detected following an 'EndLevel' command in %p {not yet implemented}
+88211  ... Group %s should not exist (but currently has occurrences)
+
+88212  ... %s should be blank (currently '%s')
+88213  ... %s(%d) should be blank (currently '%s')
+88214  ... %s should be blank (currently '%s'). %s will be assigned.
+88215  ... %s(%d) should be blank (currently '%s'). %s will be assigned.
+
+88221  ... %s is not a skipped field, however is NotAppl
+88222  ... %s(%d) is not a skipped field, however is NotAppl
+88223  ... %s is not a skipped field, however is NotAppl. %s will be assigned.
+88224  ... %s(%d) is not a skipped field, however is NotAppl. %s will be assigned.
+
+88225  ... skip to %s found but the case only have %d occurrences for this group in %p
+88226  ... skip to %s(%d) found but the case only have %d occurrences for this group in %p
+
+88230  Unexpected 'reenter' command reached in %p
+88231  Unexpected 'reenter %s' command reached in %p
+88232  Unexpected 'reenter %s(%d)' command reached in %p
+
+/* --- auto-detecting out of range in batch environment */
+88870  Value '%s' out of range - check %s%s
+
+/* --- Occurrences */
+94601  "'%s' cannot be accessed in '%p' because the data is not available until procedures at a lower level"
+
+/* --- operator actions */
+99990  Operator entered a value out of range
+
+/* --- sync */
+94000  Invalid first argument to %s; must be a valid direction: "get", "put", or "both"
+94003  Invalid first argument to syncfile; must be a valid direction: "get" or "put" ("both" is not supported for files)
+100100 Failed to connect to sync server %s
+100101 Error connecting to server: %s
+100102 Connecting to %s...
+100103 Disconnecting...
+100104 Synchronizing %s...
+100105 Waiting for connections...
+100106 Connected
+100107 Getting %s...
+100108 Putting %s...
+100109 Error writing file "%s": Check that the path is valid and that you have permission to write to the directory.
+100110 Error downloading file "%s": Check that the file exists on the server, that the path is correct and that you have permission to read the file.
+100111 Error uploading file %s.
+100112 Error downloading from directory %s.
+100113 Invalid file specification: %s
+100116 Invalid file used with %s for %s, only CSPro DB files support sync. Please make sure that the file type is CSPro DB and that it is not closed in CSPro application logic.
+100117 File "%s" is to large to synchronize. Files greater than 2GB are not supported.
+100118 Error reading file %s for upload. Check that the path to the file on the local device is correct.
+100119 Error connecting to sync server: %s.
+100120 %s is not a valid url for syncconnect web. Must start with http:// or https://.
+100121 Error: unable to read response from server. See log file for details.
+100122 Synchronization canceled.
+100123 Deleting %s...
+100124 Operation not implemented for this type of server
+100125 %s is not a valid url for syncconnect ftp. Must start with ftp://, ftps://, or ftpes://.
+100126 Invalid username and password.
+100127 Error downloading file "%s": The downloaded file is incomplete or corrupted. Check your network connection and try again.
+100128 Downloading data file list...
+100129 Error downloading data file list. %s
+100130 Error downloading dictionary. %s
+100131 The CSWeb server is using a version of the software that is not compatible with this version of CSPro. Please upgrade this device to match the server or upgrade the server to match this device.
+100132 You must first call syncconnect() before calling any other synchronization functions.
+100133 Database error while synchronizing data: %s
+100134 Error reading file during synchronization. Make sure that the path is valid and that the file is not in use.
+100135 Error extracting application. The application package may be invalid or their may be insufficent disk space on your device.
+100136 Downloading application list...
+100137 The data you are trying to download cannot be read. It may have been created with a newer version of CSPro or it may be corrupt. Try downloading it with the latest version of CSPro.
+100138 Compression failed.
+100139 Decompression failed.
+100140 Error uploading application package %s.
+100141 Error getting application list %s.
+100142 The version of this CSWeb server does not support application deployment. Please upgrade the software on the server to version 7.1 or later.
+100143 Error uploading dictionary. %s
+100144 Resource not found on server %s. Check that the CSWeb server URL is correct.
+100145 Incompatible versions of CSEntry.
+100146 Bluetooth is not supported on this device.
+100147 Directory specified for local file synchronization %s does not exist
+100148 Dropbox is not installed on this computer. In order to use Dropbox local synchronization you must install Dropbox.
+100149 Application package not found on server. Use the Deploy Applications tool to upload the application to the server and try again.
+100150 Error installing application package. Unable to read application package contents. See log file for details.
+100151 The syncapp() function can only be used with application packages that were installed with the Deploy Applications tool. This application was not installed using Deploy Applications or the installation was corrupted. Please install it again using Add Application.
+100152 The application has changed and will now restart to ensure that you are using the updated version.
+100153 Error while running the sync server: %s
+100154 The syncmessage function can only be called when connected to a Bluetooth server.
+100155 Sending a message...
+100156 No OnSyncMessage function that supports handling the message type is declared in the server's application.
+100157 Error downloading application package "%s": Check that package exists on the server and check your network connection. Check the server for errors.
+100158 Error downloading application package "%s": Bad request. This could be because the number of files in the package is very large causing the request to surpass the max header size on the server. Try reducing the number of files in the package or increasing LimitRequestFieldSize in the Apache configuration on the server.
+100159 Error in Bluetooth synchronization. Expecting more data from other device. Either the connection was lost during the transfer or the other device did not properly end the session by calling syncdisconnect.
+100171 Syncing paradata...
+100172 The server does not have a paradata log open.
+100173 The syncparadata function could not compress or decompress a paradata log: %s
+100174 Error setting the Bluetooth name: %s
+
+/* --- CSDB batch file processing */
+100200 Case '%s' has the same uuid as a case already in the output file. Duplicate case preserved but uuid changed in the output file.
+
+/* --- Regex */
+100260 The regex_string argument contains an invalid ECMAScript regular expression: "%s"
+
+/* --- Audio */
+100300 Error saving audio file '%s': %s.
+100301 Error loading audio file '%s': %s.
+100302 Error assigning '%s' to Audio '%s': %s
+100303 Failed to concatenate audio: %s.
+100304 Failed to play audio: %s.
+100305 Error recording audio: %s.
+
+/* --- Image */
+100320 There is not an image stored in '%s' so you cannot %s
+100321 The content in '%s' is not a valid image so you cannot %s
+100322 Error loading image file '%s': %s
+100323 Error saving image file '%s': %s
+100324 Error resampling image '%s': %s
+100325 Error capturing a signature: %s
+100326 Error taking a photo: %s
+100327 Error assigning '%s' to Image '%s': %s
+
+/* --- Barcode */
+100330 The error correction level '%s' is not valid
+100331 Error creating a QR code: %s
+
+/* --- Document */
+100340 There is not a document stored in '%s' so you cannot %s
+100341 Error loading document file '%s': %s
+100342 Error saving document file '%s': %s
+100343 Error assigning '%s' to Document '%s': %s
+
+/* --- Geometry */
+100350 There is no data stored in '%s' so you cannot %s
+100351 The content in '%s' is not valid geometry so you cannot %s
+100352 Error loading geometry file %s: %s
+100353 Error saving geometry file %s: %s
+100354 Error assigning '%s' to Geometry '%s': %s
+
+/* --- Paths */
+100370 Select a File
+100371 No Files
+100372 There was an error selecting a file: %s
+100373 There was an error processing the directory or filter: %s
+100374 The start directory ('%s') must be within the root directory ('%s'). The root directory will be set to the start directory.
+100375 Open File
+100376 Save File As
+100377 The file '%s' does not exist.
+100378 The directory '%s' does not exist.
+100379 Invalid directory specification
+100380 The path '%s' is invalid.
+100381 You must select a file. '%s' is a directory.
+100382 "'%s' already exists. Are you sure you want to overwrite it?"
+
+/* --- JSON */
+100430 The JSON text is not valid: %s
+100431 The JSON text compiled with warnings: %s
+100441 Error getting the JSON for '%s': %s
+100442 Error updating '%s' from JSON: %s

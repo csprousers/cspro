@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\Cdeclare.cpp" />
+    <ClCompile Include="..\Comp.cpp" />
+    <ClCompile Include="..\Comp_set.cpp" />
+    <ClCompile Include="..\Compctab.cpp" />
+    <ClCompile Include="..\Compissa.cpp" />
+    <ClCompile Include="..\Comptbl.cpp" />
+    <ClCompile Include="..\Ctab.cpp" />
+    <ClCompile Include="..\Ctab_Helper.cpp" />
+    <ClCompile Include="..\Expresc.cpp" />
+    <ClCompile Include="..\Expresc_Helper.cpp" />
+    <ClCompile Include="..\Instruc.cpp" />
+    <ClCompile Include="..\oexpresc.cpp" />
+    <ClCompile Include="..\RangeFunctions.cpp" />
+    <ClCompile Include="..\ParameterManager.cpp" />
+    <ClCompile Include="..\CompileProgramControl.cpp" />
+    <ClCompile Include="..\CompileExport.cpp" />
+    <ClCompile Include="..\Preprocessor.cpp" />
+  </ItemGroup>
+</Project>

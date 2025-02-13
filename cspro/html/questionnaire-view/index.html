@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css" />
+
+    <link rel="css/stylesheet" href="/external/jquery/jquery-ui.min.css" />
+    <link rel="stylesheet" href="/css/case-view2.css" />
+    <link rel="stylesheet" href="/css/case-view-main-style.css" />
+    <link rel="stylesheet" href="/css/case-view-main-style-print.css" />
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/jquery/jquery-ui.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/external/handlebars/handlebars.js"></script>
+    <script src="/external/js-barcode/JsBarcode.all.min.js"></script>
+    <script src="/questionnaire-view/InputProcessor.js"></script>
+    <script src="/questionnaire-view/CaseViewFactory.js"></script>
+
+    <title>Questionnaire Viewer</title>
+
+    <script>
+        const CS = new CSProActionInvoker("ba595f180197aec52c4a39ffb9d12233");
+        var caseViewPrinter = new CaseViewFactory();
+
+        $(document).ready(function () {
+            let input = CS.UI.getInputData();
+
+            setOptions(input);
+            caseViewPrinter.container = $('.report-container');
+
+            // if a name is specified in the input data (without a dictionary), get the content for that name
+            if (input.hasOwnProperty("name") && !input.hasOwnProperty("dictionary")) {
+                updateContentByName(input.name, input.key, input.uuid);
+            }
+
+            // otherwise assume the content is in the input
+            else {
+                updateContent(input);
+            }
+        });
+
+        function updateContentByName(name, key, uuid) {
+            try {
+                const contentUrl = CS.Localhost.mapActionResult({
+                    action: "Application.getQuestionnaireContent",
+                    arguments: {
+                        name: name,
+                        key: key,
+                        uuid: uuid,
+                        serializationOptions: {
+                            binaryDataFormat: "localhostUrl"
+                        }
+                    }
+                });
+
+                $.getJSON(contentUrl, function (data) {
+                    updateContent(data);
+                });
+            }
+            catch(e) {
+                console.log(e);
+            }
+        }
+
+        function onMessage(jsonMessageText) {
+            let message = JSON.parse(jsonMessageText);
+
+            switch (message.action) {
+                case "languageChange":
+                    caseViewPrinter.currentLanguageId = message.language;
+                    return true;
+
+                case "refreshContent":
+                    updateContentByName(message.name);
+                    return true;
+            }
+        }
+
+        function setOptions(input) {
+            //language
+            if (input.language) {
+                caseViewPrinter.currentLanguageId = input.language;
+            }
+
+            //default values
+            caseViewPrinter.doPrintQuestionnaire = false;
+            caseViewPrinter.flatRosters = false;
+            caseViewPrinter.maxRosterOcc = 0;
+            caseViewPrinter.printAllValueSets = false;
+            caseViewPrinter.renderFrame = true;
+            caseViewPrinter.showLanguageBar = true;
+
+            //trying to get values from input
+            if ("printQuestionnaire" in input) {
+                caseViewPrinter.doPrintQuestionnaire = input.printQuestionnaire === true;
+            }
+
+            if ("flatRosters" in input) {
+                caseViewPrinter.flatRosters = input.flatRosters === true;
+            }
+
+            if ("maxRosterOcc" in input) {
+                caseViewPrinter.maxRosterOcc = input.maxRosterOcc;
+            }
+
+            if ("printAllValueSets" in input) {
+                caseViewPrinter.printAllValueSets = input.printAllValueSets === true;
+            }
+
+            if ("drawFrame" in input) {
+                caseViewPrinter.renderFrame = input.drawFrame === true;
+            }
+
+            if ("showLanguageBar" in input) {
+                caseViewPrinter.showLanguageBar = input.showLanguageBar === true;
+            }
+
+        }
+
+        function updateContent(content) {
+            caseViewPrinter.renderCase(
+                caseViewPrinter.convertJson(content)
+            );
+            if (content.error) {
+                alert(content.error);
+            }
+        }
+    </script>
+
+</head>
+
+<body class="main-container">
+    <div class="report-container">
+    </div>
+</body>
+
+</html>

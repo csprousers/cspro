@@ -1,0 +1,8 @@
+CloseDocument-VS.png
+CloseAll-VS.png
+SaveAs-VS.png
+SaveAll-VS.png
+Cancel-VS.png
+SelectAll-VS.png
+Copy-VS.png
+DocumentsFolder-VS.png
