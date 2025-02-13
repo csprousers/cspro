@@ -13,7 +13,11 @@ public:
 
     std::vector<Git::Tag> GetTags() const;
 
-    void CreateRelease(LoggingListBox& logging_list_box, cs::string_sz commit_string, const std::string& output_directory);
+    void Initialize(LoggingListBox& logging_list_box, const std::string& open_source_directory);
+
+    void CreateRelease(cs::string_sz commit_string);
+
+    void ValidateRelease();
 
 private:
     template<typename git_oidT>
@@ -38,6 +42,8 @@ private:
 
     template<typename git_oidT>
     void CreateHistoryLog(const git_oidT* oid);
+
+    void EnsureRepositoriesMatch(bool add_space_before_log);
 
 private:
     struct Data;

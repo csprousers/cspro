@@ -21,13 +21,16 @@ protected:
 
     void OnTagChange();
 
-    void OnCreate();
+    void OnCreate()   { OnCreateValidate(true); }
+    void OnValidate() { OnCreateValidate(false); }
 
 private:
-    void ConfirmCanClose();
+    void OnCreateValidate(bool create);
 
-    void CreateWorker();
-    LRESULT OnCreateComplete(WPARAM wParam, LPARAM lParam);
+    void CreateValidateWorker(bool create);
+    LRESULT OnCreateValidateComplete(WPARAM wParam, LPARAM lParam);
+
+    LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
 
 private:
     static constexpr std::string_view OutputDirectoryKey_sv = "output-directory";
@@ -42,5 +45,5 @@ private:
 
     LoggingListBox m_loggingListBox;
 
-    std::unique_ptr<std::thread> m_createThread;
+    std::unique_ptr<std::thread> m_workerThread;
 };

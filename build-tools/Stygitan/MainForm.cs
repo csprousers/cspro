@@ -166,7 +166,7 @@ namespace Stygitan
                   extension == ".json" ||
                   extension == ".html" || extension == ".js" || extension == ".css" ||
                   extension == ".mk" || extension == ".gradle" ||
-                  extension == ".txt" );
+                  extension == ".txt" || extension == ".md" );
 
             if( process )
             {

@@ -15,7 +15,7 @@
 
 # no need to share the console application
 
-/CSEntryConsole
+/cspro/CSEntryConsole
 
 
 # do not copy sensitive Android files
@@ -24,11 +24,22 @@ cspro/CSEntryDroid/.csentrydroidkeystore
 cspro/CSEntryDroid/CSEntry Release Process.docx
 cspro/CSEntryDroid/debug.keystore
 
+# exclude x64 libraries
+
+cspro/external/curl/lib/x64/libcurl.dll
+cspro/external/curl/lib/x64/libcurl.lib
+cspro/external/mp4v2/lib/x64/libmp4v2.dll
+cspro/external/mp4v2/lib/x64/libmp4v2.lib
+cspro/external/zlib/lib/x64/zlib.dll
+cspro/external/zlib/lib/x64/zlib.lib
+
 
 # exclude some build tools
 
 /build-tools/Create Installer.bat
-/build-tools/CSPro Installer Generator
+/build-tools/CSPro Installer Generator/*
+!/build-tools/CSPro Installer Generator/inputs.json
+!/build-tools/CSPro Installer Generator/readme.txt
 
 /build-tools/Run Update Example Files.bat
 /build-tools/Update Example Files

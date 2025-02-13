@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "OpenSourceReleaseCreatorDlg.h"
+#include <zToolsO/UWM.h>
 #include <zUtilO/DataExchange.h>
 #include <zUtilO/UWMRanges.h>
 #include <zUtilO/WindowHelpers.h>
@@ -8,7 +9,9 @@
 BEGIN_MESSAGE_MAP(OpenSourceReleaseCreatorDlg, ResizableDlg)
     ON_CBN_SELCHANGE(IDC_TAGS, OnTagChange)
     ON_COMMAND(IDC_CREATE, OnCreate)
-    ON_MESSAGE(UWM::Ranges::ExeStart, OnCreateComplete)
+    ON_COMMAND(IDC_VALIDATE, OnValidate)
+    ON_MESSAGE(UWM::Ranges::ExeStart, OnCreateValidateComplete)
+    ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
 
 
@@ -106,7 +109,7 @@ void OpenSourceReleaseCreatorDlg::OnTagChange()
 }
 
 
-void OpenSourceReleaseCreatorDlg::OnCreate()
+void OpenSourceReleaseCreatorDlg::OnCreateValidate(const bool create)
 {
     UpdateData(TRUE);
 
@@ -120,10 +123,11 @@ void OpenSourceReleaseCreatorDlg::OnCreate()
 
         m_settingsDb.Write<std::string>(OutputDirectoryKey_sv, m_outputDirectory);
 
-        // disable the Create button while the thread is running
+        // disable the Create/Validate buttons while the thread is running
         GetDlgItem(IDC_CREATE)->EnableWindow(FALSE);
+        GetDlgItem(IDC_VALIDATE)->EnableWindow(FALSE);
 
-        m_createThread = std::make_unique<std::thread>([&]() { CreateWorker(); });
+        m_workerThread = std::make_unique<std::thread>([&, create]() { CreateValidateWorker(create); });
     }
 
     catch( const CSProException& exception )
@@ -133,32 +137,44 @@ void OpenSourceReleaseCreatorDlg::OnCreate()
 }
 
 
-void OpenSourceReleaseCreatorDlg::CreateWorker()
+void OpenSourceReleaseCreatorDlg::CreateValidateWorker(const bool create)
 {
     try
     {
-        m_creator->CreateRelease(m_loggingListBox, m_commit, m_outputDirectory);
+        m_creator->Initialize(m_loggingListBox, m_outputDirectory);
+
+        create ? m_creator->CreateRelease(m_commit) :
+                 m_creator->ValidateRelease();
     }
 
     catch( const CSProException& exception )
     {
-        ErrorMessage::Display(exception);
+        m_loggingListBox.AddText(FormatText("\n\nError: %s", exception.what()));
+        ErrorMessage::PostMessageForDisplay(exception);
     }
 
     PostMessage(UWM::Ranges::ExeStart);
 }
 
 
-LRESULT OpenSourceReleaseCreatorDlg::OnCreateComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT OpenSourceReleaseCreatorDlg::OnCreateValidateComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-    ASSERT(m_createThread != nullptr);
+    ASSERT(m_workerThread != nullptr);
 
-    if( m_createThread->joinable() )
-        m_createThread->join();
+    if( m_workerThread->joinable() )
+        m_workerThread->join();
 
-    m_createThread.reset();
+    m_workerThread.reset();
 
     GetDlgItem(IDC_CREATE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_VALIDATE)->EnableWindow(TRUE);
 
     return 1;
+}
+
+
+LRESULT OpenSourceReleaseCreatorDlg::OnDisplayErrorMessage(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    ErrorMessage::DisplayPostedMessages();
+    return 0;
 }

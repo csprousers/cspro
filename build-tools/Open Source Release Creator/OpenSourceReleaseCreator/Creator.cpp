@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "Creator.h"
 #include "GitIgnoreEvaluator.h"
+#include <zToolsO/CaseInsensitiveComparer.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/File.h>
 #include <zJson/JsonSpecFile.h>
@@ -13,7 +14,7 @@ struct Creator::Data
     std::string overrides_directory;
     git_repository* repo;
     LoggingListBox* logging_list_box = nullptr;
-    const std::string* output_directory = nullptr;
+    std::string open_source_directory;
     std::vector<std::string> repo_paths;
     std::map<std::string, std::string> repo_blob_ids;
 };
@@ -53,17 +54,33 @@ std::vector<Git::Tag> Creator::GetTags() const
 
     git_tag_foreach(m_data->repo, CB::func, &tags);
 
+    // sort by name
+    std::sort(tags.begin(), tags.end(),
+              [&](const Git::Tag& tag1, const Git::Tag& tag2) { return ( tag1.name < tag2.name ); });
+
     return tags;
 }
 
 
-void Creator::CreateRelease(LoggingListBox& logging_list_box, const cs::string_sz commit_string, const std::string& output_directory)
+void Creator::Initialize(LoggingListBox& logging_list_box, const std::string& open_source_directory)
 {
     m_data->logging_list_box = &logging_list_box;
-    m_data->output_directory = &output_directory;
-    m_data->repo_paths.clear();
+
+    if( m_data->open_source_directory != open_source_directory )
+    {
+        m_data->open_source_directory = open_source_directory;
+        m_data->repo_paths.clear();
+        m_data->repo_blob_ids.clear();
+    }
 
     m_data->logging_list_box->Clear();
+}
+
+
+void Creator::CreateRelease(const cs::string_sz commit_string)
+{
+    ASSERT(!m_data->open_source_directory.empty());
+
     m_data->logging_list_box->AddText(FormatText("Creating open source release from commit: %s", commit_string.c_str()));
 
     // ensure that the commit is valid
@@ -107,12 +124,24 @@ void Creator::CreateRelease(LoggingListBox& logging_list_box, const cs::string_s
     // create a log showing the history of pull requests
     CreateHistoryLog(&oid);
 
+    // ensure that the files in the repositories are identical
+    EnsureRepositoriesMatch(true);
+
     git_tree_free(tree);
 
     git_commit_free(commit);
 
     m_data->logging_list_box->AddText(SharableString());
     m_data->logging_list_box->AddText("Successfully created the open source release.");
+}
+
+
+void Creator::ValidateRelease()
+{
+    if( m_data->repo_paths.empty() )
+        throw CSProException("You must create a release before you can validate it.");
+
+    EnsureRepositoriesMatch(false);
 }
 
 
@@ -224,7 +253,7 @@ void Creator::PrepareOutputDirectory()
 
     DirectoryLister directory_lister(false, true, true, false);
 
-    for( const std::string& path : directory_lister.GetPaths(*m_data->output_directory) )
+    for( const std::string& path : directory_lister.GetPaths(m_data->open_source_directory) )
     {
         if( Path::GetFilename(path) == ".git" )
             continue;
@@ -254,7 +283,7 @@ void Creator::CopyFilesToOutputDirectory()
 {
     m_data->logging_list_box->AddText(SharableString());
     m_data->logging_list_box->AddText(FormatText("Copying %d files to: %s", static_cast<int>(m_data->repo_paths.size()),
-                                                                            m_data->output_directory->c_str()));
+                                                                            m_data->open_source_directory.c_str()));
 
     git_oid oid;
     git_blob* blob = nullptr;
@@ -281,7 +310,7 @@ void Creator::CopyFilesToOutputDirectory()
         if( content == nullptr )
             ThrowGitException();
 
-        const std::string output_file_path = Path::Combine(*m_data->output_directory, repo_path);
+        const std::string output_file_path = Path::Combine(m_data->open_source_directory, repo_path);
         FileIO::CreateDirectoriesForFile(output_file_path);
 
         FileIO::Write(output_file_path, content, content_size);
@@ -314,7 +343,7 @@ void Creator::CopyReplacementFiles()
     {
         const std::string repo_path = Path::ToNativeSlash(replacement_json_node.Get<std::string>("repoPath"));
         const std::string replacement_file_path = replacement_json_node.GetAbsolutePath("replacementPath");
-        const std::string output_file_path = Path::Combine(*m_data->output_directory, repo_path);
+        const std::string output_file_path = Path::Combine(m_data->open_source_directory, repo_path);
 
         m_data->logging_list_box->AddText("Replacing: " + repo_path);
 
@@ -443,12 +472,15 @@ void Creator::CreateSqliteWithoutSEE(const git_treeT* const tree)
         if( response.http_status != HttpResponse::Status_200_OK )
             throw CSProException("Error accessing: " + url);
 
-        const std::string body = response.body.ToString();
+        std::string body = response.body.ToString();
 
         if( is_header && body.find(full_version_line) == std::string::npos )
             throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
 
-        const std::string output_file_path = Path::Combine(*m_data->output_directory, Path::ToNativeSlash(sqlite_repo_path), filename);
+        body.insert(0, is_header ? "#pragma once\n#include <SQLite/sqlite_dll.h>\n" :
+                                   "#ifndef ANDROID\n#include <SQLite/sqlite_dll.h>\n#endif\n");
+
+        const std::string output_file_path = Path::Combine(m_data->open_source_directory, Path::ToNativeSlash(sqlite_repo_path), filename);
 
         m_data->logging_list_box->AddText(FormatText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(body.size()), output_file_path.c_str()));
 
@@ -553,6 +585,11 @@ std::vector<Creator::TagCommits> Creator::GetReleaseTags(const std::string_view 
 
     CB cb { m_data->repo, earliest_tag_sv };
     git_tag_foreach(m_data->repo, CB::func, &cb);
+
+    // sort by name
+    std::sort(cb.tag_commits.begin(), cb.tag_commits.end(),
+              [&](const TagCommits& tc1, const TagCommits& tc2) { return ( tc1.tag_name < tc2.tag_name ); });
+
     return cb.tag_commits;
 }
 
@@ -563,7 +600,7 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
     constexpr std::string_view EarliestTag_sv = "7.6.0";
     constexpr char* EarliestCommitSHA = "9f38058425533d970f74cb42458328faed7f02fa"; // the v7.5.0 tag's commit
 
-    const std::string history_file_path = Path::Combine(*m_data->output_directory, "HISTORY.md");
+    const std::string history_file_path = Path::Combine(m_data->open_source_directory, "HISTORY.md");
 
     m_data->logging_list_box->AddText(SharableString());
     m_data->logging_list_box->AddText(FormatText("Creating history log: %s", history_file_path.c_str()));
@@ -688,4 +725,150 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
                                             escape_for_table(pull_request.message).c_str());
         }
     }
+}
+
+
+void Creator::EnsureRepositoriesMatch(const bool add_space_before_log)
+{
+    if( add_space_before_log )
+        m_data->logging_list_box->AddText(SharableString());
+
+    m_data->logging_list_box->AddText(FormatText("Validating open source directory: %s", m_data->open_source_directory.c_str()));
+
+    // because gitignore rules can result in some tracked files being excluded, we check that
+    // the open source directory contains the exact set of files from the input
+    git_repository* open_source_repo;
+
+    if( git_repository_open(&open_source_repo, m_data->open_source_directory.c_str()) < 0 )
+        ThrowGitException();
+
+    std::map<std::string, bool, cs::case_insensitive_less> expected_repo_paths; // path -> found in the open source directory
+    std::set<std::string, cs::case_insensitive_less> unexpected_repo_paths;
+
+    for( const std::string& repo_path : m_data->repo_paths )
+        expected_repo_paths.try_emplace(repo_path, false);
+
+    for( const char* repo_path : { R"(HISTORY.md)",
+                                   R"(cspro\CSEntryDroid\app\src\main\res\values\api_keys.xml)",
+                                   R"(cspro\external\SQLite\sqlite3.c)",
+                                   R"(cspro\external\SQLite\sqlite3.h)",
+                                   R"(cspro\zToolsO\ApiKeys.h)" } )
+    {
+        expected_repo_paths.try_emplace(repo_path, false);
+    }
+
+    auto process_repo_path = [&](const char* const path, const unsigned int status_flags)
+    {
+        // ignore files that are deleted in the working directory
+        if( ( status_flags & GIT_STATUS_WT_DELETED ) != 0 )
+            return;
+
+        std::string repo_path = Path::ToNativeSlash(path);
+
+        auto lookup = expected_repo_paths.find(repo_path);
+
+        if( lookup != expected_repo_paths.cend() )
+        {
+            lookup->second = true;
+        }
+
+        else
+        {
+            unexpected_repo_paths.emplace(std::move(repo_path));
+        }
+    };
+
+    // process tracked files
+    git_index* index;
+
+    if( git_repository_index(&index, open_source_repo) != 0 )
+        ThrowGitException();
+
+    size_t count = git_index_entrycount(index);
+
+    for( size_t i = 0; i < count; ++i )
+    {
+        const git_index_entry* const index_entry = git_index_get_byindex(index, i);
+        unsigned int status_flags;
+
+        if( index_entry == nullptr ||
+            git_status_file(&status_flags, open_source_repo, index_entry->path) != 0 )
+        {
+            ThrowGitException();
+        }
+
+        process_repo_path(index_entry->path, status_flags);
+    }
+
+    git_index_free(index);
+
+    // process modified and untracked files
+    git_status_options status_options = GIT_STATUS_OPTIONS_INIT;
+    status_options.show = GIT_STATUS_SHOW_WORKDIR_ONLY;
+    status_options.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED | GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
+
+    git_status_list* status_list;
+
+    if( git_status_list_new(&status_list, open_source_repo, &status_options) != 0 )
+        ThrowGitException();
+
+    count = git_status_list_entrycount(status_list);
+
+    for( size_t i = 0; i < count; ++i )
+    {
+        const git_status_entry* const status_entry = git_status_byindex(status_list, i);
+
+        if( status_entry == nullptr )
+            ThrowGitException();
+
+        const char* const path = ( status_entry->head_to_index != nullptr ) ? status_entry->head_to_index->new_file.path :
+                                                                              status_entry->index_to_workdir->new_file.path;
+        process_repo_path(path, status_entry->status);
+    }
+
+    git_status_list_free(status_list);
+
+    git_repository_free(open_source_repo);
+
+    std::string missing_repo_paths_text;
+
+    for( const auto& [repo_path, found] : expected_repo_paths )
+    {
+        if( !found )
+            SO::AppendWithSeparator(missing_repo_paths_text, "    " + repo_path, '\n');
+    }
+
+    m_data->logging_list_box->AddText(SharableString());
+
+    if( missing_repo_paths_text.empty() )
+    {
+        m_data->logging_list_box->AddText("No files are missing.");
+    }
+
+    else
+    {
+        m_data->logging_list_box->AddText("The following files are missing:");
+        m_data->logging_list_box->AddText(missing_repo_paths_text);
+    }
+
+    std::string unexpected_repo_paths_text;
+
+    for( const std::string& repo_path : unexpected_repo_paths )
+        SO::AppendWithSeparator(unexpected_repo_paths_text, "    " + repo_path, '\n');
+
+    m_data->logging_list_box->AddText(SharableString());
+
+    if( unexpected_repo_paths_text.empty() )
+    {
+        m_data->logging_list_box->AddText("No unexpected files are present.");
+    }
+
+    else
+    {
+        m_data->logging_list_box->AddText("The following unexpected files are present:");
+        m_data->logging_list_box->AddText(unexpected_repo_paths_text);
+    }
+
+    if( !missing_repo_paths_text.empty() || !unexpected_repo_paths_text.empty() )
+        throw CSProException("There are missing or unexpected files present in the open source directory.");
 }

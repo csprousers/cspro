@@ -71,6 +71,10 @@
 
     [1]  What's New in This Version
 
+    -  CSPro is now open source! The source code is available on GitHub:
+          * https://github.com/csprousers/cspro
+          * https://github.com/csprousers/csweb
+
     -  The Data Viewer tool has been renamed Data Manager.
 
     -  Applications can access the QuickJS JavaScript Engine from CSPro
