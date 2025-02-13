@@ -1,0 +1,386 @@
+@media print {
+    .fixed-top {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: block;
+    }
+
+    .cs-item-border {
+        clear: both;
+        page-break-after: auto;
+        page-break-before: auto;
+        page-break-inside: avoid;
+    }
+
+    .cs-roster-border {
+        clear: both;
+        page-break-after: auto;
+        page-break-before: always;
+        page-break-inside: auto;
+    }
+
+    .cs-page-separator {
+        clear: both;
+        page-break-before: always;
+    }
+	
+    .w-sidebar {
+        display: none;
+    }
+}
+
+body.print.main-container {
+    background: white;
+}
+
+.print .questionnaire {
+}
+
+.print .form {
+    font-size: 14px;
+    border-width: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
+.print .highlighted:hover {
+    background-color: rgba(0, 0, 0, .1);
+}
+
+.print .form-header {
+    background: #eee;
+    border-width: 0;
+    font-size: 22px;
+    border-bottom: 2px solid #aaa;
+    margin-bottom: 0 !important;
+}
+
+.print .form-collapse-button {
+    margin: -4px;
+    padding: 4px;
+    cursor: pointer;
+    padding-left: 32px;
+    background-repeat: no-repeat;
+    background-position: 4px center;
+    background-size: 20px;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23333' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M0 8a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H1a1 1 0 0 1-1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    border-radius: 6px;
+}
+
+    .print .form-collapse-button:hover {
+        background-color: rgba(0, 0, 0, .1);
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%231E88E5' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M0 8a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H1a1 1 0 0 1-1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    }
+
+    .print .form-collapse-button.collapsed {
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23333' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    }
+
+        .print .form-collapse-button.collapsed:hover {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%231E88E5' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+        }
+
+.print .cs-item {
+    /*background: #f9f9f9;
+    box-shadow: 3px 3px 15px rgba(0,0,0,.3);
+    border-radius:8px;*/
+    border-top: 1px solid #777;
+    /*padding-bottom: 10px;
+    padding-top:10px;*/
+    background-color: #f9f9f9;
+}
+
+    /*.cs-item:hover {
+        outline: solid 1px #377bb5;
+        outline-offset: -1px;
+    }*/
+
+.print .vs-collapse-button {
+    margin-right: 10px;
+    display: inline-block;
+    float: right;
+    width: 16px;
+    height: 32px;
+    cursor: pointer;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 16px;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23333' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M0 8a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H1a1 1 0 0 1-1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+}
+
+    .print .vs-collapse-button:hover {
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%231E88E5' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M0 8a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H1a1 1 0 0 1-1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    }
+
+    .print .vs-collapse-button.collapsed {
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23333' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    }
+
+        .print .vs-collapse-button.collapsed:hover {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%231E88E5' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' d='M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+        }
+
+.print .ct-radio-button {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid black;
+    border-radius: .75rem;
+    vertical-align: middle;
+}
+
+    .print .ct-radio-button.checked {
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 1rem;
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 100 100' fill='%23444' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='50' cy='50' r='50'/%3e%3c/svg%3e");
+    }
+
+.print .ct-check-box {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid black;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+    .print .ct-check-box.checked {
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 1rem;
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23333' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill-rule='evenodd' transform='rotate(45 8 8)' d='M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    }
+
+.print .dcf-label {
+    color: #888;
+}
+
+.print .text-box-row {
+    padding: 8px 0;
+}
+
+.print .question {
+    background: #eee;
+    padding-top: 10px;
+}
+
+    .print .question.vertical-roster {
+        background: transparent;
+        min-width: 200px;
+    }
+
+.print .dashed-separator {
+    border-bottom: 1px dashed #aaa;
+    /*padding: 4px 0;*/
+}
+
+.print .values {
+    padding: 4px 0;
+}
+
+.print .value-row {
+    display: none;
+    margin-left: -12px;
+    padding-left: 12px;
+}
+
+.print .value {
+    white-space: nowrap;
+}
+
+.print .cs-roster-container {
+    overflow-x: initial;
+    overflow-y: initial;
+    max-height: initial;
+}
+
+.print table.cs-roster {
+    width: 100%;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+    .print table.cs-roster thead {
+        background-color: #eee;
+        box-shadow: none;
+        z-index:initial;
+        position:initial;
+        top:initial;
+    }
+
+    .print table.cs-roster th {
+        font-weight: normal;
+        vertical-align: top;
+        border: 1px solid black;
+        padding:4px;
+    }
+
+        .print table.cs-roster th:first-child {
+            vertical-align: bottom !important;
+        }
+
+    .print table.cs-roster td {
+        font-weight: normal;
+        vertical-align: top;
+        padding: 4px;
+        border: 1px solid black;
+    }
+
+
+    .print table.cs-roster tbody tr:hover {
+        outline: none;
+    }
+
+
+
+.print .not-app {
+    background: #ccc;
+}
+
+    .print .not-app::after {
+        content: "--- Not applicable ---";
+        padding-left: 16px;
+        font-style: italic;
+        color: #777;
+    }
+
+.print .cs-block {
+    margin-top: 0;
+    margin-bottom: 0;
+    border: 1px solid black;
+    border-radius: 0;
+    box-shadow:none;
+}
+
+.print .cs-block-header {
+    background-color: #eee;
+}
+
+.print .cs-block-body {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.print .cs-note {
+    color: black;
+    float: right;
+    font-size: 1.3rem;
+    margin-top: -4px;
+    cursor: pointer;
+}
+
+    .print .cs-note:hover {
+        color: #377bb5;
+    }
+
+
+.print .menu-item-container-div {
+    font-weight: bold;
+}
+
+.print .menu-item-div:hover {
+    background: rgba(0,0,0,.1);
+}
+
+.print .menu-item-link {
+    color: #555;
+}
+
+    .print .menu-item-link.active {
+        color: #377bb5;
+    }
+
+
+.print .cs-item-border {
+    padding: 2px 0;
+}
+
+.print table.cs-item {
+    width: 100%;
+    border: 1px solid black;
+    background-color: transparent
+}
+
+    .print table.cs-item th:first-child {
+        width: 25%;
+    }
+
+    .print table.cs-item th {
+        font-weight: normal;
+        vertical-align: top;
+        padding: 8px 16px 0 16px;
+    }
+
+    .print table.cs-item td {
+        padding: 0 16px;
+    }
+
+    .print table.cs-item thead {
+        border-bottom: 1px solid black;
+    }
+
+
+.print table.value-row-print {
+    width: 100%;
+}
+
+    .print table.value-row-print td {
+        vertical-align: middle;
+        border: none
+    }
+
+.print .barcode-blank {
+    line-height: 66px;
+    text-align: center;
+}
+
+.print .barcode-blank-content {
+    background: #ccc;
+    display: inline-block;
+    padding: 0 16px;
+    border: 1px solid black;
+    border-radius: 8px;
+}
+
+.print .roster-block {
+    /*background-color: #eee;*/
+}
+
+    .print .roster-block td {
+        width: 16px;
+    }
+
+.print .roster-block-start-gap, .print .roster-block-end {
+    height: 16px;
+}
+
+.print .roster-block-start {
+    background-color: #eee;
+}
+
+    .print .roster-block-start td {
+        border-bottom-color: rgba(0,0,0,.125) !important;
+    }
+
+.print img.cs-thumb {
+    width: 150px;
+    height: auto;
+    max-height: 300px;
+    cursor: default;
+}
+
+.print .hroster-block-start-marker {
+    display: none;
+}
+
+.print .hroster-block-end-marker {
+    display: none;
+}
+
+.print .hroster-block-header {
+    border-bottom: 1px solid #aaa;
+    padding: 16px;
+}

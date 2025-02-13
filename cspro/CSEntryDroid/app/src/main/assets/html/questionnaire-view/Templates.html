@@ -1,0 +1,839 @@
+﻿<script id="testTemplate" type="text/template">
+    <div>Hello external template</div>
+</script>
+
+<!-- Main container frame for the case view -->
+<script id="caseViewFrameTemplate" type="text/template">
+    <div class="container-fluid fixed-top bg-dark" style="box-shadow:0 2px 5px rgba(0,0,0,.3);z-index:10000;">
+        <div class="row  show no-gutters d-flex h-100 position-relative">
+            <div class="col px-2 px-md-0 ms-1">
+                <a data-bs-toggle="collapse" href="#" data-bs-target=".collapse.sidebar" role="button" class="p-1 menu-button">
+                    <span class="bi bi-justify"></span>
+                </a>
+                <span style="font-size:1.5rem;color:white;">{{label-lang}}</span>
+                <div id="languageBar" class="float-end  mt-1">
+                    {{#if multLang}}
+                    <span class="float-end pe-2 mt-1">
+                        <select id="langSelect" class="form-select">
+                            {{#each langIdsLabels}}
+                            <option>{{this}}</option>
+                            {{/each}}
+                        </select>
+                    </span>
+                    {{/if}}
+                </div>
+                <div class="search-box">
+                    <button class="btn-search"><i class="bi bi-search"></i></button>
+                    <input type="text" class="input-search" placeholder="Type to Search...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-0 h-100">
+        <div class="row flex-nowrap collapse sidebar show no-gutters d-flex h-100 position-relative">
+            <div class="col-3 p-0 h-100 w-sidebar navbar-collapse collapse sidebar d-none d-md-flex sidebar" style="pointer-events:none;">
+                <!-- fixed sidebar -->
+                <div class="position-fixed text-white h-100 w-sidebar pl-2" style="top:0;background:#eee;box-shadow:2px 0 5px rgba(0,0,0,.3);padding-top:16px;pointer-events:all;">
+                    <div style="bottom: 0; top: 46px; position: absolute; overflow: auto;">
+                        <ul class="nav flex-column side-bar" id="sideMenuList">
+                            <!-- sidebar items go here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col p-3">
+                <div class="container-sm questionnaire">
+                    <div class="row">
+                        <div class="col page-container" style="padding:0;">
+                            <!-- page content goes here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="formTemplate" type="text/template">
+    <div class="accordion menu-item menu-item-container" menutext="{{label-lang}}" id="form{{id}}">
+        <div class="card form">
+            <div class="card-header form-header" id="heading{{id}}">
+                <div class="form-collapse-button" data-bs-toggle="collapse" data-bs-target="#collapse{{id}}" aria-expanded="true" aria-controls="collapse{{id}}">
+                    {{label-lang}}
+                </div>
+            </div>
+            <div id="collapse{{id}}" class="collapse show" aria-labelledby="heading{{id}}" data-bs-parent="#form{{id}}">
+                <div id="element-container{{id}}" class="card-body" style="padding-left:5px;padding-right:5px;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="itemTemplate" type="text/template">
+    <div class="container-fluid cs-item menu-item" menutext="{{dcfLabel-lang}}">
+        <div class="row question">
+            <div class="col-md-3 dcf-label">
+                {{#note}}
+                <span class="bi bi-journal-text cs-note" data-bs-toggle="tooltip" title="View note">
+                    <span style="display:none;" class="cs-note-title">{{title}}</span>
+                    <span style="display:none;" class="cs-note-text">{{{text}}}</span>
+                </span>
+                {{/note}}
+                {{dcfLabel-lang}}
+            </div>
+            <div class="col-md-9">
+                {{{qsfText-lang}}}
+            </div>
+        </div>
+        <div class="dashed-separator"></div>
+        {{#showTextBox}}
+        <div class="row text-box-row">
+            <div class="col-md-3">
+
+            </div>
+            <div class="col-md-9 text-box-row-value">
+                {{{value}}}
+            </div>
+        </div>
+        {{/showTextBox}}
+        {{#showValueSets}}
+        <div class="row values collapse-parent">
+            <div class="col-md-3">
+                <span class="vs-collapse-button collapsed" data-bs-toggle="tooltip" title="Expand/collapse valuesets"></span>
+            </div>
+            <div class="col-md-9 cell-parent">
+                {{#valueSets}}
+                <div class="value-set">
+                    {{#values}}
+                    <div class="value-row highlighted">
+                        <div style="display: table-cell; width: auto; vertical-align: middle;padding:4px 0;">
+                            <span class="{{../../captureType}} {{checked}}"></span>
+                        </div>
+                        <div style="display: table-cell; width: 100%; vertical-align: middle; padding:4px 0; ">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-10">
+                                        {{label-lang}}
+                                    </div>
+                                    <div class="col-2 text-end value">
+                                        {{{value}}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{#if image}}
+                        <div class="cs-thumb">
+                            <img class="cs-thumb" src="{{image}}" data-bs-toggle="tooltip" title="Click to view full size" dialog-title="{{label-lang}}" />
+                        </div>
+                        {{/if}}
+                    </div>
+                    {{/values}}
+                </div>
+                {{/valueSets}}
+            </div>
+        </div>
+        {{/showValueSets}}
+    </div>
+</script>
+
+<script id="blockTemplate" type="text/template">
+    <div class="accordion menu-item menu-item-container" menutext="{{label-lang}}" id="blockAccordion{{id}}">
+        <div class="card cs-block">
+            <div class="card-header cs-block-header">
+                <div class="form-collapse-button" data-bs-toggle="collapse" data-bs-target="#blockCollapseOne{{id}}" aria-expanded="true" aria-controls="collapseOne">
+                    <div class="dcf-label">{{name}}: {{label}}</div>
+                    {{{qsfText-lang}}}
+                </div>
+            </div>
+            <div id="blockCollapseOne{{id}}" class="collapse show" aria-labelledby="headingOne" data-bs-parent="#blockAccordion{{id}}">
+                <div class="card-body cs-block-body">
+                    <div id="blockItemsContainer{{id}}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="boxValueTemplate" type="text/template">
+    <div style="display: table; margin-left: auto; margin-right: {{marginRight}};">
+        <div style="display:table-cell;vertical-align:bottom;">
+            <div class="{{naClass}}" style="display: table; border: 1px solid #777; background-color:white; margin-left: auto; border-radius: 4px; ">
+                <div style="display: table-row;">
+                    {{#cells}}
+                    <div style="display: table-cell; width: 1rem; min-width:1rem; height: 1.5rem; text-align: center; vertical-align: middle; position: relative;">
+                        {{#showTick}}
+                        <div style="position: absolute; height: .3rem; border-left: 1px solid #777; bottom: 0;"></div>
+                        {{/showTick}}
+                        {{digit}}
+                    </div>
+                    {{/cells}}
+                </div>
+            </div>
+        </div>
+        <div class="hidden-range" style="display: none; vertical-align: bottom;padding-left:8px;">
+            {{from}}{{to}}
+        </div>
+    </div>
+</script>
+
+<script id="barcodeTemplate" type="text/template">
+    <div class="text-center">
+        <svg class="barcode" jsbarcode-value="{{value}}" jsbarcode-height="50"></svg>
+    </div>
+</script>
+
+<script id="rosterHorizontalTemplate" type="text/template">
+    {{#if showTransposeButton}}
+    <div>
+        <i class="bi bi-arrow-repeat roster-transpose-button horizontal" data-bs-toggle="tooltip" title="Rotate roster"></i>
+    </div>
+    {{/if}}
+    <div class="cs-roster-container menu-item menu-item-container" menutext="{{label-lang}}">        
+        <table class="cs-roster horizontal">
+            <thead>
+                <tr class="col-headers">
+                    <th class="occ-label" colspan="2">
+                        Occ.
+                    </th>
+                    {{#horizontal.items}}
+                    <th>
+                        {{#blockStart}}
+                        <div class="hroster-block-start-marker">
+                            <div class="label dcf-label">{{block.label}}</div>
+                            <div class="qsfText">{{{block.qsfText-lang}}}</div>
+                        </div>
+                        {{/blockStart}}
+                        {{#blockEnd}}
+                        <div class="hroster-block-end-marker">block end marker</div>
+                        {{/blockEnd}}
+                        <div class="container cs-roster-item menu-item" menutext="{{dcfLabel-lang}}">
+                            <div class="row question">
+                                <div class="col-12 dcf-label">
+                                    {{dcfLabel-lang}}
+                                </div>
+                                <div class="col-12">
+                                    {{{qsfText-lang}}}
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    {{/horizontal.items}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#horizontal.occurrences}}
+                <tr class="collapse-parent">
+                    <td>
+                        <span class="vs-collapse-button collapsed" data-bs-toggle="tooltip" title="Expand/collapse valuesets"></span>
+                    </td>
+                    <td>({{index}})</td>
+                    {{#cells}}
+                    <td class="cell-parent">
+                        {{#note}}
+                        <div class="bi bi-journal-text cs-note" style="float: none; margin-left: 16px; margin-top: 4px; display: inline-block;" data-bs-toggle="tooltip" title="View note">
+                            <span style="display:none;" class="cs-note-title">{{title}}</span>
+                            <span style="display:none;" class="cs-note-text">{{{text}}}</span>
+                        </div>
+                        {{/note}}
+                        {{#showTextBox}}
+                        <div class="row text-box-row" style="margin:0;">
+                            <div class="col">
+                                {{{value}}}
+                            </div>
+                        </div>
+                        {{/showTextBox}}
+                        {{#showValueSets}}
+                        <div class="container">
+                            {{#valueSets}}
+                            <div class="row values">
+                                <div class="col-12">
+                                    <div class="value-set">
+                                        {{#values}}
+                                        <div class="value-row highlighted">
+                                            <div style="display: table-cell; width: auto; vertical-align: middle;padding:4px 0;">
+                                                <span class="{{../captureType}} {{checked}}"></span>
+                                            </div>
+                                            <div style="display: table-cell; width: 100%; vertical-align: middle; padding:4px 0; ">
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            {{label-lang}}
+                                                        </div>
+                                                        <div class="text-end value">
+                                                            {{{value}}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {{#if image}}
+                                            <div class="cs-thumb">
+                                                <img class="cs-thumb" src="{{image}}" data-bs-toggle="tooltip" title="Click to view full size" dialog-title="{{label-lang}}" />
+                                            </div>
+                                            {{/if}}
+                                        </div>
+                                        {{/values}}
+                                    </div>
+                                </div>
+                            </div>
+                            {{/valueSets}}
+                        </div>
+                        {{/showValueSets}}
+                    </td>
+                    {{/cells}}
+                </tr>
+                {{/horizontal.occurrences}}
+            </tbody>
+        </table>
+    </div>
+</script>
+
+<script id="rosterVerticalTemplate" type="text/template">
+    <div>
+        <i class="bi bi-arrow-repeat roster-transpose-button vertical" data-bs-toggle="tooltip" title="Rotate roster"></i>
+    </div>
+    <div class="cs-roster-container menu-item menu-item-container" menutext="{{label-lang}}">
+        <table class="cs-roster vertical">
+            <thead>
+                <tr>
+                    <th class="occ-label" colspan="2">
+                        Questions
+                    </th>
+                    {{#vertical.occurrences}}
+                    <th class="text-center">
+                        ({{index}})
+                    </th>
+                    {{/vertical.occurrences}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#vertical.cells}}
+                {{#item}}
+                {{#blockStart}}
+                <tr class="cs-roster-row roster-block roster-block-start">
+                    {{#block}}
+                    <td colspan="{{../colSpan}}">
+                        <div class="dcf-label">{{label}}</div>
+                        <div>{{{qsfText-lang}}}</div>
+                    </td>
+                    {{/block}}
+                </tr>
+                <tr class="cs-roster-row roster-block roster-block-start-gap">
+                    <td colspan="{{colSpan}}">
+                    </td>
+                </tr>
+                {{/blockStart}}
+                {{/item}}
+
+                <tr class="collapse-parent cs-roster-row cs-item-border">
+                    <td>
+                        <span class="vs-collapse-button collapsed" data-bs-toggle="tooltip" title="Expand/collapse valuesets"></span>
+                    </td>
+                    <td>
+                        {{#item}}
+                        <div class="container cs-roster-item menu-item" menutext="{{dcfLabel-lang}}">
+                            <div class="row question vertical-roster">
+                                <div class="col-12 dcf-label">
+                                    {{dcfLabel}}
+                                </div>
+                                <div class="col-12">
+                                    {{{qsfText-lang}}}
+                                </div>
+                            </div>
+                        </div>
+                        {{/item}}
+                    </td>
+                    {{#occurrences}}
+                    <td class="cell-parent">
+                        {{#note}}
+                        <div class="bi bi-journal-text cs-note" style="float: none; margin-left: 16px; margin-top: 4px; display: inline-block;" data-bs-toggle="tooltip" title="View note">
+                            <span style="display:none;" class="cs-note-title">{{title}}</span>
+                            <span style="display:none;" class="cs-note-text">{{{text}}}</span>
+                        </div>
+                        {{/note}}
+                        {{#showTextBox}}
+                        <div class="row text-box-row" style="margin:0;">
+                            <div class="col">
+                                {{{value}}}
+                            </div>
+                        </div>
+                        {{/showTextBox}}
+                        {{#showValueSets}}
+                        <div class="container">
+                            {{#valueSets}}
+                            <div class="row values">
+                                <div class="col-12">
+                                    <div class="value-set">
+                                        {{#values}}
+                                        <div class="value-row highlighted">
+                                            <div style="display: table-cell; width: auto; vertical-align: middle;padding:4px 0;">
+                                                <span class="{{../captureType}} {{checked}}"></span>
+                                            </div>
+                                            <div style="display: table-cell; width: 100%; vertical-align: middle; padding:4px 0; ">
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            {{label-lang}}
+                                                        </div>
+                                                        <div class="text-end value">
+                                                            {{{value}}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {{#if image}}
+                                            <div class="cs-thumb">
+                                                <img class="cs-thumb" src="{{image}}" data-bs-toggle="tooltip" title="Click to view full size" dialog-title="{{label-lang}}" />
+                                            </div>
+                                            {{/if}}
+                                        </div>
+                                        {{/values}}
+                                    </div>
+                                </div>
+                            </div>
+                            {{/valueSets}}
+                        </div>
+                        {{/showValueSets}}
+                    </td>
+                    {{/occurrences}}
+                </tr>
+                {{#item}}
+                {{#blockEnd}}
+                <tr class="cs-roster-row roster-block roster-block-end">
+                    <td colspan="{{colSpan}}">
+                    </td>
+                </tr>
+                {{/blockEnd}}
+                {{/item}}
+                {{/vertical.cells}}
+            </tbody>
+        </table>
+    </div>
+</script>
+
+<script id="rosterFlatTemplate" type="text/template">
+    <div class="cs-item question">
+        <div class="col dcf-label">
+            {{label-lang}} (Max:{{maxOcc}})
+        </div>
+    
+        <div class="accordion menu-item menu-item-container cs-block cs-flat-roster" menutext="{{label-lang}}" id="flatRosterAccordion{{id}}">
+            {{#flat.occurrences}}
+            <div class="card">
+                <div class="card-header cs-block-header">
+                    <div class="form-collapse-button {{#unless show}}collapsed{{/unless}}" data-bs-toggle="collapse" data-bs-target="#flatRosterCollapseOne{{../id}}_{{index}}" aria-expanded="true" aria-controls="flatRosterCollapseOne{{../id}}_{{index}}">
+                        <div class="dcf-label">({{index}})</div>
+                    </div>
+                </div>
+                <div id="flatRosterCollapseOne{{../id}}_{{index}}" class="collapse {{#if show}}show{{/if}}" aria-labelledby="headingOne">
+                    <div class="card-body cs-block-body">
+                        <div id="flatRosterItemsContainer{{../id}}_{{index}}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/flat.occurrences}}
+        </div>
+    </div>
+</script>
+
+<!-- Note Modal -->
+<div class="modal fade" id="noteModal" style="z-index:10002" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noteModalLabel">Modal title</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image modal -->
+<div class="modal fade" id="imageModal" style="z-index:10003;text-align:center;" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered image-modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Image</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Image goes here
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print templates -->
+
+<script id="caseViewFrameTemplatePrint" type="text/template">
+    <div class="container questionnaire">
+        <div class="row">
+            <div class="col page-container" style="padding:0;">
+                <!-- page content goes here -->
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="formTemplatePrint" type="text/template">
+    <div class="accordion menu-item menu-item-container cs-page-separator" menutext="{{label-lang}}" id="form{{id}}">
+        <div class="card form">
+            <div class="card-header form-header" id="heading{{id}}">
+                <div class="form-collapse-button" data-bs-toggle="collapse" data-bs-target="#collapse{{id}}" aria-expanded="true" aria-controls="collapse{{id}}">
+                    {{label-lang}}
+                </div>
+            </div>
+            <div id="collapse{{id}}" class="collapse show" aria-labelledby="heading{{id}}" data-bs-parent="#form{{id}}">
+                <div id="element-container{{id}}" class="card-body" style="padding-left:5px;padding-right:5px;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="blockTemplatePrint" type="text/template">
+    <div class="accordion menu-item menu-item-container cs-item-border" menutext="{{label-lang}}" id="blockAccordion{{id}}">
+        <div class="card cs-block">
+            <div class="card-header cs-block-header">
+                <div class="form-collapse-button" data-bs-toggle="collapse" data-bs-target="#blockCollapseOne{{id}}" aria-expanded="true" aria-controls="collapseOne">
+                    <div class="dcf-label">{{name}}: {{label}}</div>
+                    {{{qsfText-lang}}}
+                </div>
+            </div>
+            <div id="blockCollapseOne{{id}}" class="collapse show" aria-labelledby="headingOne" data-bs-parent="#blockAccordion{{id}}">
+                <div class="card-body cs-block-body">
+                    <div id="blockItemsContainer{{id}}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="barcodeTemplatePrint" type="text/template">
+    <div class="barcode-blank">
+        <div class="barcode-blank-content">
+            Barcode goes here
+        </div>
+    </div>
+</script>
+
+<script id="boxValueTemplatePrint" type="text/template">
+    <div style="display: table; margin-left: auto;">
+        <div style="display:table-cell;vertical-align:bottom;">
+            <div style="display: table; border: 1px solid black; background-color:white; margin-left: auto; border-radius: 4px; ">
+                <div style="display: table-row;">
+                    {{#cells}}
+                    <div style="display: table-cell; width: 1rem; min-width:1rem; height: 1.5rem; text-align: center; vertical-align: middle; position: relative;">
+                        {{#showTick}}
+                        <div style="position: absolute; height: .3rem; border-left: 1px solid black; bottom: 0;"></div>
+                        {{/showTick}}
+                        <!--{{digit}}-->
+                    </div>
+                    {{/cells}}
+                </div>
+            </div>
+        </div>
+        <div class="hidden-range" style="vertical-align: bottom;padding-left:8px;">
+            {{from}}{{to}}
+        </div>
+    </div>
+</script>
+
+<script id="itemTemplatePrint" type="text/template">
+    <div class="cs-item-border">
+        <table class="cs-item">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="dcf-label">
+                            {{dcfLabel-lang}}
+                        </div>
+                    </th>
+                    <th>{{{qsfText-lang}}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="height:8px;"></td>
+                    <td style="height:8px;"></td>
+                </tr>
+                {{#showTextBox}}
+                <tr>
+                    <td></td>
+                    <td>
+                        {{{value}}}
+                    </td>
+                </tr>
+                {{/showTextBox}}
+                {{#showValueSets}}
+                {{#valueSets}}
+                {{#values}}
+                <tr>
+                    <td></td>
+                    <td>
+                        <div>
+                            <div style="display: table-cell; width: auto; vertical-align: middle;padding:4px 0;">
+                                <span class="{{../../captureType}}"></span>
+                            </div>
+                            <div style="display: table-cell; width: 100%; vertical-align: middle; padding:4px 0; ">
+                                <table class="value-row-print">
+                                    <tr>
+                                        <td>
+                                            {{label-lang}}
+                                        </td>
+                                        <td>
+                                            <div style="text-align:right;">
+                                                {{{value}}}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        {{#if image}}
+                        <div class="cs-thumb">
+                            <img class="cs-thumb" src="{{image}}" />
+                        </div>
+                        {{/if}}
+                    </td>
+                </tr>
+                {{/values}}
+                {{/valueSets}}
+                {{/showValueSets}}
+                <tr>
+                    <td style="height:8px;"></td>
+                    <td style="height:8px;"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</script>
+
+<script id="rosterHorizontalTemplatePrint" type="text/template">
+    <div class="cs-roster-container cs-item-border">
+        <table class="cs-roster horizontal">
+            <thead>
+                <tr class="col-headers">
+                    <th class="occ-label">
+                        Occ.
+                    </th>
+                    {{#horizontal.items}}
+                    <th>
+                        {{#blockStart}}
+                        <div class="hroster-block-start-marker">
+                            <div class="label dcf-label">{{block.label}}</div>
+                            <div class="qsfText">{{{block.qsfText-lang}}}</div>
+                        </div>
+                        {{/blockStart}}
+                        {{#blockEnd}}
+                        <div class="hroster-block-end-marker">block end marker</div>
+                        {{/blockEnd}}
+                        <div class="dcf-label">
+                            {{dcfLabel}}
+                        </div>
+                        <div>{{{qsfText-lang}}}</div>
+                    </th>
+                    {{/horizontal.items}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#horizontal.occurrences}}
+                <tr class="collapse-parent cs-item-border">
+                    <td>({{index}})</td>
+                    {{#cells}}
+                    <td class="cell-parent">
+                        {{#showTextBox}}
+                        <div class="row text-box-row" style="margin:0;">
+                            <div class="col">
+                                {{{value}}}
+                            </div>
+                        </div>
+                        {{/showTextBox}}
+                        {{#showValueSets}}
+                        {{#valueSets}}
+                        <div class="row values">
+                            <div class="col-12">
+                                <div class="value-set">
+                                    {{#values}}
+                                    <div>
+                                        <div style="display: table-cell; width: auto; vertical-align: middle;padding:4px;">
+                                            <span class="{{../captureType}}"></span>
+                                        </div>
+                                        <div style="display: table-cell; width: 100%; vertical-align: middle; padding:4px 0; ">
+                                            <table class="value-row-print">
+                                                <tr>
+                                                    <td>
+                                                        {{label}}
+                                                    </td>
+                                                    <td>
+                                                        <div style="text-align:right;">
+                                                            {{{value}}}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    {{#if image}}
+                                    <div class="cs-thumb">
+                                        <img class="cs-thumb" src="{{image}}" />
+                                    </div>
+                                    {{/if}}
+                                    {{/values}}
+                                </div>
+                            </div>
+                        </div>
+                        {{/valueSets}}
+                        {{/showValueSets}}
+                    </td>
+                    {{/cells}}
+                </tr>
+                {{/horizontal.occurrences}}
+            </tbody>
+        </table>
+    </div>
+</script>
+
+<script id="rosterVerticalTemplatePrint" type="text/template">
+    <div class="cs-roster-container cs-item-border">
+        <table class="cs-roster vertical">
+            <thead>
+                <tr class="cs-roster-row">
+                    <th>
+                        Questions
+                    </th>
+                    {{#vertical.occurrences}}
+                    <th class="text-center">
+                        ({{index}})
+                    </th>
+                    {{/vertical.occurrences}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#vertical.cells}}
+
+                {{#item}}
+                {{#blockStart}}
+                <tr class="cs-roster-row roster-block roster-block-start">
+                    {{#block}}
+                    <td colspan="{{../colSpan}}">
+                        <div class="dcf-label">{{label}}</div>
+                        <div>{{{qsfText-lang}}}</div>
+                    </td>
+                    {{/block}}
+                </tr>
+                <tr class="cs-roster-row roster-block roster-block-start-gap">
+                    <td colspan="{{colSpan}}">
+                    </td>
+                </tr>
+                {{/blockStart}}
+                {{/item}}
+
+                <tr class="cs-roster-row cs-item-border">
+                    <td>
+                        {{#item}}
+                        <div class="dcf-label">
+                            {{dcfLabel}}
+                        </div>
+                        <div>{{{qsfText-lang}}}</div>
+                        {{/item}}
+                    </td>
+                    {{#occurrences}}
+                    <td class="cell-parent">
+                        {{#showValueSets}}
+                        {{#valueSets}}
+                        <div class="row values">
+                            <div class="col-12">
+                                <div class="value-set">
+                                    {{#values}}
+                                    <div>
+                                        <div style="display: table-cell; width: auto; vertical-align: middle;padding:4px;">
+                                            <span class="{{../captureType}}"></span>
+                                        </div>
+                                        <div style="display: table-cell; width: 100%; vertical-align: middle; padding:4px 0; ">
+                                            <table class="value-row-print">
+                                                <tr>
+                                                    <td>
+                                                        {{label}}
+                                                    </td>
+                                                    <td>
+                                                        <div style="text-align:right;">
+                                                            {{{value}}}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    {{#if image}}
+                                    <div class="cs-thumb">
+                                        <img class="cs-thumb" src="{{image}}" />
+                                    </div>
+                                    {{/if}}
+                                    {{/values}}
+                                </div>
+                            </div>
+                        </div>
+                        {{/valueSets}}
+                        {{/showValueSets}}
+                    </td>
+                    {{/occurrences}}
+                </tr>
+                {{#item}}
+                {{#blockEnd}}
+                <tr class="cs-roster-row roster-block roster-block-end">
+                    <td colspan="{{colSpan}}">
+                    </td>
+                </tr>
+                {{/blockEnd}}
+                {{/item}}
+                {{/vertical.cells}}
+            </tbody>
+        </table>
+    </div>
+</script>
+
+<script id="rosterFlatTemplatePrint" type="text/template">
+    <div class="cs-item question">
+        <div class="col dcf-label">
+            {{label-lang}} (Max:{{maxOcc}})
+        </div>
+    
+        <div class="accordion menu-item menu-item-container cs-block cs-flat-roster" menutext="{{label-lang}}" id="flatRosterAccordion{{id}}">
+            {{#flat.occurrences}}
+            <div class="card {{#unless show}}cs-roster-border{{/unless}}">
+                <div class="card-header cs-block-header">
+                    <div class="form-collapse-button" data-bs-toggle="collapse" data-bs-target="#flatRosterCollapseOne{{../id}}_{{index}}" aria-expanded="true" aria-controls="flatRosterCollapseOne{{../id}}_{{index}}">
+                        <div class="dcf-label">({{index}})</div>
+                    </div>
+                </div>
+                <div id="flatRosterCollapseOne{{../id}}_{{index}}" class="collapse show" aria-labelledby="headingOne">
+                    <div class="card-body cs-block-body">
+                        <div id="flatRosterItemsContainer{{../id}}_{{index}}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/flat.occurrences}}
+        </div>
+    </div>
+</script>

@@ -1,0 +1,93 @@
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by CSCode.rc
+//
+#define IDR_CODEFRAME                   101
+#define IDR_MAINFRAME                   102
+#define IDR_TAB_CONTEXT                 103
+#define IDR_TOOLBAR_EXTRA               104
+#define IDD_HTML_DIALOG_TEMPLATES       105
+#define IDD_LOCALHOST                   106
+#define IDC_DESCRIPTION                 1000
+#define IDC_FILENAME                    1001
+#define IDC_HTML_VIEWER                 1002
+#define IDC_JSON_INPUT                  1003
+#define IDC_LOCALHOST_AUTOMATICALLY_MAPPED_DRIVES 1004
+#define IDC_LOCALHOST_CREATE_MAPPING    1005
+#define IDC_LOCALHOST_PREFERRED_PORT    1006
+#define IDC_LOCALHOST_START_AUTOMATICALLY 1007
+#define IDC_OUTPUT_LIST_BOX             1008
+#define IDC_REPLACE_HTML                1009
+#define IDC_REPLACE_INPUT               1010
+#define IDC_SAMPLES_TREE                1011
+#define IDC_SHOW_DIALOG                 1012
+#define ID_BUILD_WINDOW                 40001
+#define ID_CLOSE_ALL_BUT_THIS           40002
+#define ID_FILE_CLOSE_ALL               40003
+#define ID_FILE_LOCALHOST_SETTINGS      40004
+#define ID_FILE_RELOAD_FROM_DISK        40005
+#define ID_FILE_SAVE_ALL                40006
+#define ID_HTML_VIEWER_WINDOW           40007
+#define ID_LANGUAGE_CSPRO_LOGIC         40008
+#define ID_LANGUAGE_CSPRO_REPORT_HTML   40009
+#define ID_LANGUAGE_CSPRO_REPORT        40010
+#define ID_LANGUAGE_CSPRO_MESSAGES      40011
+#define ID_LANGUAGE_CSPRO_ACTION_INVOKER 40012
+#define ID_LANGUAGE_CSPRO_HTML_DIALOG   40013
+#define ID_LANGUAGE_CSPRO_DOCUMENT      40014
+#define ID_LANGUAGE_CSPRO_SPEC_FILE_JSON 40015
+#define ID_LANGUAGE_CSPRO_SPEC_FILE_INI 40016
+#define ID_LANGUAGE_HTML                40017
+#define ID_LANGUAGE_JAVASCRIPT          40018
+#define ID_LANGUAGE_JSON                40019
+#define ID_LANGUAGE_SQL                 40020
+#define ID_LANGUAGE_YAML                40021
+#define ID_LANGUAGE_NONE                40022
+#define ID_LOCALHOST_COPY_MAPPING       40023
+#define ID_LOCALHOST_OPEN_IN_HTML_VIEWER 40024
+#define ID_LOCALHOST_OPEN_IN_WEB_BROWSER 40025
+#define ID_OPEN_IN_ASSOCIATED_APPLICATION 40026
+#define ID_OUTPUT_WINDOW                40027
+#define ID_RUN_ABORT_ON_FIRST_EXCEPTION 40028
+#define ID_RUN_COMPILE_OR_VALIDATE      40029
+#define ID_RUN_CSPRO_DOWNGRADE_SPEC_FILE 40030
+#define ID_RUN_CSPRO_LOGIC_V0           40031
+#define ID_RUN_CSPRO_LOGIC_V8           40032
+#define ID_RUN_CSPRO_SPEC_FILE_APP      40033
+#define ID_RUN_CSPRO_SPEC_FILE_CMP      40034
+#define ID_RUN_CSPRO_SPEC_FILE_CSDS     40035
+#define ID_RUN_CSPRO_SPEC_FILE_CSPACK   40036
+#define ID_RUN_CSPRO_SPEC_FILE_CSPROPS  40037
+#define ID_RUN_CSPRO_SPEC_FILE_DCF      40038
+#define ID_RUN_CSPRO_SPEC_FILE_EXF      40039
+#define ID_RUN_CSPRO_SPEC_FILE_FQF      40040
+#define ID_RUN_CSPRO_SPEC_FILE_SSF      40041
+#define ID_RUN_CSPRO_SPEC_FILE_XL2CS    40042
+#define ID_RUN_DISPLAY_RESULTS_AS_JSON  40043
+#define ID_RUN_FORMAT_JSON              40044
+#define ID_RUN_COMPRESS_JSON            40045
+#define ID_RUN_HTML_DIALOG_TEMPLATES    40046
+#define ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 40047
+#define ID_RUN_JAVASCRIPT_MODULE_GLOBAL 40048
+#define ID_RUN_JAVASCRIPT_MODULE_MODULE 40049
+#define ID_RUN_PLACEHOLDER              40050
+#define ID_RUN_REPORT_PREVIEW           40051
+#define ID_RUN_RUN                      40052
+#define ID_RUN_STOP                     40053
+#define ID_RUN_VALIDATE_JSON_ONLY       40054
+#define ID_STATUS_PANE_FILE_POS         40055
+#define ID_STATUS_PANE_FILE_TYPE        40056
+#define ID_WINDOW_BUILD                 40057
+#define ID_WINDOW_OUTPUT                40058
+#define ID_WINDOW_HTML_VIEWER           40059
+
+// Next default values for new objects
+// 
+#ifdef APSTUDIO_INVOKED
+#ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NEXT_RESOURCE_VALUE        107
+#define _APS_NEXT_COMMAND_VALUE         40060
+#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_SYMED_VALUE           107
+#endif
+#endif

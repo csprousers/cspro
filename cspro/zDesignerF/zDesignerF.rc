@@ -1,0 +1,373 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#include ""afxres.rc""      // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "zDesignerF DLL"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "zDesignerF"
+            VALUE "OriginalFilename", "zDesignerF.DLL"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_REFERENCE_WINDOW DIALOGEX 0, 0, 275, 95
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION
+CAPTION "Reference Window"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_REFERENCE_WINDOW_EDIT,0,1,274,95
+END
+
+IDD_LOGIC_BAR DIALOGEX 0, 0, 81, 91
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION
+CAPTION "Compiler Output and Messages"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+END
+
+IDD_QUESTIONNAIRE_VIEW DIALOGEX 0, 0, 128, 68
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_QUESTIONNAIRE_HTML,
+                    "{8856F961-340A-11D0-A96B-00C04FD705A2}",WS_TABSTOP,9,8,107,48
+END
+
+IDD_PATH_ADJUSTER DIALOGEX 0, 0, 671, 203
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Path Adjuster"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Select a path to get a version that you can use in CSPro logic.",IDC_STATIC,7,7,657,64
+    LTEXT           "Path:",IDC_STATIC,16,27,18,8
+    EDITTEXT        IDC_PATH,70,24,545,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_PATH_SELECT,623,24,32,14
+    LTEXT           "CSPro Logic:",IDC_STATIC,16,51,41,8
+    EDITTEXT        IDC_PATH_LOGIC,70,48,545,14,ES_AUTOHSCROLL | NOT WS_TABSTOP
+    PUSHBUTTON      "Copy",IDC_PATH_LOGIC_COPY,623,48,32,14
+    GROUPBOX        "Relative paths are calculated based on a starting location.",IDC_STATIC,7,80,657,92
+    LTEXT           "Relative To:",IDC_STATIC,16,103,40,8
+    EDITTEXT        IDC_RELATIVE_TO_PATH,70,100,545,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_RELATIVE_TO_PATH_SELECT,623,100,32,14
+    LTEXT           "Relative Path:",IDC_STATIC,16,127,46,8
+    EDITTEXT        IDC_RELATIVE_PATH,70,124,545,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    PUSHBUTTON      "Copy",IDC_RELATIVE_PATH_COPY,623,124,32,14
+    LTEXT           "CSPro Logic:",IDC_STATIC,16,151,41,8
+    EDITTEXT        IDC_RELATIVE_PATH_LOGIC,70,148,545,14,ES_AUTOHSCROLL | NOT WS_TABSTOP
+    PUSHBUTTON      "Copy",IDC_RELATIVE_PATH_LOGIC_COPY,623,148,32,14
+    CONTROL         "Always use forward slashes",IDC_USE_FORWARD_SLASHES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,184,105,10
+    PUSHBUTTON      "Close",IDCANCEL,310,182,50,14
+    PUSHBUTTON      "Help",ID_HELP,614,182,50,14
+END
+
+IDD_STRING_ENCODER DIALOGEX 0, 0, 593, 306
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "String Encoder"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Text:",IDC_STATIC,7,27,18,8
+    EDITTEXT        IDC_STRING_TEXT,74,27,469,67,ES_MULTILINE | ES_AUTOHSCROLL
+    PUSHBUTTON      "Copy",IDC_COPY_TEXT,554,27,32,14
+    LTEXT           "CSPro Logic:",IDC_STATIC,7,105,41,8
+    LTEXT           "Static",IDC_ERROR_LOGIC,74,96,470,8,SS_ENDELLIPSIS | NOT WS_VISIBLE
+    EDITTEXT        IDC_STRING_LOGIC,74,105,469,67,ES_MULTILINE | ES_AUTOHSCROLL
+    PUSHBUTTON      "Copy",IDC_COPY_LOGIC,554,105,32,14
+    LTEXT           "JSON String:",IDC_STATIC,7,182,42,8
+    LTEXT           "Static",IDC_ERROR_JSON,74,175,470,8,SS_ENDELLIPSIS | NOT WS_VISIBLE
+    EDITTEXT        IDC_STRING_JSON,74,184,469,30,ES_MULTILINE | ES_AUTOHSCROLL
+    PUSHBUTTON      "Copy",IDC_COPY_JSON,554,184,32,14
+    LTEXT           "Percent Encoding:",IDC_STATIC,7,225,59,8
+    LTEXT           "Static",IDC_ERROR_PERCENT_ENCODING,74,216,470,8,SS_ENDELLIPSIS | NOT WS_VISIBLE
+    EDITTEXT        IDC_STRING_PERCENT_ENCODING,74,225,469,30,ES_MULTILINE | ES_AUTOHSCROLL
+    PUSHBUTTON      "Copy",IDC_COPY_PERCENT_ENCODING,554,225,32,14
+    CONTROL         "CSPro Logic: Split newlines across multiple lines",IDC_SPLIT_NEWLINES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,263,165,10
+    CONTROL         "CSPro Logic: Use verbatim string literals",IDC_USE_VERBATIM_STRING_LITERALS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,276,143,10
+    CONTROL         "JSON: Escape forward slashes",IDC_ESCAPE_FORWARD_SLASHES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,289,113,10
+    DEFPUSHBUTTON   "Close",IDCANCEL,271,285,50,14
+    PUSHBUTTON      "Help",ID_HELP,536,285,50,14
+    LTEXT           "Enter text in any of the boxes to see it encoded in other formats.",IDC_STATIC,7,7,211,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_REFERENCE_WINDOW, DIALOG
+    BEGIN
+        RIGHTMARGIN, 274
+    END
+
+    IDD_QUESTIONNAIRE_VIEW, DIALOG
+    BEGIN
+    END
+
+    IDD_PATH_ADJUSTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 664
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 196
+    END
+
+    IDD_STRING_ENCODER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 586
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 299
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_REFERENCE_WINDOW AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_QUESTIONNAIRE_VIEW AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PATH_ADJUSTER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_STRING_ENCODER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_QUESTIONNAIRE_VIEW DLGINIT
+BEGIN
+    IDC_QUESTIONNAIRE_HTML, 0x376, 160, 0
+0x0000, 0x0000, 0x004c, 0x0000, 0x10a4, 0x0000, 0x0810, 0x0000, 0x0000, 
+0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 
+0x0000, 0x0000, 0x004c, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 
+0x0000, 0xd0e0, 0x0057, 0x3573, 0x11cf, 0x69ae, 0x0008, 0x2e2b, 0x6212, 
+0x0008, 0x0000, 0x0000, 0x0000, 0x004c, 0x0000, 0x1401, 0x0002, 0x0000, 
+0x0000, 0x00c0, 0x0000, 0x0000, 0x4600, 0x0080, 0x0000, 0x0000, 0x0000, 
+0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 
+0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0000, 
+0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_DEPRECATION_WARNINGS MENU
+BEGIN
+    POPUP "Deprecation &Warnings"
+    BEGIN
+        MENUITEM "&None",                       ID_CODE_DEPRECATION_WARNINGS_NONE
+        MENUITEM "&Most",                       ID_CODE_DEPRECATION_WARNINGS_MOST
+        MENUITEM "&All",                        ID_CODE_DEPRECATION_WARNINGS_ALL
+    END
+END
+
+IDR_CODE_FOLDING MENU
+BEGIN
+    POPUP "Code Folding"
+    BEGIN
+        MENUITEM "Fold All\tAlt+0",             ID_CODE_FOLDING_FOLD_ALL
+        MENUITEM "Unfold All\tAlt+Shift+0",     ID_CODE_FOLDING_UNFOLD_ALL
+        MENUITEM "Toggle Current Level\tCtrl+Alt+F", ID_CODE_FOLDING_TOGGLE
+        MENUITEM SEPARATOR
+        POPUP "Level"
+        BEGIN
+            MENUITEM "None",                        ID_CODE_FOLDING_LEVEL_NONE
+            MENUITEM "Procedures and Functions Only", ID_CODE_FOLDING_LEVEL_PROCS_FUNCS
+            MENUITEM "All",                         ID_CODE_FOLDING_LEVEL_ALL
+        END
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_CODE_DEPRECATION_WARNINGS 
+                            "Deprecation warning settings\nDeprecation Warnings"
+    ID_CODE_DEPRECATION_WARNINGS_NONE 
+                            "Show no deprecation warnings\nNo Deprecation Warnings"
+    ID_CODE_DEPRECATION_WARNINGS_MOST 
+                            "Show most deprecation warnings\nMost Deprecation Warnings"
+    ID_CODE_DEPRECATION_WARNINGS_ALL 
+                            "Show all deprecation warnings\nAll Deprecation Warnings"
+    ID_CODE_FOLDING         "Code fold settings\nCode Folding"
+    ID_CODE_FOLDING_FOLD_ALL "Collapses all levels of code folding\nFold All"
+    ID_CODE_FOLDING_UNFOLD_ALL 
+                            "Uncollapses all levels of code folding\nFormat Logic"
+    ID_CODE_FOLDING_TOGGLE  "Collapses or uncollapses the current level of code folding\nToggle Current Level"
+    ID_CODE_FOLDING_LEVEL_NONE "Disables code folding\nFold None"
+    ID_CODE_FOLDING_LEVEL_PROCS_FUNCS 
+                            "Enables code folding only for procedures and functions\nFold Procedures and Functions Only"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CODE_FOLDING_LEVEL_ALL "Enables all code folding\nFold All"
+    ID_CODE_PASTE_STRING_LITERAL 
+                            "Pastes the text on the clipboard as a string literal\nPaste as String Literal"
+    ID_CODE_PATH_ADJUSTER   "Create relative paths and get paths as string literals\nPath Adjuster"
+    ID_CODE_STRING_ENCODER  "Encode strings in various formats used by CSPro\tString Encoder"
+    ID_CODE_SYMBOL_ANALYSIS "Analyze the symbols used in logic\nSymbol Analyis"
+    ID_COPY_FULL_PATH       "Copy full path of document to clipboard\nCopy Full Path"
+END
+
+STRINGTABLE
+BEGIN
+    ID_LOGIC_FORMAT         "Formats the logic using a defined style\nFormat Logic"
+    ID_OPEN_CONTAINING_FOLDER 
+                            "Open the folder containing this document in Windows Explorer\nOpen Containing Folder"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_LOGIC           "View currently-selected procedure\nLogic"
+    ID_VIEW_ONKEY_CHAR_MAP  "Find a key mapping for the OnKey and OnChar functions\nOnKey Character Map"
+    ID_VIEW_QUESTIONNAIRE   "View questionnaire layout\nQuestionnaire"
+    ID_VIEW_REPORT_PREVIEW  "Preview the report\nReport Preview"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#include "afxres.rc"      // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

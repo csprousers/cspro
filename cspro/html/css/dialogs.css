@@ -1,0 +1,78 @@
+body {
+    padding: 0;
+    margin: 0;
+    overflow-y:hidden;
+}
+
+.main-container {
+    position:absolute;
+}
+
+.list-center {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.my-dialog {
+    background: #fff;
+}
+
+.my-dialog-header {
+    background: #eee;
+    padding-bottom: 4px;
+    padding-top: 4px;
+    border-bottom: 1px solid #aaa;
+    min-height:32px;
+}
+
+.my-dialog-body {
+    padding-bottom: 4px;
+    padding-top: 4px;
+    color: #666
+}
+
+.my-dialog-footer {
+    padding-bottom: 4px;
+    padding-top: 4px;
+    margin-bottom: 4px;
+}
+
+.my-dialog-button-col {
+    margin-top: auto;
+    margin-bottom: auto;
+    padding-top: 8px;
+    min-width: 100px;
+}
+
+.my-close-button {
+    padding-right: 8px;
+    padding-bottom: 2px;
+    cursor:pointer;
+    position:fixed;
+    top:0;
+    right:0;
+    height: 4px;
+    width: 4px;
+    margin-top: 8px;
+    margin-right: 8px;
+}
+
+.errmsg-dialog {
+    max-width: 1080px;
+}
+
+.my-input {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    resize: none;
+}
+
+.withNewLine {
+    white-space: pre;
+}

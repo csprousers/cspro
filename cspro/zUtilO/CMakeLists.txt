@@ -1,0 +1,43 @@
+project(zUtilO)
+
+include(../WASM/Definitions.cmake)
+
+add_library(${PROJECT_NAME}
+    BasicLogger.cpp
+    BinaryDataAccessor.cpp
+    BinaryDataMetadata.cpp
+    CommonStore.cpp
+    ConnectionString.cpp
+    CredentialStore.cpp
+    CSProExecutables.cpp
+    DataTypes.cpp
+    ExecutionStack.cpp
+    FileExtensions.cpp
+    imsaStr.cpp
+    Interapp.cpp
+    MediaStore.cpp
+    MimeType.cpp
+    MimeTypeMap.cpp
+    NameShortener.cpp
+    PathHelpers.cpp
+    PortableColor.cpp
+    PortableFileSystem.cpp
+    PortableFont.cpp
+    ProcessSummary.cpp
+    PropertyString.cpp
+    Randomizer.cpp
+    SimpleDbMap.cpp
+    Specfile.cpp
+    SpecialDirectoryLister.cpp
+    SQLiteSchema.cpp
+    SqlLogicFunctions.cpp
+    StdioFileUnicode.cpp
+    TemporaryFile.cpp
+    TextSource.cpp
+    TextSourceEditable.cpp
+    TextSourceExternal.cpp
+    TransactionManager.cpp
+    Versioning.cpp
+    Viewers.cpp
+    VirtualDirectoryLister.cpp
+)

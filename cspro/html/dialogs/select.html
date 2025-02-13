@@ -1,0 +1,671 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/external/mustache/mustache.min.js"></script>
+
+    <title>Select</title>
+
+    <style>
+        .sbox {
+            /*position: absolute;*/
+            top: 50%;
+            left: 50%;
+            transform: translate(0%,0%);
+            margin-left:-2vw;
+            margin-top:8px;
+        }
+
+        .sinput {
+            padding: 10px;
+            width: 36px;
+            height: 36px;
+            background: none;
+            border: 3px solid #545a60;
+            border-radius: 21px;
+            box-sizing: border-box;
+            /*font-family: Comic Sans MS;*/
+            font-size: 20px;
+            color: #343a40;
+            outline: none;
+            transition: .5s;
+            /*transition-delay: .2s;*/
+        }
+
+            .sinput.click {
+                padding: 10px;
+                padding-right: 42px;
+                width: 96vw;
+                /*background: #221b3d;*/
+                border-radius: 6px;
+                border: 1px solid #bababa;
+            }
+
+            /*.sinput:focus {
+                transition: .1s;
+                box-shadow: 0 0 10px #9ecaed;
+            }*/
+
+        .sbtn {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            box-sizing: border-box;
+            outline: none;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .sspan {
+            position: absolute;
+            width: 20px;
+            height: 5px;
+            top: 36px;
+            left: 36px;
+            background: #545a60;
+            border-radius: 50px;
+            transform: translate(-50%,-50%) rotate(45deg);
+            transition: .2s;
+        }
+
+            .sspan:nth-child(1).click {
+                top: 50%;
+                left: 50%;
+                /*background: #a83068;*/
+                height: 3px;
+            }
+
+            .sspan:nth-child(2) {
+                top: 50%;
+                left: 50%;
+                opacity: 0;
+                transition-delay: .2s;
+            }
+
+                .sspan:nth-child(2).click {
+                    transform: translate(-50%,-50%) rotate(-45deg);
+                    opacity: 1;
+                    /*background: #a83068;*/
+                    height: 3px;
+                }
+
+        .tab-row{
+            cursor:pointer;
+        }
+    </style>
+
+    <script id="selectTemplate" type="text/template">
+        <div id="mWidth" style="display:inline-block;border:1px solid red;">
+            <div>
+                <span class="col withNewline" style="white-space: nowrap;padding-right: 48px;">
+                    {{title}}
+                </span>
+            </div>
+            <div style="padding:16px;">
+                <table class="table my-input" style="width:auto;">
+                    <thead id="tabHeadMeasure" class="table-dark">
+                        <tr>
+                            {{#header}}
+                            <th style="white-space: nowrap;" scope="col" class="withNewline">{{caption}}</th>
+                            {{/header}}
+                        </tr>
+                    </thead>
+                    <tbody id="tabBodyMeasure">
+                        {{#rows}}
+                        <tr>
+                            {{#columns}}
+                            <td style="white-space: nowrap;" class="withNewline">{{text}}</td>
+                            {{/columns}}
+                        </tr>
+                        {{/rows}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="mContainer" class="container-fluid my-dialog errmsg-dialog" style="max-width:100%">
+            <div id="mTitle" class="row my-dialog-header">
+                <div class="col withNewline">
+                    {{title}}
+                </div>
+                <div class="btn-close my-close-button btn-sm" aria-label="Close" onclick="CS.UI.closeDialog();">
+                </div>
+            </div>
+            <div class="row my-dialog-body" id="searchContainer" style="background: #343a40;padding-bottom: 12px;">
+                <div class="sbox">
+                    <form name="search">
+                        <input type="text" class="sinput" name="txt" id="filter" style="background-color:white;" disabled>
+                    </form>
+                    <div class="sbtn" onclick="document.search.txt.value = ''">
+                        <span class="sspan"></span>
+                        <span class="sspan"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-dialog-body" style="padding:0;">
+                <div class="col-12" style="padding:0;">
+                    <div id="tableContainer" style="overflow: auto auto;">
+                        <table id="mainTable" class="table">
+                            <thead id="tabHead" class="table-dark" style="position: sticky; top: 0; z-index: 1;{{hideHeaders}}">
+                                <tr>
+                                    {{#header}}
+                                    <th scope="col" style="border-top:0;border-bottom:0;" class="withNewline">{{caption}}</th>
+                                    {{/header}}
+                                </tr>
+                            </thead>
+                            <tbody id="tabBody">
+                                {{#rows}}
+                                <tr class="tab-row" id="r{{index}}" style="color:{{textColor}};--bs-table-color:{{textColor}};">
+                                    {{#columns}}
+                                    <td class="withNewline">{{text}}</td>
+                                    {{/columns}}
+                                </tr>
+                                {{/rows}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="mFooter" class="row text-center my-dialog-footer">
+                <div class="col-4">
+                    <button class="btn btn-light col-12 text-center" id="okButton" type="button" tabindex="-1" onclick="dialogReturn()">
+                        <span class="bi bi-check-lg"></span>
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-light col-12 text-center" id="cancelButton" type="button" tabindex="-1" onclick="CS.UI.closeDialog();">
+                        <span class="bi bi-x-lg" style="color:#500;"></span>
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-light col-12 text-center" id="searchButton" type="button" tabindex="-1">
+                        <span class="bi bi-search"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        const CS = new CSProActionInvoker("0a215cb87bfddc166d3902925e8f659d");
+        var searchFocus = false;
+        var focusedIndex = -1;
+
+        var selRows = [];
+        var selColors = new Map([]);
+        var multiSelect = false;
+
+        var focusIndex = 0;
+        var tabItems = [];
+        var tabFocusIndex = -1;
+
+        function replaceNewline() {
+            $('.withNewline').each(function (index) {
+                $(this).html($(this).html().trim().replace(/(?:\r\n|\r|\n)/g, "<br>"));
+            });
+        }
+
+        var maxHeight = 160;
+        function setMaxWH() {
+            const minWidth = 320; //minimum dialog width in px
+            const maxDisplayDimensions = CS.UI.getMaxDisplayDimensions()
+
+            $("#mContainer").css("min-width", minWidth);
+            $("#mContainer").css("max-width", maxDisplayDimensions.width);
+
+            maxHeight = maxDisplayDimensions.height;
+            $("#mContainer").css("max-height", maxHeight);
+        }
+
+        jQuery.expr[':'].contains = function (a, i, m) {
+            return jQuery(a).text().toUpperCase()
+                .indexOf(m[3].toUpperCase()) >= 0;
+        };
+
+        function buildDialog(input) {
+            var template = $("#selectTemplate").html();
+            $("#dialogDynamicContainer").html(Mustache.render(template, input));
+
+            replaceNewline();
+        }
+
+        function setBackgroundColorsMap() {
+            $("table#mainTable tbody tr").each(function () {
+                selColors.set($(this)[0].id, $(this).css("--bs-table-bg"));
+            });
+        }
+
+        function deSelRow(sIdx) {
+            var rId = selRows[sIdx];
+            $('#' + rId).css('--bs-table-bg', selColors.get(rId));
+            if (multiSelect) {
+                $('#' + rId).find('input').eq(0).prop('checked', false);
+            }
+
+            var v = selRows[selRows.length - 1];
+            selRows[selRows.length - 1] = selRows[sIdx];
+            selRows[sIdx] = v;
+            selRows.pop();
+
+            if (selRows.length == 0 && !multiSelect) {
+                $('#okButton').prop('disabled', true);
+                $('#okButton').css('color', '#aaa');
+            }
+        }
+
+        function deSelRowsAll() {
+            while (selRows.length > 0) {
+                deSelRow(selRows.length - 1);
+            }
+        }
+
+        function selRow(rId) {
+            if (!multiSelect) {
+                deSelRowsAll();
+            }
+            else {
+               $('#' + rId).find('input').eq(0).prop('checked', true);
+            }
+
+            selRows.push(rId);
+            $('#' + rId).css('--bs-table-bg', 'rgba(0, 127, 255, 0.3)');
+            if (!multiSelect) {
+                $('#okButton').prop('disabled', false);
+                $('#okButton').css('color', '#050');
+            }
+        }
+
+        function selRowsAll() {
+            deSelRowsAll();
+
+            $('#tabBody').find('tr').each(function() {
+                selRow($(this).attr('id'));
+            });
+        }
+
+        function search() {
+            //if ($('#filter')[0].value.length == 0) {
+            if (!searchFocus) {
+                $('.tab-row').show();
+            }
+            else {
+                $('.tab-row').hide();
+                $('.tab-row td:contains("' + $('#filter')[0].value + '")').parent().show();
+            }
+
+            $("table#mainTable tbody tr:visible:odd").css("--bs-table-bg", "#F4F4F8");
+            $("table#mainTable tbody tr:visible:even").css("--bs-table-bg", "white");
+
+            setBackgroundColorsMap();
+
+            selRows.forEach(function (rId) {
+                $('#' + rId).css('--bs-table-bg', 'rgba(0, 127, 255, 0.3)');
+            });
+        }
+
+        //Doing some stuff differently based on the OS
+        function osProfile() {
+            const onAndroid = ( navigator.userAgent.toLowerCase().indexOf("android") > -1 );
+            if (onAndroid) {
+                //hiding "x" button
+                $(".close").hide();
+
+                //hiding title if it's empty
+                if($("#mTitle").children().first().html().trim().length == 0) {
+                    $("#mTitle").hide();
+                }
+            }
+        }
+
+        function onMultiple() {
+            multiSelect = true;
+            $('#tabHead').find('tr').each(function() {
+                $(this).find('th').eq(0).before('<th scope="col" style="border-top:0;border-bottom:0;"><div class="form-check"><input id="selectAllCheckbox" class="form-check-input position-static" type="checkbox" value="option1" aria-label="..." tabindex="-1"></div></th>');
+            });
+            $('#tabHeadMeasure').find('tr').each(function() {
+                $(this).find('th').eq(0).before('<th scope="col" style="border-top:0;border-bottom:0;"><div class="form-check"><input class="form-check-input position-static" type="checkbox" value="option1" aria-label="..." tabindex="-1"></div></th>');
+            });
+            $('#tabBody, #tabBodyMeasure').find('tr').each(function() {
+                $(this).find('td').eq(0).before('<td><div class="form-check"><input class="form-check-input position-static" type="checkbox" value="option1" aria-label="..." tabindex="-1"></div></td>');
+            });
+        }
+
+        function dialogReturn() {
+            var selRowsIdx = [];
+            selRows.forEach(function (item) {
+                var idx = parseInt(item.substring(1));
+                selRowsIdx.push(idx);
+            });
+
+            if (selRowsIdx.length == 0) {
+                CS.UI.closeDialog();
+                return;
+            }
+
+            //sorting index array
+            selRowsIdx.sort(function (a, b) { return a - b });
+
+            //building and returning JSON object
+            CS.UI.closeDialog({ result: { rowIndices: selRowsIdx } });
+        }
+
+        function setSelectAllCheckbox() {
+            if (!multiSelect) {
+                return;
+            }
+
+            var cb = $('#selectAllCheckbox')[0];
+            if (selRows.length == input.rows.length) {
+                cb.checked = true;
+                cb.indeterminate = false;
+            }
+            else if (selRows.length == 0) {
+                cb.checked = false;
+                cb.indeterminate = false;
+            }
+            else {
+                cb.checked = false;
+                cb.indeterminate = true;
+            }
+        }
+
+        function findNextVisibleRow(increment) {
+            var nextIndex = focusedIndex + increment;
+            if (nextIndex > input.rows[input.rows.length - 1].index) {
+                nextIndex = input.rows[0].index;
+            }
+            else if (nextIndex < input.rows[0].index) {
+                nextIndex = input.rows[input.rows.length - 1].index;
+            }
+
+            //finding next visible row
+            var nextVisibleIndex = nextIndex;
+            var foundNextVisible = false;
+            while (!foundNextVisible) {
+                if ($('#r' + nextVisibleIndex).is(":visible")) {
+
+                    foundNextVisible = true;
+                    break;
+                }
+
+                nextVisibleIndex += increment;
+                if (nextVisibleIndex > input.rows[input.rows.length - 1].index) {
+                    nextVisibleIndex = input.rows[0].index;
+                }
+                else if (nextVisibleIndex < input.rows[0].index) {
+                    nextVisibleIndex = input.rows[input.rows.length - 1].index;
+                }
+
+                //completed a loop and found no new visible rows
+                if (nextVisibleIndex === nextIndex) {
+                    break;
+                }
+            }
+
+            if (foundNextVisible) {
+                return nextVisibleIndex;
+            }
+
+            return -1
+        }
+
+        function focusNextVisibleRow(increment) {
+            var nextIndex = findNextVisibleRow(increment);
+
+            if (nextIndex < 0) {
+                return;
+            }
+
+            if (focusedIndex >= 0) {
+                $('#r' + focusedIndex).attr('tabindex', -1);
+            }
+
+            focusedIndex = nextIndex;
+            $('#r' + focusedIndex).attr('tabindex', 0);
+            $('#r' + focusedIndex).focus();
+            tabItems[1] = $('#r' + focusedIndex)[0];
+            tabFocusIndex = 1;
+        }
+
+        function setTabItems() {
+            tabItems.push($("#filter")[0]);
+            tabItems.push(null);
+            tabItems.push($("#okButton")[0]);
+            tabItems.push($("#cancelButton")[0]);
+            tabItems.push($("#searchButton")[0]);
+        }
+
+        function cycleTab(isShift) {
+            while (true) {
+                if (!isShift) {
+                    tabFocusIndex++;
+                    if (tabFocusIndex >= tabItems.length) {
+                        tabFocusIndex = 0;
+                    }
+                }
+                else {
+                    tabFocusIndex--;
+                    if (tabFocusIndex < 0) {
+                        tabFocusIndex = tabItems.length - 1;
+                    }
+                }
+
+                if (tabItems[tabFocusIndex] != null && !tabItems[tabFocusIndex].disabled) {
+                    tabItems[tabFocusIndex].focus();
+                    break;
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            var w = $("#mContainer").outerWidth();
+            var h = $("#mContainer").outerHeight();
+
+            CS.UI.setDisplayOptions({
+                width: w,
+                height: h,
+                keyboard: false,
+                titleBarColor: $('.my-dialog-header').css('background-color')
+            });
+
+            $(".sbtn").click(function () {
+                $(".sinput").toggleClass("click");
+                $(".sspan").toggleClass("click");
+                if (!searchFocus) {
+                    setTimeout(
+                        function () {
+                            $(".sinput").prop("disabled", false);
+                            $(".sinput").focus();
+                            tabFocusIndex = 0;
+                            searchFocus = true;
+                            setTimeout(function () {
+                                $("#searchButton").prop("disabled", false);
+                            }, 200);
+                        }, 500);
+                }
+                else {
+                    $(".sinput").blur();
+                    $(".sinput").prop("disabled", true);
+                    searchFocus = false;
+                    setTimeout(function () {
+                        search();
+                        $("#tableContainer").css("height", $("#tableContainer").outerHeight() + $("#searchContainer").outerHeight());
+                        $('#searchContainer').hide();
+                        setTimeout(function () {
+                            $("#searchButton").prop("disabled", false);
+                        }, 200);
+                    }, 500);
+                }
+            });
+
+            if (!multiSelect) {
+                $('#okButton').prop('disabled', true);
+                $('#okButton').css('color', '#aaa');
+            }
+
+            $("table#mainTable tbody tr:visible:odd").css("--bs-table-bg", "#F4F4F8");
+            $("table#mainTable tbody tr:visible:even").css("--bs-table-bg", "white");
+            setBackgroundColorsMap();
+
+            $('.tab-row').click(function () {
+                var rThis = $(this)[0].id;
+                var fi = selRows.findIndex(function (row) {
+                    return rThis == row;
+                });
+                if (fi < 0) {
+                    selRow($(this)[0].id)
+                }
+                else {
+                    if (multiSelect) {
+                        deSelRow(fi);
+                    }
+                    else {
+                        $("#okButton").click();
+                    }
+                }
+
+                //setting indeterminate to the select all checkbox
+                setSelectAllCheckbox();
+
+                //focusing on clicked row
+                if (focusedIndex >= 0) {
+                    $('#r' + focusedIndex).attr('tabindex', -1);
+                }
+
+                focusedIndex = parseInt(rThis.substring(1));
+                $('#r' + focusedIndex).attr('tabindex', 0);
+                $('#r' + focusedIndex).focus();
+                tabItems[1] = $('#r' + focusedIndex)[0];
+                tabFocusIndex = 1;
+            });
+
+            $('#filter').on('input', search)
+
+            $('#searchButton').click(function () {
+                $("#searchButton").prop("disabled", true);
+                if (!searchFocus) {
+                    $('#searchContainer').show();
+                    $("#tableContainer").css("height", $("#tableContainer").outerHeight() - $("#searchContainer").outerHeight());
+                }
+                $(".sbtn").click();
+            });
+
+            $('#selectAllCheckbox').click(function() {
+                if ($(this).is(':checked')) {
+                    selRowsAll();
+                }
+                else {
+                    deSelRowsAll();
+                }
+            });
+
+            $(window).keydown(function (e) {
+                var isShift;
+                if (window.event) {
+                    isShift = !!window.event.shiftKey;
+                } else {
+                    isShift = !!ev.shiftKey;
+                }
+
+                //Preventing form from submitting on 'enter'
+                if (e.keyCode == 13) {
+                    if (tabFocusIndex >= 2) {
+                        tabItems[tabFocusIndex].click();
+                    }
+                    else if (tabFocusIndex >= 2) {
+                        //do nothing
+                    }
+                    else if (focusedIndex >= 0) {
+                        if (!multiSelect && ('r' + focusedIndex) == selRows[0]) {
+                            $('#okButton').click();
+                        } else {
+                            $('#r' + focusedIndex).trigger('click');
+                        }
+                    }
+                    e.preventDefault();
+                    return false;
+                }
+                else if (e.keyCode === 27) { //ESC
+                    if (searchFocus) {
+                        $("#searchButton").click();
+                        return false;
+                    }
+                    CS.UI.closeDialog();
+                }
+                else if (e.keyCode === 39 || e.keyCode === 40) { //down arrow, right arrow
+                    focusNextVisibleRow(1);
+                    e.preventDefault();
+                }
+                else if (e.keyCode === 37 || e.keyCode === 38) { //up arrow, left arrow
+                    focusNextVisibleRow(-1);
+                    e.preventDefault();
+                }
+                else if (e.keyCode === 9) { //tab
+                    cycleTab(isShift);
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <!--Dialog container-->
+    <div id="dialogDynamicContainer" style="position:fixed;top:0;"></div>
+
+    <script>
+        var input = CS.UI.getInputData();
+
+        //checking if row headers are all empty and hiding them
+        input['hideHeaders'] = 'display:none;';
+        for(var i = 0; i < input.header.length; i++) {
+            var o = input.header[i];
+            if (o.caption.length > 0) {
+                input['hideHeaders'] = '';
+                break;
+            }
+        }
+
+        buildDialog(input);
+
+        if (input.multiple) {
+            onMultiple();
+        }
+
+        osProfile();
+
+        setMaxWH();
+
+        setTabItems();
+
+        $('#searchContainer').hide();
+
+        $("#mContainer").css("width", $("#mWidth").outerWidth());
+        var titleHeight = $("#mTitle").outerHeight();
+        if(!($("#mTitle").is(":visible"))){
+            titleHeight = 0;
+        }
+        $("#tableContainer").css("height", $("#mContainer").outerHeight() - titleHeight - $("#mFooter").outerHeight() );
+
+        var curHeight = $('#mContainer').outerHeight() + 9;
+        if (curHeight < maxHeight) {
+            $("#mBody").css('overflow-y','hidden');
+        }
+
+        $("#mWidth").hide();
+    </script>
+</body>
+</html>

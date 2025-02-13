@@ -1,0 +1,250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BB8A94FE-E0F7-404F-B3A4-D44FE2736EB0}</ProjectGuid>
+    <RootNamespace>CSEntry</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <ProjectName>CSEntry</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="BinaryCommandLineInfo.cpp" />
+    <ClCompile Include="CaseView.cpp" />
+    <ClCompile Include="CSEntry.cpp" />
+    <ClCompile Include="..\Zissalib\CsKernel.cpp" />
+    <ClCompile Include="CustMsg.cpp" />
+    <ClCompile Include="DEBaseEdit.cpp" />
+    <ClCompile Include="DEEdit.cpp" />
+    <ClCompile Include="DEGrid.cpp" />
+    <ClCompile Include="DETextEdit.cpp" />
+    <ClCompile Include="DiscDlg.cpp" />
+    <ClCompile Include="DiscMDlg.cpp" />
+    <ClCompile Include="DiscPDlg.cpp" />
+    <ClCompile Include="DisPMDlg.cpp" />
+    <ClCompile Include="DynamicMenu.cpp" />
+    <ClCompile Include="GoToDlg.cpp" />
+    <ClCompile Include="IntEDlg.cpp" />
+    <ClCompile Include="leftprop.cpp" />
+    <ClCompile Include="LeftView.cpp" />
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="Opdlg.cpp" />
+    <ClCompile Include="OperatorStatistics.cpp" />
+    <ClCompile Include="Page1.cpp" />
+    <ClCompile Include="Page2.cpp" />
+    <ClCompile Include="QuestionnaireSearchDlg.cpp" />
+    <ClCompile Include="Rundoc.cpp" />
+    <ClCompile Include="RunView.cpp" />
+    <ClCompile Include="StatDlg.cpp" />
+    <ClCompile Include="OperatorStatisticsLog.cpp" />
+    <ClCompile Include="StatGrid.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ProgressDialog.cpp" />
+    <ClCompile Include="XSplWnd.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CaseView.h" />
+    <ClInclude Include="CSEntry.h" />
+    <ClInclude Include="CustMsg.h" />
+    <ClInclude Include="DEBaseEdit.h" />
+    <ClInclude Include="DEEdit.h" />
+    <ClInclude Include="DEGrid.h" />
+    <ClInclude Include="DETextEdit.h" />
+    <ClInclude Include="DiscDlg.h" />
+    <ClInclude Include="DiscMDlg.h" />
+    <ClInclude Include="DiscPDlg.h" />
+    <ClInclude Include="DisPMDlg.h" />
+    <ClInclude Include="DynamicMenu.h" />
+    <ClInclude Include="BinaryCommandLineInfo.h" />
+    <ClInclude Include="GoToDlg.h" />
+    <ClInclude Include="IntEDlg.h" />
+    <ClInclude Include="leftprop.h" />
+    <ClInclude Include="LeftView.h" />
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MessageOverrides.h" />
+    <ClInclude Include="Opdlg.h" />
+    <ClInclude Include="OperatorStatistics.h" />
+    <ClInclude Include="Page1.h" />
+    <ClInclude Include="Page2.h" />
+    <ClInclude Include="QuestionnaireSearchDlg.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Rundoc.h" />
+    <ClInclude Include="RunView.h" />
+    <ClInclude Include="StatDlg.h" />
+    <ClInclude Include="OperatorStatisticsLog.h" />
+    <ClInclude Include="StatGrid.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="ProgressDialog.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="XSplWnd.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\apartial.ico" />
+    <None Include="res\complete.ico" />
+    <None Include="res\CSEntry.ico" />
+    <None Include="res\empty.ico" />
+    <None Include="res\mpartial.ico" />
+    <None Include="res\node.ico" />
+    <None Include="res\Toolbar.bmp" />
+    <None Include="res\vpartial.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CSEntry.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zAction\zAction.vcxproj">
+      <Project>{7f125ef6-a327-11ed-a8fc-0242ac120002}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+      <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseO\zCaseO.vcxproj">
+      <Project>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseTreeF\zCaseTreeF.vcxproj">
+      <Project>{61281559-2451-450e-b6f6-e855b69e870a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCapiO\zCapiO.vcxproj">
+      <Project>{9cff378d-0d09-4800-866d-5fab8df44fbf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDataO\zDataO.vcxproj">
+      <Project>{dde177b0-a6ae-4d1f-b707-8fb50d1b5644}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEngineF\zEngineF.vcxproj">
+      <Project>{04b22cef-8246-4596-84a2-13faf5019122}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Zentryo\ZENTRYO.vcxproj">
+      <Project>{cfe980f3-5fc0-4c53-9eb5-1c63254503cd}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormO\zFormO.vcxproj">
+      <Project>{0837641d-6f03-4f33-9eb5-c03d2ca8edb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGrid2O\zGrid2O.vcxproj">
+      <Project>{5a95dda4-b42b-415a-b98d-a7e907a05132}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGridO\zGridO.vcxproj">
+      <Project>{7179e255-3de3-45fd-939b-cbd0a7f41761}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
+      <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">
+      <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\deleted.ico" />
+    <Image Include="res\vcomplete.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="CSEntry.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

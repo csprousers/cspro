@@ -1,0 +1,18 @@
+﻿#pragma once
+
+#include "ApplicationEvent.h"
+#include "SessionEvent.h"
+#include "CaseEvent.h"
+#include "DataRepositoryEvent.h"
+#include "MessageEvent.h"
+#include "PropertyEvent.h"
+#include "OperatorSelectionEvent.h"
+#include "LanguageChangeEvent.h"
+#include "ExternalApplicationEvent.h"
+#include "DeviceStateEvent.h"
+#include "FieldMovementEvent.h"
+#include "FieldEntryEvent.h"
+#include "FieldValidationEvent.h"
+#include "NoteEvent.h"
+#include "GpsEvent.h"
+#include "ImputeEvent.h"

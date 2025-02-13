@@ -1,0 +1,43 @@
+.cspro-capi-fill {
+    position: absolute;
+    z-index: -1;
+    background-color: #e7f6f6;
+    border-radius: 5px;
+}
+
+.cspro-capi-fill-error {
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJDw4cOCW1/KIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAHElEQVQI12NggIL/DAz/GdA5/xkY/qPKMDAwAADLZwf5rvm+LQAAAABJRU5ErkJggg==");
+}
+
+.cspro-capi-fill-error-dot {
+    position: absolute;
+    z-index: -1;
+    height: 8px;
+    width: 8px;
+    background-color: #FF0000;
+    border: 1px solid black;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 3px;
+}
+
+.cspro-capi-fill-error-tooltip {
+    background-color: #F7F7F7;
+    box-shadow: 5px 5px 8px 0 #7F7F7F88;
+    border: 1px solid #7F7F7F;
+    color: black;
+    font-size: 10pt;
+    padding: 8px 8px 8px 8px;
+    position: absolute;
+    white-space: pre-wrap;
+    z-index: 100;
+    max-width: 600px;
+}
+
+.note-editor.note-airframe .note-editing-area .note-viewport-area .note-editable, .note-editor.note-frame .note-editing-area .note-viewport-area .note-editable {
+    background-color: transparent /* so that CAPI fills show up */
+}
+
+

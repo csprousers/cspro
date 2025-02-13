@@ -1,0 +1,302 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{ae6cabc9-bacb-4393-b2e8-e4044565934f}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\EncryptedSQLiteRepository">
+      <UniqueIdentifier>{d027a42b-f45a-424f-98b5-7e50f710be63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TextRepository">
+      <UniqueIdentifier>{00ba73a3-7d0f-4942-a96c-acfa37576086}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EncryptedSQLiteRepository">
+      <UniqueIdentifier>{6cc5f82e-857e-46bc-bc27-b79b91493aab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TextRepository">
+      <UniqueIdentifier>{d2e1c356-ff97-40f2-9a7f-51d48d6659fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\NullRepository">
+      <UniqueIdentifier>{936b1f1d-8676-44ba-b47c-3811a0f98dd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\NullRepository">
+      <UniqueIdentifier>{16a86338-1f0b-4dbc-a6c9-dd75c5b934fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MemoryRepository">
+      <UniqueIdentifier>{c8285180-df47-4950-b004-9fd1c279608f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MemoryRepository">
+      <UniqueIdentifier>{a629b289-c5c1-4e86-a15b-0671348d20e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ParadataWrapperRepository">
+      <UniqueIdentifier>{81256844-827d-4eb2-8626-c972fcc06adf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ParadataWrapperRepository">
+      <UniqueIdentifier>{3017914f-8f5c-46c9-a5bd-25b8557047fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SQLiteRepository">
+      <UniqueIdentifier>{84f2e7ab-9468-4900-803e-87c69dbb56a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SQLiteRepository">
+      <UniqueIdentifier>{245c9964-e09c-4627-88b7-aa27964b689f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WrapperRepository">
+      <UniqueIdentifier>{af29027c-81e9-4499-b885-05b4a115808d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CacheableCaseWrapperRepository">
+      <UniqueIdentifier>{2ecf74a3-92b7-44ae-a322-36b9517fab43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CacheableCaseWrapperRepository">
+      <UniqueIdentifier>{99600cd9-5f8c-41d3-8e77-c93519a108f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ExportWriterRepository">
+      <UniqueIdentifier>{653141de-af20-4e85-a0e1-969f284856f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ExportWriterRepository">
+      <UniqueIdentifier>{3e6c5f0b-5d0b-46aa-9fb9-a7fe9e09e4c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\IndexableTextRepository">
+      <UniqueIdentifier>{eee554a7-ef12-42e0-b1e5-309fd95eb280}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IndexableTextRepository">
+      <UniqueIdentifier>{2463f9a6-5b11-45a9-9e81-120e0f6e8ce5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\JsonRepository">
+      <UniqueIdentifier>{41118762-b358-4636-89e7-ee9c4bb0cba6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\JsonRepository">
+      <UniqueIdentifier>{ff75fc23-9807-4517-ab0f-3b75da4ce4c5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zDataO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataRepositoryException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ISyncableDataRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncHistoryEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataRepositoryDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EncryptedSQLiteRepository.h">
+      <Filter>Header Files\EncryptedSQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="EncryptedSQLiteRepositoryPasswordManager.h">
+      <Filter>Header Files\EncryptedSQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRepository.h">
+      <Filter>Header Files\TextRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="NullRepository.h">
+      <Filter>Header Files\NullRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryRepository.h">
+      <Filter>Header Files\MemoryRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="DataRepositoryHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRepositoryIndexCreator.h">
+      <Filter>Header Files\TextRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRepositoryStatusFile.h">
+      <Filter>Header Files\TextRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="DataRepository.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRepositoryNotesFile.h">
+      <Filter>Header Files\TextRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="ParadataWrapperRepository.h">
+      <Filter>Header Files\ParadataWrapperRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="CaseIterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryRepositoryIterators.h">
+      <Filter>Header Files\MemoryRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="NullRepositoryIterators.h">
+      <Filter>Header Files\NullRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRepositoryIterators.h">
+      <Filter>Header Files\TextRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="ParadataWrapperRepositoryIterators.h">
+      <Filter>Header Files\ParadataWrapperRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteRepository.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteRepositoryIterators.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteDictionarySchemaGenerator.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteBlobQuestionnaireSerializer.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteErrorWithMessage.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="ISQLiteQuestionnaireSerializer.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteDictionarySchemaReconciler.h">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteSchemaHelpers.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="CaseAccessSaver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataRepositoryTransaction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapperRepository.h">
+      <Filter>Header Files\WrapperRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapperRepositoryIterators.h">
+      <Filter>Header Files\WrapperRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="CacheableCaseWrapperRepository.h">
+      <Filter>Header Files\CacheableCaseWrapperRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="CacheableCaseWrapperRepositoryCaseIterators.h">
+      <Filter>Header Files\CacheableCaseWrapperRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteBinaryDataReader.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLiteBinaryItemSerializer.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportWriterRepository.h">
+      <Filter>Header Files\ExportWriterRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncJsonBinaryDataReader.h">
+      <Filter>Header Files\SQLiteRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexableTextRepository.h">
+      <Filter>Header Files\IndexableTextRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonRepository.h">
+      <Filter>Header Files\JsonRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonRepositoryIterators.h">
+      <Filter>Header Files\JsonRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonRepositoryBinaryDataIO.h">
+      <Filter>Header Files\JsonRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonRepositoryIndexCreator.h">
+      <Filter>Header Files\JsonRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="ConnectionStringProperties.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zDataO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRepository.cpp">
+      <Filter>Source Files\TextRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="EncryptedSQLiteRepository.cpp">
+      <Filter>Source Files\EncryptedSQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="EncryptedSQLiteRepositoryPasswordManager.cpp">
+      <Filter>Source Files\EncryptedSQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="NullRepository.cpp">
+      <Filter>Source Files\NullRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryRepository.cpp">
+      <Filter>Source Files\MemoryRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="DataRepositoryHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRepositoryStatusFile.cpp">
+      <Filter>Source Files\TextRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="DataRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRepositoryNotesFile.cpp">
+      <Filter>Source Files\TextRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="ParadataWrapperRepository.cpp">
+      <Filter>Source Files\ParadataWrapperRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteRepository.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteRepositoryCaseLoader.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteRepositoryIterators.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteBlobQuestionnaireSerializer.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteDictionarySchemaGenerator.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteQuestionnaireSerializer.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteDictionarySchemaReconciler.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="CacheableCaseWrapperRepository.cpp">
+      <Filter>Source Files\CacheableCaseWrapperRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteBinaryItemSerializer.cpp">
+      <Filter>Source Files\SQLiteRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportWriterRepository.cpp">
+      <Filter>Source Files\ExportWriterRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexableTextRepository.cpp">
+      <Filter>Source Files\IndexableTextRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonRepository.cpp">
+      <Filter>Source Files\JsonRepository</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zDataO.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

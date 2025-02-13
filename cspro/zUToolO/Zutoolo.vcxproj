@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{28F15179-5B3D-4A06-A076-2774611CA534}</ProjectGuid>
+    <RootNamespace>zUtoolO</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <ProjectName>zUToolO</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZUTOOLO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZUTOOLO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="GradLbl.cpp" />
+    <ClCompile Include="OXDlgBar.cpp" />
+    <ClCompile Include="OxDrDkCt.cpp" />
+    <ClCompile Include="OxFWndDk.cpp" />
+    <ClCompile Include="oxgedt.cpp" />
+    <ClCompile Include="oxghdr.cpp" />
+    <ClCompile Include="oxMDkFW.cpp" />
+    <ClCompile Include="OxMFlWnd.cpp" />
+    <ClCompile Include="OxRTrack.cpp" />
+    <ClCompile Include="OxSplRec.cpp" />
+    <ClCompile Include="OxszCtlB.cpp" />
+    <ClCompile Include="OxszDKB.cpp" />
+    <ClCompile Include="OxSzDlgB.cpp" />
+    <ClCompile Include="oxtbvw.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TreePrps.cpp" />
+    <ClCompile Include="zUtoolO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zUtoolO.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GradLbl.h" />
+    <ClInclude Include="OXDlgBar.h" />
+    <ClInclude Include="OXDllExt.h" />
+    <ClInclude Include="OxDrDkCt.h" />
+    <ClInclude Include="OxFWndDk.h" />
+    <ClInclude Include="oxgedt.h" />
+    <ClInclude Include="oxghdr.h" />
+    <ClInclude Include="OXGLRES.H" />
+    <ClInclude Include="oxMDkFW.h" />
+    <ClInclude Include="OxMFlWnd.h" />
+    <ClInclude Include="OxRTrack.h" />
+    <ClInclude Include="OxSplRec.h" />
+    <ClInclude Include="OXszCtlB.h" />
+    <ClInclude Include="OxszDKB.h" />
+    <ClInclude Include="OxSzDlgB.h" />
+    <ClInclude Include="oxtbvw.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource_shared.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TreePrps.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="zUtoolO.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,33 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:orientation="vertical"
+  tools:context="gov.census.cspro.smartsync.addapp.ChooseApplicationFragment">
+
+    <TextView
+        android:id="@+id/add_app_choose_app_prompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"
+        android:text="@string/add_app_choose_app_prompt"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <View style="@style/Divider" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/add_app_choose_app_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:paddingTop="8dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/deployment_package_item" >
+    </androidx.recyclerview.widget.RecyclerView>
+
+</LinearLayout>

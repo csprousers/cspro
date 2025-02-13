@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCDLLProj</Keyword>
+    <RootNamespace>zCaseO</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_WINDLL;_AFXDLL;_AFXEXT;ZCASEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_WINDLL;_AFXDLL;_AFXEXT;_WINDOWS;ZCASEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="BinaryCaseItem.cpp" />
+    <ClCompile Include="Case.cpp" />
+    <ClCompile Include="CaseIO.cpp" />
+    <ClCompile Include="CaseLevel.cpp" />
+    <ClCompile Include="CaseRecord.cpp" />
+    <ClCompile Include="CaseToHtmlConverter.cpp" />
+    <ClCompile Include="CaseAccess.cpp" />
+    <ClCompile Include="CaseItem.cpp" />
+    <ClCompile Include="CaseItemIndex.cpp" />
+    <ClCompile Include="CaseItemPrinter.cpp" />
+    <ClCompile Include="CaseItemReference.cpp" />
+    <ClCompile Include="FixedWidthNumericCaseItem.cpp" />
+    <ClCompile Include="FixedWidthNumericWithStringBufferCaseItem.cpp" />
+    <ClCompile Include="FixedWidthStringCaseItem.cpp" />
+    <ClCompile Include="ItemSubitemSyncTask.cpp" />
+    <ClCompile Include="CaseJsonSerializer.cpp" />
+    <ClCompile Include="NumericCaseItem.cpp" />
+    <ClCompile Include="Pre74_Case.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="StringBasedCaseConstructionReporter.cpp" />
+    <ClCompile Include="StringCaseItem.cpp" />
+    <ClCompile Include="TextToCaseConverter.cpp" />
+    <ClCompile Include="VectorClock.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BinaryCaseItem.h" />
+    <ClInclude Include="Case.h" />
+    <ClInclude Include="CaseBinaryDataVirtualFileMappingHandler.h" />
+    <ClInclude Include="CaseConstructionHelpers.h" />
+    <ClInclude Include="CaseConstructionReporter.h" />
+    <ClInclude Include="CaseDefines.h" />
+    <ClInclude Include="CaseItemJsonWriter.h" />
+    <ClInclude Include="CaseJsonSerializer.h" />
+    <ClInclude Include="CaseKey.h" />
+    <ClInclude Include="CaseLevel.h" />
+    <ClInclude Include="CaseRecord.h" />
+    <ClInclude Include="CaseSummary.h" />
+    <ClInclude Include="CaseToHtmlConverter.h" />
+    <ClInclude Include="CaseAccess.h" />
+    <ClInclude Include="CaseItem.h" />
+    <ClInclude Include="CaseItemHelpers.h" />
+    <ClInclude Include="CaseItemIndex.h" />
+    <ClInclude Include="CaseItemPrinter.h" />
+    <ClInclude Include="CaseItemReference.h" />
+    <ClInclude Include="FixedWidthNumericCaseItem.h" />
+    <ClInclude Include="FixedWidthNumericWithStringBufferCaseItem.h" />
+    <ClInclude Include="FixedWidthStringCaseItem.h" />
+    <ClInclude Include="FullLineProcessor.h" />
+    <ClInclude Include="IPostSetValueTask.h" />
+    <ClInclude Include="ItemSubitemSyncTask.h" />
+    <ClInclude Include="KeyChangeTask.h" />
+    <ClInclude Include="NamedReference.h" />
+    <ClInclude Include="Note.h" />
+    <ClInclude Include="NoteSorter.h" />
+    <ClInclude Include="NumericCaseItem.h" />
+    <ClInclude Include="Pre74_Case.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StdioCaseConstructionReporter.h" />
+    <ClInclude Include="StringBasedCaseConstructionReporter.h" />
+    <ClInclude Include="StringCaseItem.h" />
+    <ClInclude Include="TextToCaseConverter.h" />
+    <ClInclude Include="VectorClock.h" />
+    <ClInclude Include="zCaseO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

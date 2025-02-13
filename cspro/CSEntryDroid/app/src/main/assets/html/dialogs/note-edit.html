@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/external/mustache/mustache.min.js"></script>
+
+    <title>Note Edit</title>
+
+    <script id="noteEditTemplate" type="text/template">
+        <div id="mWidth" style="display:inline-block;">
+            <div>
+                <span class="col withNewline" style="white-space: nowrap;padding-right:48px;">
+                    {{title}}
+                </span>
+            </div>
+        </div>
+        <div id="mContainer" class="container-fluid my-dialog errmsg-dialog" style="overflow-y:auto;">
+            <div id="mTitle" class="row my-dialog-header">
+                <div class="col withNewline">
+                    {{title}}
+                </div>
+                <div class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                </div>
+            </div>
+            <div class="row my-dialog-body">
+                <div class="col-12">
+                    <textarea class="form-control my-input" id="noteTextarea" rows="6">{{note}}</textarea>
+                </div>
+            </div>
+            <div class="row text-center my-dialog-footer">
+                <div class="col my-dialog-button-col">
+                    <button class="btn btn-light col-12 text-center" id="okButton" type="button" onclick="dialogReturn();" tabindex="-1">
+                        OK
+                    </button>
+                </div>
+                <div class="col my-dialog-button-col">
+                    <button class="btn btn-light col-12 text-center" id="cancelButton" type="button" onclick="clearValue();" tabindex="-1">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        const CS = new CSProActionInvoker("d8777e02e41e0c50e9ccbbd667e6d701");
+        var tabItems = [];
+        var tabFocusIndex = 0;
+
+        var minWidth = 320; //minimum dialog width in px
+        function setMaxWH() {
+           const maxDisplayDimensions = CS.UI.getMaxDisplayDimensions()
+
+           $("#mContainer").css("min-width", minWidth);
+           $("#mContainer").css("max-width", maxDisplayDimensions.width);
+
+           $("#mContainer").css("max-height", maxDisplayDimensions.height);
+        }
+
+        function dialogReturn() {
+            var res = $("#noteTextarea").val();
+            CS.UI.closeDialog({ result: { note: res } });
+        }
+
+        function clearValue() {
+            $("#noteTextarea").val('');
+            $("#noteTextarea").focus();
+        }
+
+        function replaceNewline() {
+            $('.withNewline').each(function (index) {
+                $(this).html($(this).html().trim().replace(/(?:\r\n|\r|\n)/g, "<br>"));
+            });
+        }
+
+        function buildDialog(input) {
+            var template = $("#noteEditTemplate").html();
+            $("#dialogDynamicContainer").html(Mustache.render(template, input));
+
+            replaceNewline();
+        }
+
+        //Doing some stuff differently based on the OS
+        function osProfile() {
+            const onAndroid = ( navigator.userAgent.toLowerCase().indexOf("android") > -1 );
+            if (onAndroid) {
+                //hiding "x" button
+                $(".close").hide();
+
+                //hiding title if it's empty
+                if ($("#mTitle").children().first().html().trim().length == 0) {
+                    $("#mTitle").hide();
+                }
+            }
+            else {
+                minWidth = 640;
+            }
+        }
+
+        function setTabItems() {
+            tabItems.push($("#noteTextarea")[0]);
+            tabItems.push($("#okButton")[0]);
+            tabItems.push($("#cancelButton")[0]);
+        }
+
+        function cycleTab(isShift) {
+            while (true) {
+                if (!isShift) {
+                    tabFocusIndex++;
+                    if (tabFocusIndex >= tabItems.length) {
+                        tabFocusIndex = 0;
+                    }
+                }
+                else {
+                    tabFocusIndex--;
+                    if (tabFocusIndex < 0) {
+                        tabFocusIndex = tabItems.length - 1;
+                    }
+                }
+
+                if (!tabItems[tabFocusIndex].disabled) {
+                    tabItems[tabFocusIndex].focus();
+                    break;
+                }
+            }
+        }
+
+        $(document).ready(function() {
+            var w = $("#mContainer").outerWidth();
+            var h = $("#mContainer").outerHeight();
+
+            CS.UI.setDisplayOptions({
+                width: w,
+                height: h,
+                keyboard: true,
+                titleBarColor: $('.my-dialog-header').css('background-color')
+            });
+
+            $('#noteTextarea').focus();
+            var carat = $('#noteTextarea').val().length;
+            if (carat > 0 ) {
+                $('#noteTextarea')[0].setSelectionRange(carat, carat);
+            }
+        });
+
+        $(document).keydown(function (e) {
+            var isShift;
+            if (window.event) {
+                isShift = !!window.event.shiftKey;
+            } else {
+                isShift = !!ev.shiftKey;
+            }
+
+            if (e.keyCode === 27) { //ESC
+                CS.UI.closeDialog();
+            } else if (e.keyCode === 9) {
+                cycleTab(isShift);
+                e.preventDefault();
+            }
+        });
+    </script>
+</head>
+<body>
+    <!--Dialog container-->
+    <div id="dialogDynamicContainer" style="position:fixed;top:0;"></div>
+
+    <script>
+        const input = CS.UI.getInputData();
+
+        buildDialog(input);
+
+        osProfile();
+
+        setMaxWH();
+
+        setTabItems();
+
+        $("#mContainer").css("width", $("#mWidth").outerWidth());
+
+        $("#mWidth").hide();
+    </script>
+</body>
+</html>

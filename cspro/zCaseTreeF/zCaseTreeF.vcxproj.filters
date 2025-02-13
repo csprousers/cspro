@@ -1,0 +1,349 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{c813e642-aa12-41e6-8477-d1b498fcf0a7}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{42585f36-e649-40e5-ac5b-8cc51530b1ac}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{751a61da-c624-40a9-aeb5-8aee6b6184ed}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CaseTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CEUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CRunAplE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GTCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HITEM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IItemCnf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MsgParam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TItmInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xTCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zCaseTreeF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Icons.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ico00001.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00002.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00003.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00004.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00005.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00006.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00007.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00008.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00011.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00012.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00013.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00014.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00015.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00016.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00017.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00018.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00019.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00020.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00021.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00022.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00023.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00024.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00025.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00026.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00027.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00028.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00030.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00031.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00032.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00033.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00034.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00035.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00036.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00037.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00076.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00077.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00078.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00079.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00092.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00093.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00096.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00097.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00098.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00099.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00100.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00103.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00104.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00105.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00106.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00107.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00108.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00109.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00110.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00111.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00112.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00113.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00114.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00115.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00116.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00117.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00118.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00119.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00120.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00121.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00122.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00124.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00126.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00127.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00128.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00129.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00130.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\ico00131.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\icon3.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\icon4.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\icon_not.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\non_sele.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\non_writ.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\selected.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CaseTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CEUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CRunAplE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GTCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HITEM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IItemCnf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MsgParam.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TItmInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeCnst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xTCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zCaseTreeF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Icons.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zCaseTreeF.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

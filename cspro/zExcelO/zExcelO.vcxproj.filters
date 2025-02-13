@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="libxlsxwriter">
+      <UniqueIdentifier>{62b40e8e-9f0e-4be9-8c0f-570f92b61857}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcelWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\app.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\chart.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\chartsheet.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\comment.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\content_types.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\core.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\custom.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\drawing.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\format.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\hash_table.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\packager.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\relationships.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\shared_strings.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\styles.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\theme.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\utility.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\vml.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\workbook.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\worksheet.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\xmlwriter.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\third_party\md5\md5.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\third_party\tmpfileplus\tmpfileplus.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\ioapi.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\iowin32.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\zip.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\table.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libxlsxwriter\src\metadata.c">
+      <Filter>libxlsxwriter</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="zExcelO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcelWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,243 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>CSPro Frequency Viewer</title>
+
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css">
+
+    <script type="module" src="/components/cspro-chart.js"></script>
+    <script src="/action-invoker.js"></script>
+    <script src="cspro-chartjs.js"></script>
+
+    <style>
+        .titles {
+            text-align: center;
+            padding-top: 10px;
+            padding-bottom: 20px;
+        }
+
+        .error {
+            text-align: center;
+            color: red;
+        }
+
+        .chart {
+            max-width: 800px;
+            margin: auto;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand sticky-top navbar-light bg-light">
+        <div class="container-fluid text-center">
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="displayFrequency('bar'); return false;">Bar Chart<br><span id="chartIconBar" class="bi"></span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="displayFrequency('pie'); return false;">Pie Chart<br><span id="chartIconPie" class="bi"></span></a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <div class="btn-nav">
+                            <a class="btn btn-primary btn-small navbar-btn" href="#" onclick="saveChart(); return false;">Save Chart</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="titleDiv" class="titles" style="display: none;">
+    </div>
+
+    <div id="errorDiv" class="error" style="display: none;">
+        <p id="errorText"></p>
+    </div>
+
+    <div id="chartDiv" class="chart">
+    </div>
+
+
+    <script>
+        const CS = new CSProActionInvoker("a125e77b3ecf5068916e0322afce5eb4");
+        const ChartingSettingsSource = "CS_Charting";
+        const ChartingSettingsChartTypeKey = "frequencyChartType";
+
+        const chartIconBar = document.getElementById("chartIconBar");
+        const chartIconPie = document.getElementById("chartIconPie");
+        const chartDiv = document.getElementById("chartDiv");
+
+        let csproData;
+        let chart;
+
+        function displayFrequency(chartType) {
+            try {
+                if( chartType === undefined ) {
+                    // default to a bar chart
+                    chartType = CS.Settings.getValue({
+                        source: ChartingSettingsSource,
+                        key: ChartingSettingsChartTypeKey,
+                        value: "bar"
+                    });
+                }
+                else {
+                    // save the chart type for future use
+                    CS.Settings.putValue({
+                        source: ChartingSettingsSource,
+                        key: ChartingSettingsChartTypeKey,
+                        value: chartType
+                    });
+                }
+
+                // update the chart type icon state
+                function updateChartIcon(chartIcon, baseClassName, fill) {
+                    const filledClassName = baseClassName + "-fill";
+                    chartIcon.classList.remove(fill ? baseClassName : filledClassName);
+                    chartIcon.classList.add(fill ? filledClassName : baseClassName);
+                }
+
+                const isBarChart = ( chartType == "bar" );
+                updateChartIcon(chartIconBar, "bi-bar-chart", isBarChart);
+                updateChartIcon(chartIconPie, "bi-pie-chart", !isBarChart);
+
+
+                // get the frequency data
+                try {
+                    if( !csproData ) {
+                        csproData = CS.UI.getInputData();
+
+                        if( csproData === undefined ) {
+                            throw new Error("No input data is present.");
+                        }
+
+                        if( Array.isArray(csproData) ) {
+                            if( csproData.length == 1 ) {
+                                csproData = csproData[0];
+                            }
+                            else {
+                                throw new Error("You can only view a single frequency.");
+                            }
+                        }
+
+                        // update the title
+                        if( csproData.titles ) {
+                            const titleDiv = document.getElementById("titleDiv");
+
+                            csproData.titles.forEach((title) => {
+                                const h5 = document.createElement("h5");
+                                h5.appendChild(document.createTextNode(title));
+                                titleDiv.appendChild(h5);
+                            });
+
+                            titleDiv.style.display = "block";
+                        }
+                    }
+                }
+                catch(e) {
+                    throw new Error("There was a problem getting the frequency data: " + e.message);
+                }
+
+                // remove any existing chart
+                while( chartDiv.firstChild ) {
+                    chartDiv.removeChild(chartDiv.lastChild);
+                }
+
+                // create a new chart
+                chart = document.createElement("cspro-chart");
+                chartDiv.appendChild(chart);
+
+                chart.setAttribute("chartType", chartType);
+
+                chart.drawChart(getChartJsDataFromCSProFrequency(csproData),
+                                getChartJsOptionsForFrequency(csproData, chartType));
+
+                document.getElementById("errorDiv").style.display = "none";
+            }
+            catch(e) {
+                document.getElementById("errorText").innerText = e.message;
+                document.getElementById("errorDiv").style.display = "block";
+            }
+        }
+
+
+        function saveChart() {
+            let chartCanvas;
+
+            new Promise((resolve, reject) => {
+                chartCanvas = ( chart !== undefined ) ? chart.shadowRoot.querySelector("canvas") :
+                                                        undefined;
+
+                if( chartCanvas === undefined ) {
+                    throw new Error("No chart is available to save.");
+                }
+
+                let suggestedName = getVariableNameFromCSProFrequency(csproData);
+
+                if( !suggestedName ) {
+                    suggestedName = "Frequency";
+                }
+
+                return resolve(CS.Path.showFileDialogAsync({
+                    type: "save",
+                    title: "Save Chart As",
+                    filter: "*.png;*.jpg",
+                    name: suggestedName.concat(".png"),
+                    startDirectory: CS.Path.getSpecialPaths().application,
+                    useNativeDialog: true
+                }));
+            })
+
+            .then(path => {
+                if( path === undefined ) {
+                    return;
+                }
+
+                const extensionRegEx = /(?:\.([^.]+))?$/;
+                let extension = extensionRegEx.exec(path)[1];
+
+                if( extension === undefined ) {
+                    extension = "png";
+                    path = path.concat(".", extension);
+                }
+
+                let mimeType;
+                if( extension == "png" ) {
+                    mimeType = "image/png";
+                }
+                else if( extension == "jpg" ) {
+                    mimeType = "image/jpeg";
+                }
+                else {
+                    throw new Error(`Cannot save to extension: .${extension}`);
+                }
+
+                return CS.File.writeBytesAsync({
+                    path: path,
+                    bytes: chartCanvas.toDataURL(mimeType),
+                    bytesFormat: "dataUrl"
+                });
+            })
+
+            .catch(e => {
+                CS.UI.alertAsync({
+                    title: document.title,
+                    text: e.message
+                });
+            });
+        }
+
+
+        document.addEventListener("DOMContentLoaded", event => {
+            displayFrequency();
+        });
+    </script>
+</body>
+</html>

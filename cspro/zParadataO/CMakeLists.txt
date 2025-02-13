@@ -1,0 +1,31 @@
+project(zParadataO)
+
+include(../WASM/Definitions.cmake)
+
+add_library(${PROJECT_NAME}
+    ApplicationEvent.cpp
+    CaseEvent.cpp
+    Concatenator.cpp
+    DataRepositoryEvent.cpp
+    DeviceStateEvent.cpp
+    ExternalApplicationEvent.cpp
+    FieldEntryEvent.cpp
+    FieldInfo.cpp
+    FieldMovementEvent.cpp
+    FieldValidationEvent.cpp
+    GpsEvent.cpp
+    GuiConcatenator.cpp
+    ImputeEvent.cpp
+    KeyingInstance.cpp
+    LanguageChangeEvent.cpp
+    Log.cpp
+    Logger.cpp
+    MessageEvent.cpp
+    NoteEvent.cpp
+    OperatorSelectionEvent.cpp
+    PropertyEvent.cpp
+    SessionEvent.cpp
+    Syncer.cpp
+    Table.cpp
+    TableDefinitions.cpp
+)

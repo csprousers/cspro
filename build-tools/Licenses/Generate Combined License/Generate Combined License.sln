@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generate Combined License", "Generate Combined License.csproj", "{06A8B83B-DA2A-4A70-BD65-BCD920AD3176}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06A8B83B-DA2A-4A70-BD65-BCD920AD3176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06A8B83B-DA2A-4A70-BD65-BCD920AD3176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06A8B83B-DA2A-4A70-BD65-BCD920AD3176}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06A8B83B-DA2A-4A70-BD65-BCD920AD3176}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {97A4FAB3-BE9D-4CAE-8CD5-0F561634C74F}
+	EndGlobalSection
+EndGlobal

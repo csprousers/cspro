@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7179E255-3DE3-45FD-939B-CBD0A7F41761}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZGRIDO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZGRIDO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="UGCBTYPE.CPP" />
+    <ClCompile Include="UGCELL.CPP" />
+    <ClCompile Include="UGCELTYP.CPP" />
+    <ClCompile Include="UGCNRBTN.CPP" />
+    <ClCompile Include="UGCTARRW.CPP" />
+    <ClCompile Include="UGCTbutn.cpp" />
+    <ClCompile Include="Ugctelps.cpp" />
+    <ClCompile Include="UGCTRL.CPP" />
+    <ClCompile Include="UGCTsarw.cpp" />
+    <ClCompile Include="UGDLTYPE.CPP" />
+    <ClCompile Include="UGDRGDRP.CPP" />
+    <ClCompile Include="UGDRWHNT.CPP" />
+    <ClCompile Include="UGDTASRC.CPP" />
+    <ClCompile Include="UGEDIT.CPP" />
+    <ClCompile Include="UGEXCEL.CPP" />
+    <ClCompile Include="UGFORMAT.CPP" />
+    <ClCompile Include="UGGDINFO.CPP" />
+    <ClCompile Include="UGGRID.CPP" />
+    <ClCompile Include="UGHINT.CPP" />
+    <ClCompile Include="UGHSCROL.CPP" />
+    <ClCompile Include="UGLSTBOX.CPP" />
+    <ClCompile Include="Ugmedit.cpp" />
+    <ClCompile Include="UGMEMMAN.CPP" />
+    <ClCompile Include="UGMULTIS.CPP" />
+    <ClCompile Include="UGPRINT.CPP" />
+    <ClCompile Include="UGPTRLST.CPP" />
+    <ClCompile Include="UGSIDEHD.CPP" />
+    <ClCompile Include="UGTAB.CPP" />
+    <ClCompile Include="UGTOPHDG.CPP" />
+    <ClCompile Include="UGVSCROL.CPP" />
+    <ClCompile Include="zGridO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="UGCBTYPE.H" />
+    <ClInclude Include="UGCELL.H" />
+    <ClInclude Include="UGCELTYP.H" />
+    <ClInclude Include="UGCNRBTN.H" />
+    <ClInclude Include="UGCTARRW.H" />
+    <ClInclude Include="UGCTbutn.h" />
+    <ClInclude Include="Ugctelps.h" />
+    <ClInclude Include="UGCTRL.H" />
+    <ClInclude Include="UGCTsarw.h" />
+    <ClInclude Include="UGDEFINE.H" />
+    <ClInclude Include="UGDLTYPE.H" />
+    <ClInclude Include="UGDRGDRP.H" />
+    <ClInclude Include="UGDRWHNT.H" />
+    <ClInclude Include="UGDTASRC.H" />
+    <ClInclude Include="UGEDIT.H" />
+    <ClInclude Include="UGEXCEL.H" />
+    <ClInclude Include="UGFORMAT.H" />
+    <ClInclude Include="UGGDINFO.H" />
+    <ClInclude Include="UGGRID.H" />
+    <ClInclude Include="UGHINT.H" />
+    <ClInclude Include="UGHSCROL.H" />
+    <ClInclude Include="UGLSTBOX.H" />
+    <ClInclude Include="Ugmedit.h" />
+    <ClInclude Include="UGMEMMAN.H" />
+    <ClInclude Include="UGMULTIS.H" />
+    <ClInclude Include="UGPRINT.H" />
+    <ClInclude Include="UGPTRLST.H" />
+    <ClInclude Include="UGSIDEHD.H" />
+    <ClInclude Include="UGTAB.H" />
+    <ClInclude Include="UGTOPHDG.H" />
+    <ClInclude Include="UGVSCROL.H" />
+    <ClInclude Include="zGridO.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

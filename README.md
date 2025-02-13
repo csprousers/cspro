@@ -3,11 +3,13 @@
 
 This repository contains the code for the [Census and Survey Processing System](https://www.census.gov/data/software/cspro.html) (CSPro) and [CSEntry Android](https://play.google.com/store/apps/details?id=gov.census.cspro.csentry).
 
-The CSPro suite of programs that runs on Windows is coded in C++ using the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework. This code is built using [Microsoft Visual Studio](https://visualstudio.microsoft.com).
+The CSPro suite of programs that runs on Windows is coded in C++17 using the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework, with a few tools coded in C#. This code is built using [Microsoft Visual Studio](https://visualstudio.microsoft.com).
 
 CSEntry, the Android application, is coded in Java and Kotlin and built using [Android Studio](https://developer.android.com/studio).
 
 The shared runtime is coded in C++, with the [NDK](https://developer.android.com/ndk) toolset building this for Android.
+
+Details about building CSPro, as well as information about the codebase and programming principles, are available in [BUILD.md](https://github.com/csprousers/cspro/blob/dev/BUILD.md).
 
 ----
 
@@ -22,17 +24,19 @@ Released versions of the software are available at the following sites:
 
 CSPro is a work of the United States government and any CSPro-specific code is released to the public domain within the United States. CSPro uses several [open-source software](https://en.wikipedia.org/wiki/Open-source_software) packages, and it is essential to review each [license](https://github.com/csprousers/cspro/tree/dev/build-tools/Licenses/Licenses) to ensure that any derived use of this code follows all licenses.
 
+The use of CSPro is also governed by a [Terms of Service](https://github.com/csprousers/cspro/blob/dev/build-tools/Licenses/Licenses/CSPro.txt).
+
 
 ## Private Development, Public Repository
 
-Most development on CSPro occurs on a [private repository](https://github.com/CSProDevelopment/cspro). The commits in this public repository are snapshots of the development that occurs on the private repository.
+Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro). The commits in this public repository are snapshots of the development that occurs on the private repository. A list of pull requests that have been merged into the private repository's code is available at [HISTORY.md](https://github.com/csprousers/cspro/blob/dev/HISTORY.md).
 
 If you submit a pull request that is accepted by the development team, the pull request will be processed in this public repository and/or the private repository. Regardless, the changes will be incorporated as part of the next code snapshot.
 
 
 ## Limitations
 
-This public code snapshot differs from the code on the private repository that is used to create the released version of CSPro:
+The code snapshots in this public repository differ from the code on the private repository that is used to create the released version of CSPro:
 
 - The released version of CSPro uses the [SQLite Encryption Extension](https://sqlite.org/com/see.html) (SEE) to support working with encrypted SQLite databases. Because SEE requires a license, it cannot be released in this public repository. The SQLite compilation units included here are from the public SQLite release: [sqlite3.c](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.c) and [sqlite3.h](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.h). Any access to encrypted SQLite databases using code built from this public repository will result in an exception.
 

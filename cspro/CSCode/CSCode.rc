@@ -1,0 +1,709 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "../zDesignerF/resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\CSCode.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "0",            ID_CODE_FOLDING_FOLD_ALL, VIRTKEY, ALT, NOINVERT
+    "F",            ID_CODE_FOLDING_TOGGLE, VIRTKEY, CONTROL, ALT, NOINVERT
+    "0",            ID_CODE_FOLDING_UNFOLD_ALL, VIRTKEY, SHIFT, ALT, NOINVERT
+    VK_OEM_7,       ID_CODE_PASTE_STRING_LITERAL, VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_2,       ID_COMMENT_CODE,        VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_EDIT_FIND_NEXT,      VIRTKEY, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_FILE_CLOSE,          VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_FILE_CLOSE_ALL,      VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE_ALL,       VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_F1,          ID_HELP_FINDER,         VIRTKEY, NOINVERT
+    "K",            ID_RUN_COMPILE_OR_VALIDATE, VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_RUN_REPORT_PREVIEW,  VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_RUN_RUN,             VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "CSCode"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "CSCode"
+            VALUE "OriginalFilename", "CSCode.exe"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "Localhost Settings",          ID_FILE_LOCALHOST_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSCode",               ID_APP_ABOUT
+    END
+END
+
+IDR_CODEFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+W",     ID_FILE_CLOSE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Reload From Disk",            ID_FILE_RELOAD_FROM_DISK
+        MENUITEM SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
+        MENUITEM "Save All\tCtrl+Shift+S",      ID_FILE_SAVE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Localhost Settings",          ID_FILE_LOCALHOST_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Find\tCtrl+F",               ID_EDIT_FIND
+        MENUITEM "Find &Next\tF3",              ID_EDIT_FIND_NEXT
+        MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
+    END
+    POPUP "&Language"
+    BEGIN
+        MENUITEM "CSPro &Logic",                ID_LANGUAGE_CSPRO_LOGIC
+        MENUITEM "CSPro &Report (HTML)",        ID_LANGUAGE_CSPRO_REPORT_HTML
+        MENUITEM "CSPro Report",                ID_LANGUAGE_CSPRO_REPORT
+        MENUITEM "CSPro &Messages",             ID_LANGUAGE_CSPRO_MESSAGES
+        MENUITEM SEPARATOR
+        MENUITEM "CSPro Action Invoker",        ID_LANGUAGE_CSPRO_ACTION_INVOKER
+        MENUITEM "CSPro HTML &Dialog",          ID_LANGUAGE_CSPRO_HTML_DIALOG
+        MENUITEM SEPARATOR
+        MENUITEM "CSPro Document",              ID_LANGUAGE_CSPRO_DOCUMENT
+        MENUITEM SEPARATOR
+        MENUITEM "CSPro Specification File (JSON)", ID_LANGUAGE_CSPRO_SPEC_FILE_JSON
+        MENUITEM "CSPro Specification File (INI)", ID_LANGUAGE_CSPRO_SPEC_FILE_INI
+        MENUITEM SEPARATOR
+        MENUITEM "&HTML",                       ID_LANGUAGE_HTML
+        MENUITEM SEPARATOR
+        MENUITEM "Java&Script",                 ID_LANGUAGE_JAVASCRIPT
+        MENUITEM "&JSON",                       ID_LANGUAGE_JSON
+        MENUITEM SEPARATOR
+        MENUITEM "S&QL",                        ID_LANGUAGE_SQL
+        MENUITEM SEPARATOR
+        MENUITEM "&YAML",                       ID_LANGUAGE_YAML
+        MENUITEM SEPARATOR
+        MENUITEM "None (&Text)",                ID_LANGUAGE_NONE
+    END
+    POPUP "&Code"
+    BEGIN
+        MENUITEM "Paste as String Literal\tCtrl+""", ID_CODE_PASTE_STRING_LITERAL
+        MENUITEM SEPARATOR
+        MENUITEM "String Encoder",              ID_CODE_STRING_ENCODER
+        MENUITEM "Path Adjuster",               ID_CODE_PATH_ADJUSTER
+        MENUITEM SEPARATOR
+        MENUITEM "Deprecation &Warnings",       ID_CODE_DEPRECATION_WARNINGS
+        MENUITEM "Code Folding",                ID_CODE_FOLDING
+    END
+    POPUP "&Run"
+    BEGIN
+        MENUITEM "<placeholder>",               ID_RUN_PLACEHOLDER
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Build",                      ID_WINDOW_BUILD
+        MENUITEM "&Output",                     ID_WINDOW_OUTPUT
+        MENUITEM SEPARATOR
+        MENUITEM "&HTML Viewer",                ID_WINDOW_HTML_VIEWER
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSCode",               ID_APP_ABOUT
+    END
+END
+
+IDR_TAB_CONTEXT MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM "Close All But This",          ID_CLOSE_ALL_BUT_THIS
+        MENUITEM SEPARATOR
+        MENUITEM "Copy Full Path",              ID_COPY_FULL_PATH
+        MENUITEM "Open Containing Folder",      ID_OPEN_CONTAINING_FOLDER
+        MENUITEM SEPARATOR
+        MENUITEM "Open in Associated Application", ID_OPEN_IN_ASSOCIATED_APPLICATION
+        MENUITEM SEPARATOR
+        POPUP "Localhost"
+        BEGIN
+            MENUITEM "Copy Mapping",                ID_LOCALHOST_COPY_MAPPING
+            MENUITEM "Open in HTML Viewer",         ID_LOCALHOST_OPEN_IN_HTML_VIEWER
+            MENUITEM "Open in External Browser",    ID_LOCALHOST_OPEN_IN_WEB_BROWSER
+        END
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+END
+
+IDR_CODEFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_RUN_COMPILE_OR_VALIDATE
+    BUTTON      ID_RUN_RUN
+    BUTTON      ID_RUN_STOP
+    SEPARATOR
+    BUTTON      ID_EDIT_UNDO
+    BUTTON      ID_EDIT_REDO
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_EDIT_FIND
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+END
+
+IDR_TOOLBAR_EXTRA TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_CLOSE
+    BUTTON      ID_FILE_CLOSE_ALL
+    BUTTON      ID_FILE_RELOAD_FROM_DISK
+    BUTTON      ID_FILE_SAVE_AS
+    BUTTON      ID_FILE_SAVE_ALL
+    BUTTON      ID_EDIT_CLEAR
+    BUTTON      ID_EDIT_SELECT_ALL
+    BUTTON      ID_LANGUAGE_CSPRO_LOGIC
+    BUTTON      ID_LANGUAGE_CSPRO_REPORT_HTML
+    BUTTON      ID_LANGUAGE_CSPRO_MESSAGES
+    BUTTON      ID_LANGUAGE_JAVASCRIPT
+    BUTTON      ID_LANGUAGE_JSON
+    BUTTON      ID_LANGUAGE_SQL
+    BUTTON      ID_COPY_FULL_PATH
+    BUTTON      ID_OPEN_CONTAINING_FOLDER
+    BUTTON      ID_LOCALHOST_COPY_MAPPING
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// PNG
+//
+
+IDR_MAINFRAME           PNG                     "res\\Toolbar MainFrame.png"
+
+IDR_CODEFRAME           PNG                     "res\\Toolbar CodeFrame.png"
+
+IDR_TOOLBAR_EXTRA       PNG                     "res\\Toolbar Extra Icons.png"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_LOCALHOST DIALOGEX 0, 0, 225, 192
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Localhost Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,28,171,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,87,171,50,14
+    PUSHBUTTON      "&Help",ID_HELP,146,171,50,14
+    GROUPBOX        "Initialization",IDC_STATIC,7,7,211,53
+    CONTROL         "Launch the local server at program startup",IDC_LOCALHOST_START_AUTOMATICALLY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,20,153,10
+    LTEXT           "Try to use a specific port (49152 to 65535):",IDC_STATIC,17,39,141,8
+    EDITTEXT        IDC_LOCALHOST_PREFERRED_PORT,171,36,39,14,ES_AUTOHSCROLL
+    GROUPBOX        "Mappings",IDC_STATIC,7,67,211,96
+    LTEXT           "Drives to automatically map when the local server starts:",IDC_STATIC,17,82,183,8
+    LISTBOX         IDC_LOCALHOST_AUTOMATICALLY_MAPPED_DRIVES,17,96,193,37,LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Current session mappings:",IDC_STATIC,17,143,146,8
+    PUSHBUTTON      "Create File Mapping",IDC_LOCALHOST_CREATE_MAPPING,131,140,79,14
+END
+
+IDD_HTML_DIALOG_TEMPLATES DIALOGEX 0, 0, 585, 329
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "HTML Dialog Templates"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Dialog Templates:",IDC_STATIC,7,7,58,8
+    CONTROL         "",IDC_SAMPLES_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,20,181,272
+    LTEXT           "Source Filename:",IDC_STATIC,197,7,56,8
+    LTEXT           "...",IDC_FILENAME,267,7,311,8
+    LTEXT           "Description:",IDC_STATIC,197,20,39,8
+    LTEXT           "...",IDC_DESCRIPTION,267,21,311,34
+    LTEXT           "Sample Input:",IDC_STATIC,197,60,46,8
+    EDITTEXT        IDC_JSON_INPUT,197,74,381,198,ES_MULTILINE | ES_AUTOHSCROLL
+    PUSHBUTTON      "Show Dialog",IDC_SHOW_DIALOG,197,278,103,14
+    PUSHBUTTON      "Replace HTML With Source",IDC_REPLACE_HTML,336,278,103,14
+    PUSHBUTTON      "Replace Input With Sample",IDC_REPLACE_INPUT,475,278,103,14
+    DEFPUSHBUTTON   "Close",IDCANCEL,267,308,50,14
+    PUSHBUTTON      "&Help",ID_HELP,528,308,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_LOCALHOST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 218
+        VERTGUIDE, 17
+        VERTGUIDE, 210
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 185
+    END
+
+    IDD_HTML_DIALOG_TEMPLATES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 578
+        VERTGUIDE, 197
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 322
+        HORZGUIDE, 292
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_LOCALHOST AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 100, 100, 0,
+    100, 100, 0, 0
+END
+
+IDD_HTML_DIALOG_TEMPLATES AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 0, 0,
+    0, 0, 0, 100,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 100, 0, 0,
+    50, 100, 0, 0,
+    100, 100, 0, 0,
+    50, 100, 0, 0,
+    100, 100, 0, 0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "CSPro CSCode"
+    AFX_IDS_IDLEMESSAGE     "For Help, press F1"
+    AFX_IDS_HELPMODEMESSAGE "Select an object on which to get Help"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+    ID_HELP_INDEX           "Opens Help\nHelp Topics"
+    ID_HELP_FINDER          "List Help topics\nHelp Topics"
+    ID_HELP_USING           "Display instructions about how to use help\nHelp"
+    ID_CONTEXT_HELP         "Display help for clicked on buttons, menus and windows\nHelp"
+    ID_HELP                 "Display help for current task or command\nHelp"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CLOSE_ALL_BUT_THIS   "Close all tabs but this one\nClose All But This"
+    ID_FILE_CLOSE_ALL       "Close all documents\nClose All"
+    ID_FILE_LOCALHOST_SETTINGS 
+                            "Manage settings for the local server\tLocalhost Settings"
+    ID_FILE_RELOAD_FROM_DISK 
+                            "Reload the file from its last saved version\nReload From Disk"
+    ID_FILE_SAVE_ALL        "Save all documents\nSave All"
+    ID_LANGUAGE_CSPRO_LOGIC "Interpret file as CSPro Logic\nCSPro Logic"
+    ID_LANGUAGE_CSPRO_REPORT_HTML 
+                            "Interpret file as CSPro Report (HTML)\nCSPro Report (HTML)"
+    ID_LANGUAGE_CSPRO_REPORT "Interpret file as CSPro Report\nCSPro Report"
+    ID_LANGUAGE_CSPRO_MESSAGES 
+                            "Interpret file as CSPro Messages\nCSPro Messages"
+    ID_LANGUAGE_CSPRO_ACTION_INVOKER 
+                            "Interpret file as CSPro Action Invoker\nCSPro Action Invoker"
+    ID_LANGUAGE_CSPRO_HTML_DIALOG 
+                            "Interpret file as CSPro HTML Dialog\nCSPro HTML Dialog"
+    ID_LANGUAGE_CSPRO_DOCUMENT 
+                            "Interpret file as CSPro Document\nCSPro Document"
+    ID_LANGUAGE_CSPRO_SPEC_FILE_JSON 
+                            "Interpret file as CSPro Specification File (JSON)\nCSPro Specification File (JSON)"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_FIND_NEXT       "Find next occurrence of search text\nFind Next"
+END
+
+STRINGTABLE
+BEGIN
+    ID_LANGUAGE_CSPRO_SPEC_FILE_INI 
+                            "Interpret file as CSPro Specification File (INI)\nCSPro Specification File (INI)"
+    ID_LANGUAGE_HTML        "Interpret file as HTML\nHTML"
+    ID_LANGUAGE_JAVASCRIPT  "Interpret file as JavaScript\nJavaScript"
+    ID_LANGUAGE_JSON        "Interpret file as JSON\nJSON"
+    ID_LANGUAGE_SQL         "Interpret file as SQL\nSQL"
+    ID_LANGUAGE_YAML        "Interpret file as YAML\nYAML"
+    ID_LANGUAGE_NONE        "Interpret file as Text\nNone (Text)"
+    ID_LOCALHOST_COPY_MAPPING 
+                            "Copy an address to access this document using a localhost\nCopy Mapping"
+    ID_LOCALHOST_OPEN_IN_HTML_VIEWER 
+                            "Open this document in the HTML Viewer\nOpen in HTML Viewer"
+    ID_LOCALHOST_OPEN_IN_WEB_BROWSER 
+                            "Open this document in the default browser\nOpen in External Browser"
+    ID_OPEN_IN_ASSOCIATED_APPLICATION 
+                            "Open the file in its associated application\nOpen in Associated Application"
+    ID_RUN_ABORT_ON_FIRST_EXCEPTION 
+                            "Stop processing actions on the first exception\nAbort on First Exception"
+    ID_RUN_COMPILE_OR_VALIDATE 
+                            "Compile or validate the code\nCompile or Validate"
+    ID_RUN_CSPRO_DOWNGRADE_SPEC_FILE 
+                            "Convert specification file to CSPro 7.7-compatible file\nConvert to CSPro 7.7 Format"
+    ID_RUN_CSPRO_LOGIC_V0   "Change logic version to original (before 8.0)\nOriginal"
+END
+
+STRINGTABLE
+BEGIN
+    ID_RUN_CSPRO_LOGIC_V8   "Change logic version to CSPro 8.0+\nCSPro 8.0+"
+    ID_RUN_CSPRO_SPEC_FILE_APP 
+                            "Modify specification file type to Application\nApplication"
+    ID_RUN_CSPRO_SPEC_FILE_CMP 
+                            "Modify specification file type to Compare Data\nCompare Data"
+    ID_RUN_CSPRO_SPEC_FILE_CSDS 
+                            "Modify specification file type to Deploy Application\nDeploy Application"
+    ID_RUN_CSPRO_SPEC_FILE_CSPACK 
+                            "Modify specification file type to Pack Application\nPack Application"
+    ID_RUN_CSPRO_SPEC_FILE_CSPROPS 
+                            "Modify specification file type to Application Properties\nApplication Properties"
+    ID_RUN_CSPRO_SPEC_FILE_DCF 
+                            "Modify specification file type to Dictionary\nDictionary"
+    ID_RUN_CSPRO_SPEC_FILE_EXF 
+                            "Modify specification file type to Export Data\nExport Data"
+    ID_RUN_CSPRO_SPEC_FILE_FQF 
+                            "Modify specification file type to Tabulate Frequencies\nTabulate Frequencies"
+    ID_RUN_CSPRO_SPEC_FILE_SSF 
+                            "Modify specification file type to Sort Data\nSort Data"
+    ID_RUN_CSPRO_SPEC_FILE_XL2CS 
+                            "Modify specification file type to Excel to CSPro\nExcel to CSPro"
+    ID_RUN_DISPLAY_RESULTS_AS_JSON 
+                            "Display the results of the actions as JSON\nDisplay Results as JSON"
+    ID_RUN_FORMAT_JSON      "Format the JSON using a readable format\nFormat JSON"
+    ID_RUN_COMPRESS_JSON    "Compress the JSON using a format with minimal whitespace\n&Compress JSON"
+    ID_RUN_HTML_DIALOG_TEMPLATES 
+                            "Use code or data from HTML dialog templates\nHTML Dialog Templates"
+    ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 
+                            "Parse the JavaScript file to determine if it is a module\nAutodetect"
+END
+
+STRINGTABLE
+BEGIN
+    ID_RUN_JAVASCRIPT_MODULE_GLOBAL 
+                            "Treat the JavaScript file as part of the global object (not a module)\nGlobal"
+    ID_RUN_JAVASCRIPT_MODULE_MODULE 
+                            "Treat the JavaScript file as a module\nECMAScript Module"
+    ID_RUN_REPORT_PREVIEW   "Preview the report\nReport Preview"
+    ID_RUN_RUN              "Run the code\nRun"
+    ID_RUN_STOP             "Stop any running code\nStop"
+    ID_RUN_VALIDATE_JSON_ONLY 
+                            "Validate the JSON as JSON only (not as a specification file)\nValidate JSON Only"
+    ID_STATUS_PANE_FILE_POS "                           "
+    ID_STATUS_PANE_FILE_TYPE "                       "
+    ID_WINDOW_BUILD         "View the Build window\nBuild"
+    ID_WINDOW_OUTPUT        "View the Output window\nOutput"
+    ID_WINDOW_HTML_VIEWER   "Display the HTML Viewer\nHTML Viewer"
+END
+
+STRINGTABLE
+BEGIN
+    IDR_CODEFRAME           "\nCSCode\nCSCode\n\n\nCSCode.Document\nCSCode.Document"
+    IDR_MAINFRAME           "CSCode"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

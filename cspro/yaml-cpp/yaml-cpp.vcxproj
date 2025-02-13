@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\external\yaml-cpp\src\binary.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\convert.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\depthguard.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\directives.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\emit.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\emitfromevents.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\emitter.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\emitterstate.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\emitterutils.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\exceptions.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\exp.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\memory.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\node.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\nodebuilder.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\nodeevents.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\node_data.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\null.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\ostream_wrapper.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\parse.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\parser.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\regex_yaml.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\scanner.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\scanscalar.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\scantag.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\scantoken.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\simplekey.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\singledocparser.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\stream.cpp" />
+    <ClCompile Include="..\external\yaml-cpp\src\tag.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\anchor.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\binary.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\depthguard.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\dll.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\emitfromevents.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\emitter.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\emitterdef.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\emittermanip.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\emitterstyle.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\eventhandler.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\exceptions.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\mark.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\noexcept.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\null.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\ostream_wrapper.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\parser.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\stlemitter.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\traits.h" />
+    <ClInclude Include="..\external\yaml-cpp\include\yaml-cpp\yaml.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{0476F3BC-79CC-4653-BA60-31BB8DEAD056}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCDLLProj</Keyword>
+    <RootNamespace>yaml-cpp</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>YAML_CPP_DLL;yaml_cpp_EXPORTS;WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)external/yaml-cpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>YAML_CPP_DLL;yaml_cpp_EXPORTS;WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)external/yaml-cpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,19 @@
+New.png
+Open.png
+Save.png
+Compile.png
+Run.png
+Undo.png
+Redo.png
+Cut.png
+Copy.png
+Paste.png
+Find.png
+Listing File.png
+View - Logic.png
+View - Questionnaire.png
+Edit - Dictionary.png
+Edit - Form.png
+Edit - Order.png
+Edit - Table.png
+Help.png

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update SQLite Encryption Extension (SEE)", "Update SQLite Encryption Extension (SEE)\Update SQLite Encryption Extension (SEE).csproj", "{641D2930-922C-4FC7-A4E0-50F9160AE70E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {924D75B2-D43C-4F5A-8467-2B6250904C07}
+	EndGlobalSection
+EndGlobal

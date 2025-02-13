@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_dialog_operator_id"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <gov.census.cspro.commonui.EditTextExt
+        android:id="@+id/edittext_operator_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="false"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="false"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/edittxt_border"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="@string/operator_id_prompt"
+        android:imeOptions="actionDone"
+        android:inputType="textNoSuggestions"
+        android:text=""
+        android:textAlignment="center" >
+    </gov.census.cspro.commonui.EditTextExt>
+
+</RelativeLayout>

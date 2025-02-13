@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- disable state. -->
+<item android:state_enabled="false">
+  <shape android:shape="rectangle">
+
+    <corners android:radius="1dp" />
+    <solid android:color="#FAFBFC"/>
+    <padding android:left="1dp"
+      android:top="1dp"
+      android:right="1dp"
+      android:bottom="1dp" />
+    <stroke android:color="#5D6064" android:width="1dp" />
+
+
+  </shape>
+</item>
+
+<!--released state. -->
+<item android:state_pressed="false">
+  <shape android:shape="rectangle">
+
+    <corners android:radius="1dp" />
+    <solid android:color="#FAFBFC"/>
+    <padding android:left="1dp"
+      android:top="1dp"
+      android:right="1dp"
+      android:bottom="1dp" />
+    <stroke android:color="#5D6064" android:width="1dp" />
+
+  </shape>
+</item>
+
+<!--pressed state. -->
+<item android:state_pressed="true">
+  <shape android:shape="rectangle">
+
+    <corners android:radius="1dp" />
+    <solid android:color="@color/signature_text_bckgrnd_enabled"/>
+    <padding android:left="1dp"
+      android:top="1dp"
+      android:right="1dp"
+      android:bottom="1dp" />
+    <stroke android:color="#5D6064" android:width="1dp" />
+
+  </shape>
+</item>
+
+</selector>

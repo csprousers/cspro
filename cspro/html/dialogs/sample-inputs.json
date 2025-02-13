@@ -1,0 +1,88 @@
+﻿[
+  {
+    "filename": "choice.html", 
+    "description": "Single Selection Choice", 
+    "subdescription": "A dialog for selecting a single option from a number of choices, with an option to select a choice by default. This is used by the logic function: accept. The choice indices must be non-negative integers.", 
+    "samples": [
+      {
+        "description": "simple example", 
+        "input": {
+          "title": "What vegetable are you currently craving?", 
+          "choices": [
+            {
+              "caption": "Brussels Sprouts", 
+              "index": 0
+            }, 
+            {
+              "caption": "Green Beans", 
+              "index": 1
+            }, 
+            {
+              "caption": "Lima Beans", 
+              "index": 2
+            }
+          ]
+        }
+      }, 
+      {
+        "description": "with a default selection", 
+        "input": {
+          "title": "When were HTML dialogs introduced to CSPro?", 
+          "defaultIndex": 7, 
+          "choices": [
+            {
+              "caption": "CSPro 6.3", 
+              "index": 6
+            }, 
+            {
+              "caption": "CSPro 7.7", 
+              "index": 7
+            }, 
+            {
+              "caption": "CSPro 8.0", 
+              "index": 8
+            }
+          ]
+        }
+      }
+    ]
+  }, 
+  {
+    "filename": "errmsg.html", 
+    "description": "Error Message", 
+    "subdescription": "A dialog for displaying an error message with one or more buttons. This is used by the logic function: errmsg. The button indices must be non-negative integers.", 
+    "samples": [
+      {
+        "description": "simple example", 
+        "input": {
+          "title": "Sync Error", 
+          "message": "There was an error connecting to http://csweb.csprousers.org.", 
+          "buttons": [
+            {
+              "caption": "OK", 
+              "index": 1
+            }
+          ]
+        }
+      }, 
+      {
+        "description": "with multiple buttons and a default selection", 
+        "input": {
+          "title": "Sync Error", 
+          "message": "There was an error connecting to http://csweb.csprousers.org. Would you like to try again?", 
+          "defaultButtonIndex": 1, 
+          "buttons": [
+            {
+              "caption": "Try Again", 
+              "index": 1
+            }, 
+            {
+              "caption": "Cancel", 
+              "index": 2
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

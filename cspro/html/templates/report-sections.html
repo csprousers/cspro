@@ -1,0 +1,163 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, minimum-scale=1">
+
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css" />
+    <link rel="stylesheet" href="/css/reports.css" />
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+
+    <!-- Report properties-->
+    <?
+    string report_title = "My Report Title";
+    string report_subtitle = "My Report Subtitle";
+
+    list string report_sections;
+    report_sections.add("Home");
+    report_sections.add("Chapter 1");
+    report_sections.add("About");
+    ?>
+
+    <title>~~report_title~~</title>
+</head>
+<body id="myPage" data-bs-spy="scroll" data-bs-target=".navbar" data-bs-offset="60">
+
+    <!-- Report content -->
+
+
+    <sections>
+        <!--Section 1-->
+        <div class="row">
+            <div class="col-md-8">
+                <h2>Home</h2>
+                <br />
+                <h4>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus non nisl vel nisl gravida rhoncus. Ut ipsum enim, elementum a massa quis, efficitur porttitor nunc. Donec viverra egestas est eu venenatis. Suspendisse cursus mauris et ante cursus porttitor. Quisque at sodales nulla, a hendrerit sem. Donec pellentesque mauris eu nulla ullamcorper, sagittis congue felis sodales. Sed quis mattis ligula, vel porta orci. Etiam suscipit metus hendrerit aliquet commodo.</h4>
+                <br>
+                <p>Duis ut neque sit amet libero porttitor tincidunt. Nunc non lectus enim. Phasellus ut lorem vel lacus interdum suscipit non a magna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi efficitur porttitor tortor aliquam pulvinar. Cras semper scelerisque eros, ac sollicitudin augue fringilla nec. Nulla vitae egestas purus. Duis vel diam ut lacus feugiat eleifend. Cras id velit eu sem tempor hendrerit. Sed id viverra elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nam venenatis sapien tortor. Cras vulputate, elit ac porta finibus, quam tellus commodo nunc, et fermentum magna orci luctus purus.</p>
+                <br>
+                <p>Vestibulum eget vulputate lacus, nec congue nunc. Sed placerat nisi quis nisi commodo aliquet. Ut cursus nisi eget mi gravida posuere. Vivamus sit amet rutrum metus. Etiam egestas lectus auctor elit luctus suscipit. Integer accumsan nulla ligula, in porta metus aliquam id. Suspendisse pulvinar consequat felis non interdum. Curabitur iaculis sagittis magna dignissim dictum. Pellentesque neque sem, viverra rutrum accumsan feugiat, accumsan sit amet mauris. Nulla laoreet a elit ut tempor. Cras in mauris sodales, blandit est non, fermentum ante. Nunc mattis nisl eget ligula sagittis, eu sollicitudin risus aliquet. Proin auctor lacinia hendrerit. </p>
+            </div>
+            <div class="col-md-4 text-center">
+                <span class="bi bi-check-circle-fill big-icon"></span>
+            </div>
+        </div>
+
+        <!--Section 2-->
+        <div class="row bg-grey">
+            <div class="col-md-4 text-center">
+                <span class="bi bi-card-image big-icon"></span>
+            </div>
+            <div class="col-md-8">
+                <h2>Chapter 1</h2>
+                <br />
+                <h4>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus non nisl vel nisl gravida rhoncus. Ut ipsum enim, elementum a massa quis, efficitur porttitor nunc. Donec viverra egestas est eu venenatis. Suspendisse cursus mauris et ante cursus porttitor. Quisque at sodales nulla, a hendrerit sem. Donec pellentesque mauris eu nulla ullamcorper, sagittis congue felis sodales. Sed quis mattis ligula, vel porta orci. Etiam suscipit metus hendrerit aliquet commodo.</h4>
+                <br>
+                <p>Duis ut neque sit amet libero porttitor tincidunt. Nunc non lectus enim. Phasellus ut lorem vel lacus interdum suscipit non a magna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi efficitur porttitor tortor aliquam pulvinar. Cras semper scelerisque eros, ac sollicitudin augue fringilla nec. Nulla vitae egestas purus. Duis vel diam ut lacus feugiat eleifend. Cras id velit eu sem tempor hendrerit. Sed id viverra elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nam venenatis sapien tortor. Cras vulputate, elit ac porta finibus, quam tellus commodo nunc, et fermentum magna orci luctus purus.</p>
+                <br>
+                <p>Vestibulum eget vulputate lacus, nec congue nunc. Sed placerat nisi quis nisi commodo aliquet. Ut cursus nisi eget mi gravida posuere. Vivamus sit amet rutrum metus. Etiam egestas lectus auctor elit luctus suscipit. Integer accumsan nulla ligula, in porta metus aliquam id. Suspendisse pulvinar consequat felis non interdum. Curabitur iaculis sagittis magna dignissim dictum. Pellentesque neque sem, viverra rutrum accumsan feugiat, accumsan sit amet mauris. Nulla laoreet a elit ut tempor. Cras in mauris sodales, blandit est non, fermentum ante. Nunc mattis nisl eget ligula sagittis, eu sollicitudin risus aliquet. Proin auctor lacinia hendrerit. </p>
+            </div>
+        </div>
+
+        <!--Section 3-->
+        <div class="row">
+            <div class="col-md-8">
+                <h2>About</h2>
+                <br />
+                <h4>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus non nisl vel nisl gravida rhoncus. Ut ipsum enim, elementum a massa quis, efficitur porttitor nunc. Donec viverra egestas est eu venenatis. Suspendisse cursus mauris et ante cursus porttitor. Quisque at sodales nulla, a hendrerit sem. Donec pellentesque mauris eu nulla ullamcorper, sagittis congue felis sodales. Sed quis mattis ligula, vel porta orci. Etiam suscipit metus hendrerit aliquet commodo.</h4>
+                <br>
+                <p>Duis ut neque sit amet libero porttitor tincidunt. Nunc non lectus enim. Phasellus ut lorem vel lacus interdum suscipit non a magna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi efficitur porttitor tortor aliquam pulvinar. Cras semper scelerisque eros, ac sollicitudin augue fringilla nec. Nulla vitae egestas purus. Duis vel diam ut lacus feugiat eleifend. Cras id velit eu sem tempor hendrerit. Sed id viverra elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nam venenatis sapien tortor. Cras vulputate, elit ac porta finibus, quam tellus commodo nunc, et fermentum magna orci luctus purus.</p>
+                <br>
+                <p>Vestibulum eget vulputate lacus, nec congue nunc. Sed placerat nisi quis nisi commodo aliquet. Ut cursus nisi eget mi gravida posuere. Vivamus sit amet rutrum metus. Etiam egestas lectus auctor elit luctus suscipit. Integer accumsan nulla ligula, in porta metus aliquam id. Suspendisse pulvinar consequat felis non interdum. Curabitur iaculis sagittis magna dignissim dictum. Pellentesque neque sem, viverra rutrum accumsan feugiat, accumsan sit amet mauris. Nulla laoreet a elit ut tempor. Cras in mauris sodales, blandit est non, fermentum ante. Nunc mattis nisl eget ligula sagittis, eu sollicitudin risus aliquet. Proin auctor lacinia hendrerit. </p>
+            </div>
+            <div class="col-md-4 text-center">
+                <span class="bi bi-patch-question-fill big-icon"></span>
+            </div>
+        </div>
+
+        <!--Add more section content here-->
+    </sections>
+
+    <!--Set report footer here-->
+    <report-footer>
+        <div class="footer-copyright text-center text-light py-3">
+            Check out the CSPro Users Forum:
+            <a href="https://www.csprousers.org/forum">csprousers.org/forum</a>
+        </div>
+    </report-footer>
+
+    <!--End report content-->
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" style="padding-left:12px;">
+        <a class="navbar-brand report-icon" href="#myPage"><img src="/images/report-icon.svg" /></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <? do numeric ctr = 1 while ctr <= report_sections.length() ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="#s~~ctr~~">~~report_sections(ctr)~~ <span class="visually-hidden">(current)</span></a>
+                </li>
+                <? enddo; ?>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="mt-4 p-5 text-center" style="background-color:#ddd;">
+        <div>
+            <a href="https://www.census.gov/data/software/cspro.html"><img src="/images/cspro-logo-medium.png" /></a>
+        </div>
+        <h1 style="font-size:43px;letter-spacing:10px;">~~report_title~~</h1>
+        <span style="letter-spacing: 5px;">~~report_subtitle~~</span>
+    </div>
+
+    <? do numeric ctr = 1 while ctr <= report_sections.length() ?>
+    <div id="s~~ctr~~" class="container container-fluid">
+        <script>
+            $('#s~~ctr~~').append($('sections').children().eq(0));
+        </script>
+    </div>
+    <? enddo; ?>
+
+    <footer class="page-footer font-small bg-dark">
+        <script>
+            $('.page-footer').append($('report-footer').children());
+        </script>
+    </footer>
+
+    <script>
+        $(document).ready(function () {
+            $('sections').hide();
+
+            // Add smooth scrolling to all links in navbar + footer link
+            $(".navbar a, footer a[href='#myPage'], #scmore").on('click', function (event) {
+
+                // Prevent default anchor click behavior
+                event.preventDefault();
+
+                // Store hash
+                var hash = this.hash;
+
+                // Using jQuery's animate() method to add smooth page scroll
+                // The optional number (90) specifies the number of milliseconds it takes to scroll to the specified area
+                $('html, body').animate({
+                    scrollTop: $(hash).offset().top
+                }, 90, function () {
+
+                    // Add hash (#) to URL when done scrolling (default click behavior)
+                    window.location.hash = hash;
+                });
+            });
+        })
+    </script>
+
+</body>
+
+</html>

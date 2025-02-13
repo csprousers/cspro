@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A9645BD1-4083-4C76-81C8-12BBD26DEDB2}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <ProjectName>zTbdO</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;ZTBDO_IMPL;_CRT_NONSTDC_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_AFXEXT;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;ZTBDO_IMPL;_CRT_NONSTDC_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_AFXEXT;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="basetab2.cpp" />
+    <ClCompile Include="BreakIt.cpp" />
+    <ClCompile Include="ccross.cpp" />
+    <ClCompile Include="cLinkSta.cpp" />
+    <ClCompile Include="cLinkSub.cpp" />
+    <ClCompile Include="cLinkTab.cpp" />
+    <ClCompile Include="cLinkTer.cpp" />
+    <ClCompile Include="cLinkUnt.cpp" />
+    <ClCompile Include="cLinkVar.cpp" />
+    <ClCompile Include="coordmem.cpp" />
+    <ClCompile Include="ctstat.cpp" />
+    <ClCompile Include="ctstatv.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="subexpr.cpp" />
+    <ClCompile Include="subrange.cpp" />
+    <ClCompile Include="TableAc.cpp" />
+    <ClCompile Include="TbdFile.cpp" />
+    <ClCompile Include="TbdFileM.cpp" />
+    <ClCompile Include="TbdSlice.cpp" />
+    <ClCompile Include="TbdTable.cpp" />
+    <ClCompile Include="TbiFile.cpp" />
+    <ClCompile Include="zTbdO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="basetab2.h" />
+    <ClInclude Include="Bitoper.h" />
+    <ClInclude Include="BreakIt.h" />
+    <ClInclude Include="ccross.h" />
+    <ClInclude Include="cLinkSta.h" />
+    <ClInclude Include="cLinkSub.h" />
+    <ClInclude Include="cLinkTab.h" />
+    <ClInclude Include="cLinkTer.h" />
+    <ClInclude Include="cLinkUnt.h" />
+    <ClInclude Include="cLinkVar.h" />
+    <ClInclude Include="coordmem.h" />
+    <ClInclude Include="ctstat.h" />
+    <ClInclude Include="ctstatv.h" />
+    <ClInclude Include="cttree.h" />
+    <ClInclude Include="defslot.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="subexpr.h" />
+    <ClInclude Include="subrange.h" />
+    <ClInclude Include="TableAc.h" />
+    <ClInclude Include="TbdFile.h" />
+    <ClInclude Include="TbdFileM.h" />
+    <ClInclude Include="TbdSlice.h" />
+    <ClInclude Include="TbdTable.h" />
+    <ClInclude Include="TbiFile.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
+      <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

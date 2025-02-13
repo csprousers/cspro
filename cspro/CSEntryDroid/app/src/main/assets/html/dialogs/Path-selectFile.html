@@ -1,0 +1,476 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/external/mustache/mustache.min.js"></script>
+
+    <title>Select File</title>
+
+    <style>
+        .my-list-item {
+            z-index: 1;
+            outline: none !important;
+            border-top-color: transparent;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            /*border-top-width: 1px !important;*/
+        }
+            .my-list-item:focus {
+                /*border-color: #777;
+                border-top: 1px solid #777 !important;
+                background:red;*/
+            }
+
+        .my-icon {
+            width: 28px;
+            height: 28px;
+            background-size: 28px;
+            background-repeat: no-repeat;
+        }
+    </style>
+
+    <script id="selectFileTemplate" type="text/template">
+        <div id="mWidth" style="display:inline-block;width:800px;height:600px;"></div>
+        <div id="mContainer" class="container-fluid my-dialog errmsg-dialog">
+            <div id="mTitle" class="row my-dialog-header">
+                <div class="col withNewline" id="mmTitle" style="padding-right:32px;">{{title}}</div>
+                <div class="btn-close my-close-button" aria-label="Close" onclick="dialogReturn();">
+                </div>
+            </div>
+            <div id="mCurDir" class="row" style="background-color:black;color:#ddd;">
+                <div class="col" style="word-wrap:break-word;">
+                {{#currentListing.pathOverride}}
+                    {{currentListing.pathOverride}}
+                {{/currentListing.pathOverride}}
+                {{^currentListing.pathOverride}}
+                    {{currentListing.path}}
+                {{/currentListing.pathOverride}}
+                </div>
+            </div>
+            <div id="mBody" class="row my-dialog-body" style="overflow-y:auto;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;">
+                <div class="col-12" style="padding-right:0; padding-left:0;">
+                    <div class="list-group my-input" id="list-tab" role="tablist" style="border-radius:0;margin-top:0;">
+                        {{#currentListing.paths}}
+                        <a id="i{{index}}" class="list-group-item list-group-item-action my-list-item" data-bs-toggle="list" href="#" role="tab" aria-controls="{{name}}" onclick="selectItem({{index}});">
+                            <div style="display:table-row">
+                                <div style="display:table-cell;padding-right:8px;vertical-align:middle;">
+                                    <div class="my-icon" style="background-image:url('/images/{{icon}}.png')"></div>
+                                </div>
+                                <div style="display:table-cell;width:100%" class="withNewline">
+                                    {{name}}
+                                </div>
+                            </div>
+                        </a>
+                        {{/currentListing.paths}}
+                    </div>
+                    <div id="no-files-found" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; text-align: center;display:none;">
+                        <div style="position: absolute; width: 100%; top: 40%; font-size:18px;color:#999;">
+                            <div class="bi bi-slash-circle" style="font-size:24px;"></div>
+                            <div>{{noFilesText}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="mFooter" class="row text-center my-dialog-footer" style="box-shadow: 0 -2px 8px rgba(0,0,0,.2); position: relative; z-index: 100; margin-bottom: 0; padding-bottom: 8px;">
+                <div class="col my-dialog-button-col">
+                    <button class="btn btn-light col-12 text-center" id="okButton" type="button" onclick="dialogReturn(selectedIndex);" tabindex="-1" disabled style="color:#aaa;">
+                        <span class="bi bi-check-lg"></span>
+                    </button>
+                </div>
+                <div class="col my-dialog-button-col">
+                    <button class="btn btn-light col-12 text-center" id="cancelButton" type="button" onclick="dialogReturn();" tabindex="-1">
+                        <span class="bi bi-x-lg" style="color:#500;"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        const CS = new CSProActionInvoker("73ef93dc8d7e348cad3d8e3c64e81b77");
+        var selectedIndex = 0;
+        var focusedIndex = 0;
+        var firstFocus = true;
+        var tabItems = [];
+        var tabFocusIndex = 0;
+        var realClick = true;
+        const parentDirectoryName = "..";
+        const specialPaths = CS.Path.getSpecialPaths();
+        const onAndroid = ( specialPaths.CSEntry != undefined );
+
+        const iconsDict = {
+            ".ai.arw.bmp.cr2.dib.eps.gif.heic.heif.ind.indd.indt.j2k.jfi.jfif.jp2.jpe.jif.jpeg.jpf.jpg.jpm.jpx.k25.mj2.nrw.png.psd.raw.svg.svgz.tif.tiff.webp.": "file-picture-icon",
+            ".8svx.aax.act.aiff.alac.amr.ape.au.awb.cda.dss.dvf.flac.gsm.iklax.ivs.m4a.m4b.m4p.mmf.mogg.mp3.mpc.msv.nmf.oga.ogg.opus.ra.raw.rf64.rm.sln.tta.voc.vox.wav.webm.wma.wv.": "file-music-icon",
+            ".3g2.3gp.amv.asf.avi.drc.f4a.f4b.f4p.f4v.flv.gif.gifv.M2TS.m2v.m4p.m4v.mkv.mng.mov.mp2.mp4.mpe.mpeg.mpg.mpv.MTS.mxf.nsv.ogg.ogv.qt.rm.rmvb.roq.svi.TS.viv.vob.webm.wmv.yuv.": "file-video-icon",
+            ".csdb.": "csdb-icon",
+            ".csdbe.": "csdbe-icon",
+            ".cslog.": "cslog-icon",
+            ".lst.": "lst-icon",
+            ".pen.": "pen-icon",
+            ".pff.": "pff-icon"
+        };
+
+        function pathEquals(p1, p2) {
+            return ( p1.localeCompare(p2, undefined, { sensitivity: "accent" }) == 0 );
+        }
+
+        function pathStartsWith(pathSource, patchStartsWith) {
+            return ( patchStartsWith != undefined &&
+                     pathSource.length >= patchStartsWith.length &&
+                     pathSource.substr(0, patchStartsWith.length).localeCompare(patchStartsWith, undefined, { sensitivity: "accent" }) == 0 );
+        }
+
+        function setMaxWH() {
+            const minWidth = 320; //minimum dialog width in px
+            const maxDisplayDimensions = CS.UI.getMaxDisplayDimensions()
+
+            $("#mContainer").css("min-width", minWidth);
+            $("#mContainer").css("max-width", maxDisplayDimensions.width);
+
+            $("#mContainer").css("max-height", maxDisplayDimensions.height);
+        }
+
+        function setNoFilesFoundVisibility() {
+            if( input.currentListing.paths.length == 0 || ( input.currentListing.paths.length == 1 && input.currentListing.paths[0].name == parentDirectoryName ) ) {
+                $("#no-files-found").show();
+            }
+            else {
+                $("#no-files-found").hide();
+            }
+        }
+
+        function buildDialog() {
+            var template = $("#selectFileTemplate").html();
+            $("#dialogDynamicContainer").empty().html(Mustache.render(template, input));
+
+            replaceNewline();
+
+            osProfile();
+
+            setMaxWH();
+
+            $("#mContainer").css("width", $("#mWidth").outerWidth());
+            $("#mContainer").css("height", $("#mWidth").outerHeight());
+            $("#mBody").css("height", $("#mContainer").outerHeight() - $("#mTitle").outerHeight() - $("#mCurDir").outerHeight() - $("#mFooter").outerHeight());
+
+            $("#mWidth").hide();
+
+            setOkButtonStatus();
+
+            setNoFilesFoundVisibility();
+
+            setTabItems();
+        }
+
+        //Doing some stuff differently based on the OS
+        function osProfile() {
+            if (onAndroid) {
+                //hiding "x" button
+                $(".close").hide();
+
+                //hiding title if it's empty
+                if($("#mTitle").children().first().html().trim().length == 0) {
+                    $("#mTitle").hide();
+                }
+            }
+        }
+
+        function dialogReturn(idx) {
+            CS.UI.closeDialog(( idx == undefined ) ? undefined : { result: input.currentListing.paths[idx - 1].path });
+        }
+
+        function replaceNewline() {
+            $('.withNewline').each(function (index) {
+                $(this).html($(this).html().trim().replace(/(?:\r\n|\r|\n)/g, "<br>"));
+            });
+        }
+
+        function setFocusedIndex() {
+            tabItems.pop();
+            tabItems.push($('#i' + focusedIndex)[0]);
+            tabFocusIndex = tabItems.length - 1;
+        }
+
+        function setOkButtonStatus() {
+            var isEnabled = (selectedIndex > 0 && input.currentListing.paths[selectedIndex - 1].type == "file");
+            if (isEnabled) {
+                $('#okButton').prop('disabled', false);
+                $('#okButton').css('color', '#050');
+            }
+            else {
+                $('#okButton').prop('disabled', true);
+                $('#okButton').css('color', '#aaa');
+            }
+        }
+
+        function selectItem(idx) {
+            focusedIndex = idx;
+            setFocusedIndex();
+            if (selectedIndex != idx) {
+                $(`#i${selectedIndex}`).removeClass("active");
+                $(`#i${idx}`).addClass("active");
+
+                selectedIndex = idx;
+                setOkButtonStatus();
+            }
+            else if (idx > 0 && input.currentListing.paths[idx - 1].type == "file") {
+                dialogReturn(idx);
+            }
+
+            if (realClick) {
+                if (input.currentListing.paths[idx - 1].type == "directory") {
+                    setTimeout(() => {
+                        selectedIndex = 0;
+                        focusedIndex = 0;
+                        firstFocus = true;
+                        tabItems = [];
+                        tabFocusIndex = 0;
+
+                        goToDirectory(input.currentListing.paths[idx - 1].path);
+                    }, 50);
+                }
+            }
+
+            realClick = true;
+        }
+
+        function goToDirectory(path) {
+            input.currentListing = CS.Path.getDirectoryListing({
+                path: path,
+                filter: input.filter,
+                type: ( input.showDirectories == false ) ? "file" : undefined,
+                detailed: true
+            });
+
+            // on Android, clean up some of the paths
+            if( onAndroid ) {
+                const addPathOverride = (specialPath) => {
+                    let slashPos = specialPath.lastIndexOf('/');
+                    if( slashPos < 0 ) {
+                        slashPos = specialPath.lastIndexOf('\\');
+                    }
+                    input.currentListing.pathOverride = "..." + specialPath.substring(slashPos) + input.currentListing.path.substring(specialPath.length);
+                };
+
+                if( pathStartsWith(input.currentListing.path, specialPaths.CSEntry) ) {
+                    addPathOverride(specialPaths.CSEntry);
+                }
+                else if( pathStartsWith(input.currentListing.path, specialPaths.Downloads) ) {
+                    addPathOverride(specialPaths.Downloads);
+                }
+            }
+
+            // sort the paths by type and then name
+            input.currentListing.paths.sort((pi1, pi2) => {
+                if( pi1.type != pi2.type ) {
+                    return ( pi1.type == "directory" ) ? -1 : 1;
+                }
+                else {
+                    return pi1.name.localeCompare(pi2.name, undefined, { sensitivity: "case" });
+                }
+            });
+
+            // add the parent directory (if applicable)
+            if( input.showDirectories != false && input.currentListing.parent != undefined ) {
+                if( input.rootDirectory == undefined || pathStartsWith(input.currentListing.parent, input.rootDirectory) || input.rootDirectory == "|Android" ) {
+                    let parentPathInfo = CS.Path.getPathInfo({ path: input.currentListing.parent });
+                    parentPathInfo.name = parentDirectoryName;
+                    parentPathInfo.type = "directory";
+                    input.currentListing.paths.splice(0, 0, parentPathInfo);
+                }
+            }
+
+            let i = 0;
+            input.currentListing.paths.forEach((pathInfo) => {
+                pathInfo.index = ++i;
+                pathInfo.icon = getIconFromExtension(pathInfo);
+            });
+
+            buildDialog();
+        }
+
+        function setTabItems() {
+            tabItems = [];
+            tabItems.push($("#okButton")[0]);
+            tabItems.push($("#cancelButton")[0]);
+            tabItems.push($("#list-tab")[0]);
+        }
+
+        function cycleTab(isShift) {
+            while (true) {
+                if (!isShift) {
+                    tabFocusIndex++;
+                    if (tabFocusIndex >= tabItems.length) {
+                        tabFocusIndex = 0;
+                    }
+                }
+                else {
+                    tabFocusIndex--;
+                    if (tabFocusIndex < 0) {
+                        tabFocusIndex = tabItems.length - 1;
+                    }
+                }
+
+                if (!tabItems[tabFocusIndex].disabled) {
+                    tabItems[tabFocusIndex].focus();
+                    break;
+                }
+            }
+        }
+
+        function setFirstFocus() {
+            if (firstFocus) {
+                firstFocus = false;
+                $('#okButton').focus();
+                $('#okButton').select();
+                $('#okButton').prop('disabled', true);
+                $('#okButton').css('color', '#aaa');
+
+                focusedIndex = input.currentListing.paths[0].index - 1;
+
+                if (focusedIndex >= input.currentListing.paths[0].index) {
+                    $('#i' + focusedIndex).focus();
+                    $('#i' + focusedIndex).trigger('click');
+                    setFocusedIndex();
+                }
+            }
+        }
+
+        function getIconFromExtension(pathInfo) {
+            if (pathInfo.extension != undefined) {
+                const extSearch = `.${pathInfo.extension.toLowerCase()}.`;
+                for (var key in iconsDict) {
+                    if (key.includes(extSearch))
+                        return iconsDict[key];
+                }
+            }
+
+            if(pathInfo.type == "directory") {
+                if( pathInfo.name == parentDirectoryName ) {
+                    return "dirUp-icon";
+                }
+                else if( pathInfo.path.startsWith("|") ) {
+                    if( pathInfo.path == "|Media.Audio" ) {
+                        return "folder-music-icon";
+                    }
+                    else if( pathInfo.path == "|Media.Images" ) {
+                        return "folder-picture-icon";
+                    }
+                    else if( pathInfo.path == "|Media.Video" ) {
+                        return "folder-video-icon";
+                    }
+                }
+                else if( pathEquals(pathInfo.path, specialPaths.CSEntry) ) {
+                    return "folder-csentry-icon";
+                }
+                else if (pathEquals(pathInfo.path, specialPaths.Downloads)) {
+                    return "folder-downloads-icon";
+                }
+
+                return "folder-icon";
+            }
+
+            return "file-icon-icon";
+        }
+
+
+        $(document).ready(() => {
+            var w = $("#mContainer").outerWidth();
+            var h = $("#mContainer").outerHeight();
+
+            CS.UI.setDisplayOptions({
+                width: w,
+                height: h,
+                keyboard: false,
+                titleBarColor: $('.my-dialog-header').css('background-color')
+            });
+
+            if (onAndroid) {
+                setFirstFocus();
+            }
+
+            $(".my-list-item").focus(() => {
+                setFirstFocus();
+            });
+
+            setOkButtonStatus();
+        });
+
+        $(document).keydown(function (e) {
+            var isShift;
+            if (window.event) {
+                isShift = !!window.event.shiftKey;
+            } else {
+                isShift = !!ev.shiftKey;
+            }
+
+            if (e.keyCode === 27) { //ESC
+                dialogReturn();
+            }
+            else if (e.keyCode === 39 || e.keyCode === 40) { //down arrow, right arrow
+                focusedIndex++;
+                if (focusedIndex > input.currentListing.paths[input.currentListing.paths.length - 1].index) {
+                    focusedIndex = input.currentListing.paths[0].index;
+                }
+                $('#i' + focusedIndex).focus();
+                setFocusedIndex();
+                realClick = false;
+                $('#i' + focusedIndex).click();
+                e.preventDefault();
+            }
+            else if (e.keyCode === 37 || e.keyCode === 38) { //up arrow, left arrow
+                focusedIndex--;
+                if (focusedIndex < input.currentListing.paths[0].index) {
+                    focusedIndex = input.currentListing.paths[input.currentListing.paths.length - 1].index;
+                }
+                $('#i' + focusedIndex).focus();
+                setFocusedIndex();
+                realClick = false;
+                $('#i' + focusedIndex).click();
+                e.preventDefault();
+            }
+            else if (e.keyCode === 9) { //tab
+                cycleTab(isShift);
+                e.preventDefault();
+            }
+        });
+    </script>
+</head>
+<body>
+    <!--Dialog container-->
+    <div id="dialogDynamicContainer" style="position: fixed; top: 0;"></div>
+
+    <script>
+        var input = CS.UI.getInputData();
+
+        if( input.title == undefined ) {
+            input.title = CS.Message.getText({
+                number: 100370,
+                type: "system",
+                text: "Select a File"
+            });
+        }
+
+        if( input.noFilesText == undefined ) {
+            input.noFilesText = CS.Message.getText({
+                number: 100371,
+                type: "system",
+                text: "No Files"
+            });
+        }
+
+        goToDirectory(input.startDirectory);
+    </script>
+</body>
+</html>

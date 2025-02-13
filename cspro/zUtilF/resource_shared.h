@@ -1,0 +1,2 @@
+//{{NO_DEPENDENCIES}}
+#define ID_WINDOWS_WINDOWS              41501

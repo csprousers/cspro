@@ -1,0 +1,2039 @@
+[
+  {
+    "name": "execute", 
+    "description": "Executes an action with the action name specified as an argument.", 
+    "parameters": [
+      {
+        "name": "action", 
+        "description": "The name of the action to execute.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "arguments", 
+        "description": "Arguments for the action.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The action's result.", 
+        "types": [
+          "string", 
+          "number", 
+          "boolean", 
+          "array", 
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "name": "registerAccessToken", 
+    "description": "Registers an access token to provide access to the Action Invoker from web views.", 
+    "parameters": [
+      {
+        "name": "accessToken", 
+        "description": "The access token.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }
+    ]
+  }, 
+  {
+    "namespace": "Application", 
+    "name": "getFormFile", 
+    "description": "Returns a form file associated with an application or loaded from the disk.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of a form file or dictionary associated with an application, or the name of an application.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "path", 
+        "description": "The path of the form file to read.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The form file.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Application", 
+    "name": "getQuestionnaireContent", 
+    "description": "Returns the questionnaire content associated with an application, form file, dictionary, or case.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of a form file or dictionary associated with an application, or the name of an application.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "key", 
+        "description": "The key (case IDs) of a specific case to attach to the questionnaire content.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "uuid", 
+        "description": "The UUID of a specific case to attach to the questionnaire content. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "serializationOptions", 
+        "description": "Options for how the case should be serialized (if applicable).", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The questionnaire content.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Application", 
+    "name": "getQuestionText", 
+    "description": "Returns the question text associated with an application or loaded from the disk.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of a form file or dictionary associated with an application, or the name of an application.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "path", 
+        "description": "The path of the question text to read.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The question text.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Clipboard", 
+    "name": "getText", 
+    "description": "Gets the text on the clipboard (if available).", 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The text on the clipboard.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Clipboard", 
+    "name": "putText", 
+    "description": "Puts text onto the clipboard.", 
+    "parameters": [
+      {
+        "name": "text", 
+        "description": "The text to put onto the clipboard.", 
+        "types": [
+          "string", 
+          "number"
+        ], 
+        "required": true
+      }
+    ]
+  }, 
+  {
+    "namespace": "Data", 
+    "name": "getCase", 
+    "description": "Returns a specific case, or the current case, associated with a dictionary.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of a dictionary or form file associated with an application, or the name of an application.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "key", 
+        "description": "The key (case IDs) of a specific case to lookup.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "uuid", 
+        "description": "The UUID of a specific case to lookup. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "serializationOptions", 
+        "description": "Options for how the case should be serialized.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The current case.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Dictionary", 
+    "name": "getDictionary", 
+    "description": "Returns a dictionary associated with an application or loaded from the disk.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of a dictionary or form file associated with an application, or the name of an application.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "path", 
+        "description": "The path of the dictionary to read.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The dictionary.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "File", 
+    "name": "copy", 
+    "description": "Copies one of more files.", 
+    "parameters": [
+      {
+        "name": "source", 
+        "description": "The path or sharable URI of a file, or files, to copy. Multiple files can be specified using wildcard characters, or by providing multiple paths as an array.", 
+        "types": [
+          "string", 
+          "array"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "destination", 
+        "description": "The destination path, or destination directory, of the file(s) to be copied.)", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "overwrite", 
+        "description": "If false, an exception will occur if the the destination file already exists. (Default value is true.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The fully evaluated destination path (or array of paths) of the copied file (or files).", 
+        "types": [
+          "string", 
+          "array"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "File", 
+    "name": "readBytes", 
+    "description": "Reads a file as binary, returning the entire file's content as bytes.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the file to read.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "bytesFormat", 
+        "description": "The format in which the bytes are returned. (Default value is \"dataUrl\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The file's bytes or a localhost URL to access the bytes.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "File", 
+    "name": "readLines", 
+    "description": "Reads a file as text, returning the entire file's content as an array of strings.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the file to read.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "encoding", 
+        "description": "The encoding to use to decode the file's text.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The file's text, with each line as an entry in the array of strings.", 
+        "types": [
+          "array"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "File", 
+    "name": "readText", 
+    "description": "Reads a file as text, returning the entire file's content as a string.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the file to read.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "encoding", 
+        "description": "The encoding to use to decode the file's text.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The file's text.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "File", 
+    "name": "writeBytes", 
+    "description": "Writes bytes as a binary file.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the file to write.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "bytes", 
+        "description": "The bytes to be written.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "bytesFormat", 
+        "description": "The format of the bytes. (Default value is \"autodetect\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ]
+  }, 
+  {
+    "namespace": "File", 
+    "name": "writeLines", 
+    "description": "Writes an array of strings as lines to a text file.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the file to write.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "lines", 
+        "description": "The lines to write.", 
+        "types": [
+          "array"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "encoding", 
+        "description": "The encoding to use while writing the text. (Default value is \"UTF-8\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ]
+  }, 
+  {
+    "namespace": "File", 
+    "name": "writeText", 
+    "description": "Writes a string as a text file.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the file to write.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "text", 
+        "description": "The text to write.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "encoding", 
+        "description": "The encoding to use while writing the text. (Default value is \"UTF-8\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ]
+  }, 
+  {
+    "namespace": "Hash", 
+    "name": "createHash", 
+    "description": "Returns the hash value of a file, text, or bytes.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of a file to hash.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "text", 
+        "description": "A text string to hash.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "bytes", 
+        "description": "Bytes to hash.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "bytesFormat", 
+        "description": "The format of the bytes (if applicable). (Default value is \"autodetect\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "type", 
+        "description": "The desired hash algorithm (Default value is \"PBKDF2_SHA256\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "length", 
+        "description": "The length of the hash value in bytes (if applicable). (Default value is 32.)", 
+        "types": [
+          "number"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "iterations", 
+        "description": "The number of times the value is hashed (if applicable). (Default value is 1024.)", 
+        "types": [
+          "number"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "salt", 
+        "description": "A salt to add to the hash (if applicable).", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "saltFormat", 
+        "description": "The format of the salt (if applicable). (Default value is \"autodetect\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The hash value.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Hash", 
+    "name": "createMd5", 
+    "description": "Returns the MD5 hash value of a file, text, or bytes.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of a file to hash.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "text", 
+        "description": "A text string to hash.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "bytes", 
+        "description": "Bytes to hash.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "bytesFormat", 
+        "description": "The format of the bytes (if applicable). (Default value is \"autodetect\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The MD5 hash value.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Localhost", 
+    "name": "mapActionResult", 
+    "description": "Creates a mapping that provides access to the result of an action.", 
+    "parameters": [
+      {
+        "name": "action", 
+        "description": "The name of the action to execute.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "arguments", 
+        "description": "Arguments for the action.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The URL that can be used to access the action's result (for the duration of the running application).", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Localhost", 
+    "name": "mapFile", 
+    "description": "Creates a mapping that provides access to a file using a local server.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of a file to map.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "contentType", 
+        "description": "The MIME type of the mapped content.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "evaluateImmediately", 
+        "description": "If true, the file will be immediately loaded and cached. If false or undefined, the file is loaded on request.", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "pathOverride", 
+        "description": "If specified, the file mapping will be constructed as if it exists at the overriden path.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The URL that can be used to access the file (for the duration of the running application).", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Localhost", 
+    "name": "mapSymbol", 
+    "description": "Creates a mapping that provides access to a CSPro logic binary symbol's data using a local server.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of a CSPro logic binary symbol to map.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "contentType", 
+        "description": "The MIME type of the mapped content.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "evaluateImmediately", 
+        "description": "If true, the content will be immediately evaluated and cached. If false or undefined, the content is evaluated on request.", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The URL that can be used to access the binary symbol's data (for the duration of the running application).", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Localhost", 
+    "name": "mapText", 
+    "description": "Creates a mapping that provides access to the supplied text using a local server.", 
+    "parameters": [
+      {
+        "name": "text", 
+        "description": "Text to map.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "contentType", 
+        "description": "The MIME type of the mapped content.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The URL that can be used to access the text (for the duration of the running application).", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Logic", 
+    "name": "eval", 
+    "description": "Evaluates and runs CSPro logic.", 
+    "parameters": [
+      {
+        "name": "logic", 
+        "description": "The CSPro logic to compile and run.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The result of the last statement.", 
+        "types": [
+          "string", 
+          "number"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Logic", 
+    "name": "getSymbol", 
+    "description": "Gets a symbol's metadata and current value.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of the symbol.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "serializationOptions", 
+        "description": "Options for how the symbol should be serialized.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The symbol's metadata value.", 
+        "types": [
+          "object"
+        ]
+      }, 
+      {
+        "name": "value", 
+        "description": "The symbol's current value.", 
+        "types": [
+          "string", 
+          "number", 
+          "array", 
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Logic", 
+    "name": "getSymbolMetadata", 
+    "description": "Gets a symbol's metadata.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of the symbol.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "serializationOptions", 
+        "description": "Options for how the symbol should be serialized.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The symbol's metadata.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Logic", 
+    "name": "getSymbolValue", 
+    "description": "Gets a symbol's current value.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of the symbol.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "serializationOptions", 
+        "description": "Options for how the symbol should be serialized.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The symbol's current value.", 
+        "types": [
+          "string", 
+          "number", 
+          "array", 
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Logic", 
+    "name": "invoke", 
+    "description": "Executes a user-defined function present in CSPro logic.", 
+    "parameters": [
+      {
+        "name": "function", 
+        "description": "The name of the user-defined function.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "arguments", 
+        "description": "The arguments to the user-defined function.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The result of the user-defined function.", 
+        "types": [
+          "string", 
+          "number"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Logic", 
+    "name": "updateSymbolValue", 
+    "description": "Updates a symbol's value.", 
+    "parameters": [
+      {
+        "name": "name", 
+        "description": "The name of the symbol.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "value", 
+        "description": "The new value for the symbol.", 
+        "types": [
+          "string", 
+          "number", 
+          "array", 
+          "object"
+        ], 
+        "required": true
+      }
+    ]
+  }, 
+  {
+    "namespace": "Message", 
+    "name": "formatText", 
+    "description": "Creates a formatted string with inserted values using base text specified by a message number or text.", 
+    "parameters": [
+      {
+        "name": "number", 
+        "description": "The message number. Either \"number\" or \"text\" must be specified.", 
+        "types": [
+          "number"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "text", 
+        "description": "The base (unformatted) text for the message. If \"number\" is specified, this value is only used if the number is not found in the message set. Either \"number\" or \"text\" must be specified.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "type", 
+        "description": "The message set to query if using a message number (either \"user\" or \"system\"). (Default value is \"user\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "arguments", 
+        "description": "The inserted values for each % formatting placeholder.", 
+        "types": [
+          "array"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The formatted text.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Message", 
+    "name": "getText", 
+    "description": "Returns the base (unformatted) text for a message.", 
+    "parameters": [
+      {
+        "name": "number", 
+        "description": "The message number.", 
+        "types": [
+          "number"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "type", 
+        "description": "The message set to query (either \"user\" or \"system\"). (Default value is \"user\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "text", 
+        "description": "Default text for this message (if not found in a message set).", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The message text, or the default text if no message with the number exists.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Path", 
+    "name": "createDirectory", 
+    "description": "Creates a directory if it does not already exist.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the directory to create.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The fully evaluated path of the directory.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Path", 
+    "name": "getDirectoryListing", 
+    "description": "Returns information about the paths in a directory.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of a directory.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "recursive", 
+        "description": "If true, the listing will include paths in subdirectories. (Default value is false.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "filter", 
+        "description": "A wildcard used to filter the files, or both the files and directories if \"filterDirectories\" is true.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "filterDirectories", 
+        "description": "If true, the filter will also apply to directories. (Default value is false.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "type", 
+        "description": "The paths included can be filtered using the value \"file\" or \"directory\". (Default value is undefined.)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "detailed", 
+        "description": "If true, the returned paths will include details in the format of Path.getPathInfo. If false, only the paths will be returned. (Default value is false.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "path", 
+        "description": "The path of the directory.", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "parent", 
+        "description": "The path of the parent directory (if applicable).", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "paths", 
+        "description": "The paths in the directory, presented in a format determined by the \"detailed\" input argument.", 
+        "types": [
+          "array"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Path", 
+    "name": "getPathInfo", 
+    "description": "Returns information about a path.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of a directory or file.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }
+    ], 
+    "returns": [
+      {
+        "name": "path", 
+        "description": "The path of the directory or file.", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "name", 
+        "description": "The name of the directory or file (with the directory information removed).", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "extension", 
+        "description": "The file extension (without a preceeding dot) for files.", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "contentType", 
+        "description": "The MIME type based on the file extension for files.", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "exists", 
+        "description": "Whether or not the path exists.", 
+        "types": [
+          "boolean"
+        ]
+      }, 
+      {
+        "name": "type", 
+        "description": "If the path exists, whether or not it is a \"file\" or \"directory\".", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "modifiedTime", 
+        "description": "The last modified time of the path in RFC 3339 format.", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "size", 
+        "description": "The size of the file.", 
+        "types": [
+          "number"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Path", 
+    "name": "getSpecialPaths", 
+    "description": "Returns an object containing special paths, including the download and temp directories.", 
+    "returns": [
+      {
+        "name": "", 
+        "description": "Special paths.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Path", 
+    "name": "selectFile", 
+    "description": "Displays a dialog with a visual listing of the file system, returning the path of a file selected by an operator.", 
+    "parameters": [
+      {
+        "name": "title", 
+        "description": "The dialog's title.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "filter", 
+        "description": "A wildcard used to filter the files.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "startDirectory", 
+        "description": "The path of the directory to be initially shown to the operator.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "rootDirectory", 
+        "description": "The path of the directory above which the operator cannot navigate.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "showDirectories", 
+        "description": "If false, the operator will not see subdirectories and will not be able to navigate to a parent directory. (Default value is true.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The path of the selected file.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Path", 
+    "name": "showFileDialog", 
+    "description": "Displays a dialog with a visual listing of the file system, allowing the user to select a file to open or to create a file to save.", 
+    "parameters": [
+      {
+        "name": "type", 
+        "description": "Whether or not the dialog if for opening files (\"open\") or saving files (\"save\"). (Default value is \"open\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "title", 
+        "description": "The dialog's title.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "filter", 
+        "description": "A wildcard used to filter the files.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "startDirectory", 
+        "description": "The path of the directory to be initially shown to the operator.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "rootDirectory", 
+        "description": "The path of the directory above which the operator cannot navigate.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "name", 
+        "description": "A suggested name for the file.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "confirmOverwrite", 
+        "description": "When displaying a save dialog, a confirmation message will appear when trying to overwrite an existing file. (Default value is true.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "useNativeDialog", 
+        "description": "If true, on Windows, instead of displaying an HTML dialog, the native Windows open/save file dialogs will display. The \"rootDirectory\" and \"showDirectories\" options will not be used in this case. (Default value is false.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "showDirectories", 
+        "description": "If false, the operator will not see subdirectories and will not be able to navigate to a parent directory. (Default value is true.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The path of the selected file.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Settings", 
+    "name": "getValue", 
+    "description": "Returns a value from a settings database.", 
+    "parameters": [
+      {
+        "name": "key", 
+        "description": "The key that uniquely identifies the setting.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "value", 
+        "description": "A value to return if the setting is not defined.", 
+        "types": [
+          "string", 
+          "number", 
+          "boolean", 
+          "array", 
+          "object"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "source", 
+        "description": "The settings database. If undefined, it defaults to \"UserSettings\".", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The setting's value, if defined.", 
+        "types": [
+          "string", 
+          "number", 
+          "boolean", 
+          "array", 
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Settings", 
+    "name": "putValue", 
+    "description": "Sets a value in a settings database.", 
+    "parameters": [
+      {
+        "name": "key", 
+        "description": "The key that uniquely identifies the setting.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "value", 
+        "description": "The setting's value. When using the default \"UserSettings\" source, only strings and numbers are allowed.", 
+        "types": [
+          "string", 
+          "number", 
+          "boolean", 
+          "array", 
+          "object"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "source", 
+        "description": "The settings database. If undefined, it defaults to \"UserSettings\".", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ]
+  }, 
+  {
+    "namespace": "Sqlite", 
+    "name": "close", 
+    "description": "Closes a previously opened SQLite database.", 
+    "parameters": [
+      {
+        "name": "db", 
+        "description": "The database ID.", 
+        "types": [
+          "number"
+        ], 
+        "required": true
+      }
+    ]
+  }, 
+  {
+    "namespace": "Sqlite", 
+    "name": "exec", 
+    "description": "Executes a SQL statement, returning results as appropriate.", 
+    "parameters": [
+      {
+        "name": "db", 
+        "description": "The database ID.", 
+        "types": [
+          "number"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "sql", 
+        "description": "One or more SQL statements. If specifying more than one statement, only one can have bindings.", 
+        "types": [
+          "string", 
+          "array"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "bindings", 
+        "description": "The bindings for a SQL statement specified in \"sql\". If \"bindings\" is an array, the values are bound by position; if an object, the values are bound by name. To bind binary data, bind an object with the key \"bytes\" and optionally \"bytesFormat\".", 
+        "types": [
+          "array", 
+          "object"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "rowFormat", 
+        "description": "Indicates how row results are returned from a query. Options include \"object\", \"array\", or \"scalarArray\". If the result is scalar, it will be returned directly unless \"rowFormat\" is explicitly specified. (Default value is \"object\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "bytesFormat", 
+        "description": "The format in which bytes are returned (if querying a blob). (Default value is \"dataUrl\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The action's result (if applicable).", 
+        "types": [
+          "string", 
+          "number", 
+          "array", 
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Sqlite", 
+    "name": "open", 
+    "description": "Opens a SQLite database and returns an ID that can be used for future operations.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of a file to open. Either \"path\" or \"name\" must be specified.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "name", 
+        "description": "The name of a dictionary or \"paradata\". Either \"path\" or \"name\" must be specified.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "openFlags", 
+        "description": "Flags to control how the database is opened (when using a \"path\"). (Default value is \"read\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "encryptionKey", 
+        "description": "An encryption key to use when opening or creating a database.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "encryptionKeyFormat", 
+        "description": "The format of the encryption key. (Default value is \"autodetect\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "An ID that identifies this database.", 
+        "types": [
+          "number"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "Sqlite", 
+    "name": "rekey", 
+    "description": "Changes, removes, or adds an encryption key to a SQLite database.", 
+    "parameters": [
+      {
+        "name": "db", 
+        "description": "The database ID.", 
+        "types": [
+          "number"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "encryptionKey", 
+        "description": "The new encryption key, or a blank string to remove the encryption.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "encryptionKeyFormat", 
+        "description": "The format of the encryption key. (Default value is \"autodetect\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ]
+  }, 
+  {
+    "namespace": "System", 
+    "name": "getSharableUri", 
+    "description": "Creates a URI that can be used by external applications to reference a file.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of a file, or files, from which to create sharable URIs. Multiple files can be specified using wildcard characters, or by providing multiple paths as an array.", 
+        "types": [
+          "string", 
+          "array"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "permissions", 
+        "description": "Permissions to apply to the sharable URI(s). (Default value is \"read\".)", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The sharable URI (or array of sharable URIs).", 
+        "types": [
+          "string", 
+          "array"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "System", 
+    "name": "selectDocument", 
+    "description": "Displays a dialog that allows the selection of one or more documents shared by the system.", 
+    "parameters": [
+      {
+        "name": "contentType", 
+        "description": "The MIME type, or types, of allowed content. (Default value is \"*/*\".)", 
+        "types": [
+          "string", 
+          "array"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "multiple", 
+        "description": "If true, the operator can select multiple documents. When selecting multiple documents, an array of objects returned. (Default value is false.)", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "path", 
+        "description": "The path, or sharable URI, of the document.", 
+        "types": [
+          "string"
+        ]
+      }, 
+      {
+        "name": "name", 
+        "description": "The filename of the document.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "alert", 
+    "description": "Displays an alert dialog.", 
+    "parameters": [
+      {
+        "name": "text", 
+        "description": "The message to display.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "title", 
+        "description": "The dialog's title.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "closeDialog", 
+    "description": "Closes the current dialog, optionally returning a result to an action like UI.showDialog.", 
+    "parameters": [
+      {
+        "name": "result", 
+        "description": "The result to return.", 
+        "types": [
+          "string", 
+          "number", 
+          "boolean", 
+          "array", 
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "Whether or not a dialog was closed.", 
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "enumerateWebViews", 
+    "description": "Returns information about all of the web views currently showing.", 
+    "returns": [
+      {
+        "name": "webViewId", 
+        "description": "The web view ID of the JavaScript code executing this action (if applicable).", 
+        "types": [
+          "number"
+        ]
+      }, 
+      {
+        "name": "webViews", 
+        "description": "The details about each web view currently showing. The topmost showing web view is the first entry in the array.", 
+        "types": [
+          "array"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "getDisplayOptions", 
+    "description": "Returns the display options associated with the current web view.", 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The defined display options.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "getInputData", 
+    "description": "Returns the input data associated with the current web view.", 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The input data.", 
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "getMaxDisplayDimensions", 
+    "description": "Returns the maximum dimensions, in display units, of dialogs that CSPro can show.", 
+    "returns": [
+      {
+        "name": "width", 
+        "description": "The maximum width, in display units, of the dialogs that CSPro can show.", 
+        "types": [
+          "number"
+        ]
+      }, 
+      {
+        "name": "height", 
+        "description": "The maximum height, in display units, of the dialogs that CSPro can show.", 
+        "types": [
+          "number"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "postWebMessage", 
+    "description": "Posts a message to a web view.", 
+    "parameters": [
+      {
+        "name": "message", 
+        "description": "The message to post.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "webViewId", 
+        "description": "If specified, the message is posted to the web view with this ID. If not specified, the message is posted to the topmost web view.", 
+        "types": [
+          "number"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "targetOrigin", 
+        "description": "The parameter used by the JavaScript Window.postMessage method. This is only used on Android.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "setDisplayOptions", 
+    "description": "Sets the display options for the current web view.", 
+    "parameters": [
+      {
+        "name": "width", 
+        "description": "The desired width, in display units or a percent, of the dialog.", 
+        "types": [
+          "number", 
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "height", 
+        "description": "The desired height, in display units or a percent, of the dialog or the question text window (on Windows only).", 
+        "types": [
+          "number", 
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "resizable", 
+        "description": "If true, the dialog can be resized. This setting only applies on Windows.", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "borderColor", 
+        "description": "The color of the dialog border. This setting only applies on Windows.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "titleBarColor", 
+        "description": "The color of the dialog's title bar. This setting only applies on Windows.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "titleBarHeight", 
+        "description": "The height, in display units, of the dialog's title bar. This setting only applies on Windows.", 
+        "types": [
+          "number"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "keyboard", 
+        "description": "If true, the soft keyboard is brought to the forefront when the dialog is shown. This setting only applies on Android.", 
+        "types": [
+          "boolean"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "Whether or not any display options were set.", 
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "showDialog", 
+    "description": "Shows a HTML dialog.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the HTML dialog to show.", 
+        "types": [
+          "string"
+        ], 
+        "required": true
+      }, 
+      {
+        "name": "inputData", 
+        "description": "The input data for the dialog, which can be retrieved using the UI.getInputData action.", 
+        "types": [
+          "string", 
+          "number", 
+          "boolean", 
+          "array", 
+          "object"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "displayOptions", 
+        "description": "The display options to use when initially showing the dialog.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ], 
+    "returns": [
+      {
+        "name": "", 
+        "description": "The result of the HTML dialog, set using the UI.closeDialog action.", 
+        "types": [
+          "string"
+        ]
+      }
+    ]
+  }, 
+  {
+    "namespace": "UI", 
+    "name": "view", 
+    "description": "Views a file or web page in a new web view.", 
+    "parameters": [
+      {
+        "name": "path", 
+        "description": "The path of the file to view. Either \"path\" or \"url\" must be specified.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "url", 
+        "description": "The URL to view. Either \"path\" or \"url\" must be specified.", 
+        "types": [
+          "string"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "inputData", 
+        "description": "The input data for a viewed web page, which can be retrieved using the UI.getInputData action.", 
+        "types": [
+          "string", 
+          "number", 
+          "boolean", 
+          "array", 
+          "object"
+        ], 
+        "required": false
+      }, 
+      {
+        "name": "displayOptions", 
+        "description": "The display options to use when showing the web view.", 
+        "types": [
+          "object"
+        ], 
+        "required": false
+      }
+    ]
+  }
+]

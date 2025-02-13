@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <color name="accent_material_light" tools:override="true">#488840</color>
+  <color name="cspro_green">#488840</color>
+  <color name="cspro_green_80">#80488840</color>
+  <color name="signature_text_bckgrnd">#10ffffff</color>
+  <color name="white_20">#20ffffff</color>
+  <color name="camera_text_bckgrnd">#30ffffff</color>
+  <color name="camera_text_bckgrnd_enabled">#60ffffff</color>
+  <color name="media_text_bckgrnd_enabled">#90ffffff</color>
+  <color name="dark">#000000</color>
+  <color name="dark_10">#10000000</color>
+  <color name="dark_30">#30000000</color>
+  <color name="dark_80">#80000000</color>
+  <color name="signature_text_bckgrnd_enabled">#20000000</color>
+  <color name="colorPrimary">#008577</color>
+  <color name="colorPrimaryDark">#00574B</color>
+  <color name="colorAccent">#D81B60</color>
+  <color name="color_white">#ffffff</color>
+    <color name="colorTracePolygonFill">#26D81B60</color>
+</resources>

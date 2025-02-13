@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DDE177B0-A6AE-4D1F-B707-8FB50D1B5644}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>zDataO</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_WINDLL;_AFXDLL;_AFXEXT;ZDATAO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/jsoncons</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_WINDLL;_AFXDLL;_AFXEXT;ZDATAO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/jsoncons</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="CacheableCaseWrapperRepository.h" />
+    <ClInclude Include="CacheableCaseWrapperRepositoryCaseIterators.h" />
+    <ClInclude Include="ConnectionStringProperties.h" />
+    <ClInclude Include="ExportWriterRepository.h" />
+    <ClInclude Include="IndexableTextRepository.h" />
+    <ClInclude Include="JsonRepository.h" />
+    <ClInclude Include="JsonRepositoryBinaryDataIO.h" />
+    <ClInclude Include="JsonRepositoryIndexCreator.h" />
+    <ClInclude Include="JsonRepositoryIterators.h" />
+    <ClInclude Include="SQLiteBinaryDataReader.h" />
+    <ClInclude Include="SQLiteBinaryItemSerializer.h" />
+    <ClInclude Include="SyncJsonBinaryDataReader.h" />
+    <ClInclude Include="WrapperRepository.h" />
+    <ClInclude Include="MemoryRepository.h" />
+    <ClInclude Include="MemoryRepositoryIterators.h" />
+    <ClInclude Include="CaseAccessSaver.h" />
+    <ClInclude Include="DataRepositoryTransaction.h" />
+    <ClInclude Include="WrapperRepositoryIterators.h" />
+    <ClInclude Include="ISQLiteQuestionnaireSerializer.h" />
+    <ClInclude Include="DataRepositoryHelpers.h" />
+    <ClInclude Include="NullRepositoryIterators.h" />
+    <ClInclude Include="ParadataWrapperRepositoryIterators.h" />
+    <ClInclude Include="SQLiteDictionarySchemaGenerator.h" />
+    <ClInclude Include="SQLiteBlobQuestionnaireSerializer.h" />
+    <ClInclude Include="SQLiteErrorWithMessage.h" />
+    <ClInclude Include="SQLiteDictionarySchemaReconciler.h" />
+    <ClInclude Include="SQLiteSchemaHelpers.h" />
+    <ClInclude Include="TextRepositoryIndexCreator.h" />
+    <ClInclude Include="TextRepositoryIterators.h" />
+    <ClInclude Include="DataRepositoryDefines.h" />
+    <ClInclude Include="EncryptedSQLiteRepository.h" />
+    <ClInclude Include="EncryptedSQLiteRepositoryPasswordManager.h" />
+    <ClInclude Include="ParadataWrapperRepository.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="TextRepositoryNotesFile.h" />
+    <ClInclude Include="TextRepositoryStatusFile.h" />
+    <ClInclude Include="DataRepositoryException.h" />
+    <ClInclude Include="DataRepository.h" />
+    <ClInclude Include="CaseIterator.h" />
+    <ClInclude Include="ISyncableDataRepository.h" />
+    <ClInclude Include="NullRepository.h" />
+    <ClInclude Include="SyncHistoryEntry.h" />
+    <ClInclude Include="SQLiteRepository.h" />
+    <ClInclude Include="SQLiteRepositoryIterators.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TextRepository.h" />
+    <ClInclude Include="zDataO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CacheableCaseWrapperRepository.cpp" />
+    <ClCompile Include="JsonRepository.cpp" />
+    <ClCompile Include="MemoryRepository.cpp" />
+    <ClCompile Include="DataRepository.cpp" />
+    <ClCompile Include="DataRepositoryHelpers.cpp" />
+    <ClCompile Include="ExportWriterRepository.cpp" />
+    <ClCompile Include="IndexableTextRepository.cpp" />
+    <ClCompile Include="SQLiteBinaryItemSerializer.cpp" />
+    <ClCompile Include="SQLiteDictionarySchemaReconciler.cpp" />
+    <ClCompile Include="SQLiteDictionarySchemaGenerator.cpp" />
+    <ClCompile Include="SQLiteBlobQuestionnaireSerializer.cpp" />
+    <ClCompile Include="SQLiteQuestionnaireSerializer.cpp" />
+    <ClCompile Include="EncryptedSQLiteRepository.cpp" />
+    <ClCompile Include="EncryptedSQLiteRepositoryPasswordManager.cpp" />
+    <ClCompile Include="NullRepository.cpp" />
+    <ClCompile Include="ParadataWrapperRepository.cpp" />
+    <ClCompile Include="SQLiteRepositoryCaseLoader.cpp" />
+    <ClCompile Include="SQLiteRepository.cpp" />
+    <ClCompile Include="SQLiteRepositoryIterators.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TextRepository.cpp" />
+    <ClCompile Include="TextRepositoryNotesFile.cpp" />
+    <ClCompile Include="TextRepositoryStatusFile.cpp" />
+    <ClCompile Include="zDataO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SQLite\SQLite.vcxproj">
+      <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseO\zCaseO.vcxproj">
+      <Project>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zExcelO\zExcelO.vcxproj">
+      <Project>{95f42a46-c902-46a3-9d04-24b20f9854c6}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zExportO\zExportO.vcxproj">
+      <Project>{e462afa3-0a1e-4309-a5fc-9987d5be07fa}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">
+      <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zDataO.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_dialog_gps"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="10dp" >
+
+    <TextView
+        android:id="@+id/dialog_gps_textViewTimeRemaining"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/dialog_gps_textViewWaitMessage"
+        android:layout_below="@+id/dialog_gps_textViewSatellites"
+        android:layout_marginTop="10dp"
+        android:text="@string/engine_gps_time_remaining"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/dialog_gps_textViewWaitMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="10dp"
+        android:text="@string/engine_gps_waiting_message"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <ProgressBar
+        android:id="@+id/dialog_gps_progressBarSatellites"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/dialog_gps_textViewSatellites"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="10dp"
+        android:layout_toRightOf="@+id/dialog_gps_textViewSatellites" />
+
+    <TextView
+        android:id="@+id/dialog_gps_textViewSatellites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/dialog_gps_textViewWaitMessage"
+        android:layout_alignParentLeft="false"
+        android:layout_below="@+id/dialog_gps_textViewWaitMessage"
+        android:text="@string/engine_gps_satellites"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <ProgressBar
+        android:id="@+id/dialog_gps_progressBarTimeRemaining"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/dialog_gps_textViewTimeRemaining"
+        android:layout_alignLeft="@+id/dialog_gps_progressBarSatellites"
+        android:layout_alignRight="@id/dialog_gps_progressBarSatellites"
+        android:layout_centerHorizontal="true"
+        android:layout_toRightOf="@+id/dialog_gps_textViewTimeRemaining" />
+
+</RelativeLayout>

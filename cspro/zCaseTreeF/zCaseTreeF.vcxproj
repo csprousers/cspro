@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{61281559-2451-450E-B6F6-E855B69E870A}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <ProjectName>zCaseTreeF</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZCASETREEF_EXPORTS;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZCASETREEF_EXPORTS;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CaseTree.cpp" />
+    <ClCompile Include="CEUtils.cpp" />
+    <ClCompile Include="CRunAplE.cpp" />
+    <ClCompile Include="GTCtrl.cpp" />
+    <ClCompile Include="HITEM.cpp" />
+    <ClCompile Include="Icons.cpp" />
+    <ClCompile Include="IItemCnf.cpp" />
+    <ClCompile Include="MsgParam.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TItmInfo.cpp" />
+    <ClCompile Include="TreeItem.cpp" />
+    <ClCompile Include="xTCtrl.cpp" />
+    <ClCompile Include="zCaseTreeF.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ico00001.ico" />
+    <None Include="res\ico00002.ico" />
+    <None Include="res\ico00003.ico" />
+    <None Include="res\ico00004.ico" />
+    <None Include="res\ico00005.ico" />
+    <None Include="res\ico00006.ico" />
+    <None Include="res\ico00007.ico" />
+    <None Include="res\ico00008.ico" />
+    <None Include="res\ico00011.ico" />
+    <None Include="res\ico00012.ico" />
+    <None Include="res\ico00013.ico" />
+    <None Include="res\ico00014.ico" />
+    <None Include="res\ico00015.ico" />
+    <None Include="res\ico00016.ico" />
+    <None Include="res\ico00017.ico" />
+    <None Include="res\ico00018.ico" />
+    <None Include="res\ico00019.ico" />
+    <None Include="res\ico00020.ico" />
+    <None Include="res\ico00021.ico" />
+    <None Include="res\ico00022.ico" />
+    <None Include="res\ico00023.ico" />
+    <None Include="res\ico00024.ico" />
+    <None Include="res\ico00025.ico" />
+    <None Include="res\ico00026.ico" />
+    <None Include="res\ico00027.ico" />
+    <None Include="res\ico00028.ico" />
+    <None Include="res\ico00030.ico" />
+    <None Include="res\ico00031.ico" />
+    <None Include="res\ico00032.ico" />
+    <None Include="res\ico00033.ico" />
+    <None Include="res\ico00034.ico" />
+    <None Include="res\ico00035.ico" />
+    <None Include="res\ico00036.ico" />
+    <None Include="res\ico00037.ico" />
+    <None Include="res\ico00076.ico" />
+    <None Include="res\ico00077.ico" />
+    <None Include="res\ico00078.ico" />
+    <None Include="res\ico00079.ico" />
+    <None Include="res\ico00092.ico" />
+    <None Include="res\ico00093.ico" />
+    <None Include="res\ico00096.ico" />
+    <None Include="res\ico00097.ico" />
+    <None Include="res\ico00098.ico" />
+    <None Include="res\ico00099.ico" />
+    <None Include="res\ico00100.ico" />
+    <None Include="res\ico00103.ico" />
+    <None Include="res\ico00104.ico" />
+    <None Include="res\ico00105.ico" />
+    <None Include="res\ico00106.ico" />
+    <None Include="res\ico00107.ico" />
+    <None Include="res\ico00108.ico" />
+    <None Include="res\ico00109.ico" />
+    <None Include="res\ico00110.ico" />
+    <None Include="res\ico00111.ico" />
+    <None Include="res\ico00112.ico" />
+    <None Include="res\ico00113.ico" />
+    <None Include="res\ico00114.ico" />
+    <None Include="res\ico00115.ico" />
+    <None Include="res\ico00116.ico" />
+    <None Include="res\ico00117.ico" />
+    <None Include="res\ico00118.ico" />
+    <None Include="res\ico00119.ico" />
+    <None Include="res\ico00120.ico" />
+    <None Include="res\ico00121.ico" />
+    <None Include="res\ico00122.ico" />
+    <None Include="res\ico00124.ico" />
+    <None Include="res\ico00126.ico" />
+    <None Include="res\ico00127.ico" />
+    <None Include="res\ico00128.ico" />
+    <None Include="res\ico00129.ico" />
+    <None Include="res\ico00130.ico" />
+    <None Include="res\ico00131.ico" />
+    <None Include="res\icon3.ico" />
+    <None Include="res\icon4.ico" />
+    <None Include="res\icon_not.ico" />
+    <None Include="res\non_sele.ico" />
+    <None Include="res\non_writ.ico" />
+    <None Include="res\selected.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zCaseTreeF.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Icons.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="CaseTree.h" />
+    <ClInclude Include="CEUtils.h" />
+    <ClInclude Include="CRunAplE.h" />
+    <ClInclude Include="GTCtrl.h" />
+    <ClInclude Include="HITEM.h" />
+    <ClInclude Include="IItemCnf.h" />
+    <ClInclude Include="MsgParam.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TItmInfo.h" />
+    <ClInclude Include="TreeCnst.h" />
+    <ClInclude Include="TreeItem.h" />
+    <ClInclude Include="xTCtrl.h" />
+    <ClInclude Include="zCaseTreeF.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+      <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseO\zCaseO.vcxproj">
+      <Project>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Zentryo\ZENTRYO.vcxproj">
+      <Project>{cfe980f3-5fc0-4c53-9eb5-1c63254503cd}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormO\zFormO.vcxproj">
+      <Project>{0837641d-6f03-4f33-9eb5-c03d2ca8edb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

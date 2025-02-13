@@ -1,0 +1,7 @@
+﻿/*----------------------------------------------------------------------
+Copyright (C)2001 MJSoft. All Rights Reserved.
+          This source may be used freely as long as it is not sold for
+                    profit and this copyright information is not altered or removed.
+                    Visit the web-site at www.mjsoft.co.uk
+                    e-mail comments to info@mjsoft.co.uk
+----------------------------------------------------------------------*/

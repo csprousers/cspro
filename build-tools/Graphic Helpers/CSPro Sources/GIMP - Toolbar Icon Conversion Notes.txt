@@ -1,0 +1,22 @@
+
+1. Copy icon from Visual Studio toolbar.
+
+2. Create new image from clipboard: Ctrl+Shift+V.
+
+3. Modify to 16x16: Image -> Canvas Size.
+
+4. Select and delete the transparent layer: Shift+O, select a pixel, Delete.
+
+5. Resize to 256x256: Image -> Scale Image. [Interpolation: None]
+
+6. Export as .png: Ctrl+Shift+E.
+
+
+--------------------------------------------------------------------------
+
+
+To create icons from the Visual Studio 2022 Image Library:
+
+1. Open the .svg file at 225x225.
+
+2. Export as .png: Ctrl+Shift+E.

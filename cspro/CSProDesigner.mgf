@@ -1,0 +1,822 @@
+﻿/* --- CSPro Designer System Messages */
+
+Language=EN
+
+1      Invalid statement
+2      Expecting ';' or operator
+3      Invalid assigned variable
+4      Overflow in program code area; you must reduce the number of logic statements
+5      Missing '=' (assignment)
+6      Expecting 'then'
+7      Expecting one of: 'else', 'elseif', or 'endif'
+8      Expecting 'endif'
+9      Expecting 'do'
+10     Expecting 'enddo'
+11     Expecting Variable
+12     Expecting multiple variable
+13     It cannot be a work variable
+14     Expecting left parenthesis '(' in a function call
+15     Expecting record name in a function call
+16     Expecting WHERE in a function call
+17     Expecting right parenthesis ')' in a function call
+18     Expecting multiple variable in a function call
+19     Expecting right parenthesis ')'
+20     Two consecutive operators
+21     Invalid arithmetic or conditional expression
+22     Expecting left parenthesis '(' in an element reference
+23     Invalid array reference (variable is not in specified record)
+24     Expecting right parenthesis ')' in an element reference
+25     Single variable - cannot have subscript (unexpected left parenthesis)
+27     Missing variable name in box statement
+30     Expecting semicolon ';'
+34     Invalid variable type
+38     Invalid function call (vector functions cannot be nested)
+49     Invalid function call (missing arguments)
+50     Invalid function call (number of arguments do not agree)
+51     Invalid function call (too many arguments)
+54     Invalid skip/move statement
+55     Numeric constant expected
+56     Expecting "->", "::", or ENDWHEN
+57     Expecting "->", "::", or ENDRECODE
+58     Expecting "::"
+59     Invalid right parenthesis ')' with no matching left parenthesis '('
+
+/* --- Preprocessor */
+61     A preprocessor command is missing
+62     The preprocessor command #%s is not valid
+63     The preprocessor command #%s does not have a corresponding #if
+64     You cannot have more than one #else preprocessor command for any given #if
+65     The preprocessor could not locate a final #endif
+66     A condition must be specified as part of this preprocessor command
+67     The preprocessor has limited functionality and could not understand %s
+68     Preprocessor error: %s
+69     Preprocessor function error: %s
+
+/* --- Ambiguous symbol - extended symbol table */
+70     Ambiguous symbol '%s' (%d synonyms found) - please provide additional qualifiers to avoid ambiguity
+
+79     Invalid function call (dimension argument expected)
+80     Invalid function call (table name expected)
+82     Integer constant expected
+87     Invalid xtab call (invalid level for this call)
+88     Invalid xtab - cannot use with a hotdeck
+
+90     Invalid number of decimal digits
+92     Invalid declaration
+93     Variable belongs to a record at a lower level
+95     Invalid substring specification ("]" expected)
+96     Invalid string expression
+100    EndSect/EndGroup not allowed in Group PostProc/KillFocus or in LEVEL procedures
+101    "'%s' is not a valid symbol name (names must begin with a letter and then contain only letters, numbers, and underscores)"
+102    The symbol name '%s' is already in use
+103    Symbol name already defined
+104    Not enough memory to perform this operation
+
+/* --- Other syntax errors */
+117    Invalid endlevel statement
+118    Invalid or not ended comments - see { }
+119    Invalid variable type - numeric variable expected
+122    Symbol name does not exist
+162    "'%s' is a reserved word - use another name"
+163    %s file error: %s
+
+/* --- Message file */
+170    Language syntax must be specified as: Language=[language name]
+171    Language name '%s' is not a valid name
+172    Message lines must be specified as: [message number] [message text]
+173    Translation lines must be specified as: [language name] ( [message number or text ] ) [message text]
+174    Message number '%s' is invalid as numbers must be integers in the range 1-%d
+175    Verbatim string literals cannot be specified in this logic version: %s
+176    Message text is not specified; is this intentional?
+177    %s has already been defined for language '%s' with different text: %s
+178    No text can follow a %s: %s
+
+/* --- Syntax */
+501    Invalid 'PROC %s' - '%s' is a valid symbol name but cannot have any procedure attached
+502    Ambiguous or not found symbol '%s'- please provide qualifiers enough to avoid ambiguity
+
+505    File handler '%s' is not used in the application
+
+517    Left parenthesis expected
+518    Character constant expected
+519    Right parenthesis expected
+
+523    Invalid function call (external or working storage dictionary name expected)
+524    Invalid function call (valid only for ENTRY applications)
+525    Invalid function call (external dictionary name expected)
+
+528    Invalid function call (comma expected)
+529    Invalid function call (comma expected after argument #%d)
+530    Invalid function call (number of arguments do not agree: %d supplied but %d expected)
+531    Invalid function call (too few arguments: %d supplied but at least %d expected)
+532    Invalid function call (too many arguments: at most %d expected)
+
+535    Table/Array matrix instruction must be in Level 0 PostProc or PostCalc event
+536    Table dimensions do not agree
+537    Selcase cannot have more than one %s clause
+538    Selcase can only include single variables from the external dictionary
+539    Selcase can only include up to 10 variables
+540    Selcase cannot have an empty INCLUDE list
+
+541    Cannot specify an index for this dictionary
+543    Secondary indices are no longer supported
+
+544    Dictionary name expected
+545    One-level dictionary name expected
+546    Invalid argument for LoadCase/WriteCase/DelCase function
+547    Variable(s) length (%d) does not agree with dictionary ID length (%d)
+548    You may encounter problems because the argument starting at position '%d' is %szero-filled, which does not match the setting for dictionary item '%s'
+549    You cannot use a lookup function if using the dictionary in NoIndex mode
+550    You cannot use NoIndex mode if you also use the dictionary for lookups
+551    You cannot use a working storage dictionary for this function
+553    SKIP, MOVE, ADVANCE, or REENTER target must be in this level
+554    SKIP, MOVE, ADVANCE, or REENTER target must be in a form
+555    SKIP, MOVE, ADVANCE, and REENTER statements cannot be in a level PostProc
+556    SKIP, MOVE, ADVANCE, or REENTER target must be this form's dictionary
+5561   You can only skip to next from within a field or block in a repeating group
+5562   An ask-if or targetless skip statement can only be in a PreProc
+5563   An ask-if or targetless skip statement cannot be in a level procedure
+5564   Ask expects an IF and then a conditional statement
+557    Invalid statement (not attached to a field in a Form)
+558    Invalid statement (allowed only in PreProc)
+559    REENTER target current field, REENTER must be in PostProc
+
+/* --- Function */
+560    Invalid argument type
+562    Invalid statement when used in a function procedure
+565    REENTER target cannot be a persistent field
+
+571    Invalid function call - cannot be used in table operations
+572    Invalid lexical token in lower specification
+573    Repeated lowers/highest argument
+
+/* --- Break by */
+580    "'Break by' specification already present"
+581    "'Break by' allowed only in Level procedure"
+582    Syntax error in 'Break by' specification
+583    Too many variables in 'Break by' specification
+584    Invalid variable in 'Break by' list
+585    "'Break by' identification length too long"
+586    No memory for 'Break by' structures
+589    Cannot open TBD file %s
+590    Cannot open TBI file %s
+591    "'Break by' cannot be executed in CsCalc applications"
+592    "'Break by' incompatible with break items used in some crosstab command"
+593    Too few break variables in 'Break by' command. Check 'break' used in a crosstab command
+594    The break by level is less than a crosstab level
+595    Too many break variables in crosstab command. Check 'Break by' command
+596    Crosstab break variables are incompatible with the specified in the 'break by' command
+
+/* --- Crosstab */
+601    CrossTab and Hotdeck accepted only in BATCH applications
+602    CrossTab and Hotdeck cannot appear in this procedure
+603    No more place in tables to insert this CrossTab
+604    Invalid CrossTab argument
+605    Repeated CrossTab argument
+606    Invalid dimension specification
+607    Invalid keyword in Include list of CrossTab
+608    Invalid array subscript (must be between 0 and %d)
+609    You must specify %d array subscripts
+612    Cell type not allowed in Crosstab
+613    Cell type not allowed in Mean
+614    Cell type not allowed in SMean
+616    Title and Stub not allowed in Stable or Hotdeck
+617    Hotdeck only allowed in application procedure
+618    Hotdeck name expected
+619    Table %s can't be printed by EXPRTAB.
+620    Can't be used 'break by' and 'no break' clauses in Crosstab command
+
+621    Unknown variable - cannot be used as a coordinate
+623    Only dictionary numeric variable can be used as a coordinate
+624    A Variable with decimals cannot be used as a coordinate
+625    A Variable with more than 4 digits cannot be used as a coordinate
+627    A repeated variable should specify a subscript
+628    Invalid subscript specified
+629    Cannot use constants of more than 4 digits
+630    Syntax error in "[ ]"
+631    Upper limit not specified in "[ ]"
+632    Lower limit greater than upper limit in "[ ]"
+633    Repeated Missing, Default or NotAppl in "[ ]"
+634    Invalid keyword in "[ ]"
+636    Limit exceeds the ranges of variable in "[ ]"
+638    Range overlap (or out of range) in "[ ]"
+639    Single Variable expected
+640    Too many cells
+642    No memory for CROSSTAB internal structures
+644    SELECT not allowed
+646    WEIGHT not allowed
+647    MEAN (and SMEAN and STABLE) cannot specify Layer axis
+648    Expression not allowed
+649    Layer expressions do not allow '*' operator
+650    Cannot use '*' operator with complex terms
+651    Crosstab name expected
+652    Invalid dimension specified
+653    Term-specifier constant requested
+654    Invalid term found in expression
+655    Invalid variable specification
+656    Missing '=' separator
+657    Missing ')'
+670    Table %s cannot be processed - too big or no more memory
+672    No more place for Vars in CROSSTAB
+674    No more place for Tables
+678    Include/Exclude/Unit/Stat/TabLogic not allowed in hotdeck
+
+679    Too many ranges
+
+680    Depending variable expected
+681    "'/' operator allowed only in SMEAN tables"
+682    Unknown variable - cannot be used as depending variable
+683    Alphanumeric variable - cannot be a depending variable
+
+687    Assignment to variables of type '%s' is not allowed in PROC GLOBAL
+690    Procedures for table %s are not allowed. Define a valid level for this table.
+692    Tbi file '%s' contains an invalid table number (%d)
+693    You must assign the result of the function to an alpha
+
+/* --- LIS: FOR-DICT and NMEMBERS function messages */
+751    Cannot nest a dictionary FOR loop while already inside another dictionary FOR loop
+
+/* --- display/errmsg messages */
+770    Alpha expression expected in SELECT clause
+771    Display/Errmsg/Write require at least one argument specifying either a message number or message text
+772    Numbered messages require a positive integer message number no greater than %d (so %f is invalid)
+773    The DENOM specification cannot be used with the CASE clause
+775    Message number %d does not exist in the application message file and will be processed without text
+776    Repeated DENOM/SELECT specification
+777    DENOM specification is not allowed for Display messages
+779    Missing '=' following DENOM clause
+780    No DENOM variable provided following 'DENOM=' specification
+781    Invalid DENOM variable - must be either an on-the-fly variable or a working storage dictionary numeric single variable
+782    Repeated CASE clause
+783    Invalid CASE clause - SUMMARY keyword aready specified
+784    CASE clause is not allowed for Display messages
+785    Repeated SUMMARY clause
+786    Invalid SUMMARY clause - CASE keyword already specified
+787    SUMMARY clause is not allowed for Display messages
+788    When using SELECT with the warning function, you must specify an option that does not require operator input
+789    The SELECT feature only supports up to %d options
+790    Based on the number of SELECT options, DEFAULT must be %s
+
+/* --- EXEC' functions */
+900    Exec' functions allow only constants and variables
+901    Invalid negative constant in exec function
+909    Exec' function name must be a literal-object
+910    Too many arguments (exec' functions allow up to 32)
+
+/* --- EXEC System */
+916    Invalid or repeated option. The valid options are: MAXIMIZED or NORMAL or MINIMIZED and FOCUS or NOFOCUS and WAIT or NOWAIT.
+917    Invalid option. MAXIMIZED (NOFOCUS) is not supported
+
+/* --- MaxOcc */
+920    Record, item, group, or block name expected
+921    A multiply occurring record, group, block, or item is expected
+922    A multiply occurring group (or form) is expected
+
+/* --- SetFile */
+930    Dictionary or file expected
+931    The 'create' clause cannot be used with the input dictionary in a batch application
+
+/* --- InValueSet */
+940    Value set doesn't belong to the item specified in the first argument
+
+/* --- Alpha function */
+950    Length must be between 1 and 32000
+
+/* --- Array Objects */
+955    An Array of type '%s' expected
+956    An Array of type '%s' with dimensions '%s' expected
+
+/* --- List Objects */
+960    Invalid function call (List object expected)
+961    A List of type '%s' expected
+962    You can only add, insert, or assign a List of the same type ('%s') as '%s'
+
+/* --- Various Functions */
+1201   The getos function expects a string HashMap with 1 non-numeric dimension
+
+4014   Cases can be searched using relational operators (=, <, <=, >, >=), startswith, or uuid
+4015   You cannot use SET ACCESS/FIRST/LAST for the input dictionary in entry applications
+4016   The locate function cannot be used on the input dictionary in an entry application
+
+5516   Positive constant expected
+
+7006   Unknown SET command
+
+7011   The SetProperty function requires at least two arguments
+7012   The GetProperty function requires at least one argument
+7013   The SetProperty/GetProperty functions require additional arguments if the first argument is not an alphanumeric symbol
+
+7016   One of the following options is expected: %s
+7017   You cannot define the same type of option more than once
+7018   You must separate the primary option from the secondary option with a dot
+
+7020   Invalid name to define an Index - it is not a variable
+7021   An Index variable must belong to same Dictionary
+7022   An Index variable must be at Level 1
+7023   An Index variable must be Single, always present
+7024   Variable too long to define an Index
+7025   An Index variable cannot have decimals
+7030   Cannot define an Index in this Dictionary
+
+/* --- set PROTECT */
+7060   Up to 100 symbols can be specified in a SET ATTRIBUTES
+7062   A Variable in SET ATTRIBUTES must have a field in a Form
+7063   NATIVE, DISPLAY, AUTOSKIP/RETURN/PROTECT, HIDDEN/VISIBLE, REFRESH,ASSISTED,NORMALCASE,LOWERCASE,UPPERCASE,SELCASE,DATE(["date_format"]) expected
+
+7064   Invalid SET ATTRIBUTES - no symbol specified
+7065   The LOCKED/TOP/CENTER/BOTTOM/LEFT/RIGHT/DYNAMIC sub-attributes are no longer supported
+7066   Invalid SET ATTRIBUTES/REFRESH - missing ON/OFF clause
+7067   Invalid SET ATTRIBUTES/ASSISTED- missing ON/OFF clause
+7068   Missing QUESTION/VARIABLE sub-attributes
+7069   Missing TITLE sub-attribute
+
+/* --- set FILE compiler */
+7078   Cannot specify both CREATE and UPDATE clauses
+7079   Cannot specify both SHARED and EXCLUSIVE clauses
+
+7100   SET ERRMSG expects one of three commands: OPERATOR, SYSTEM, or DEFAULT
+7103   If tracing to a file, the only optional argument is CLEAR
+
+/* --- Do While messages */
+8001   Invalid initial expression - missing '='
+8002   Expecting 'while' or 'until'
+8003   "'by' cannot be used if there is no 'varying' expression"
+8004   The '%s' statement can only be used in a loop
+
+/* --- IsPartial */
+8054   SavePartial can only be coded in an Item procedure
+
+/* --- IMPUTE messages */
+8100   Dictionary item expected
+8101   Repeated '%s' clause
+8102   You cannot use VALUESET because '%s' has no value sets
+8103   The VSET index '%s' is not valid because '%s' has only '%d' value sets
+8104   A value set belonging to '%s' was expected
+
+/* --- Implicit/Explicit */
+8200   Cannot create alpha variable
+8201   Invalid variable declaration
+8203   You should explicitly specify the length of an alpha variable; the length will default to %d
+8204   Alpha length must be an integer between 1 and %d
+8205   Cannot create numeric variable - symbol name already exists
+8206   Invalid syntax; define aliases using the form: <alias-name> : <dictionary-name>
+8207   Ensure can only be used with numeric variables
+8208   Ensure variables cannot have an initial assignment and will start with the value 0
+
+8213   There were fewer values initialized than the size of the array
+8214   There were more values initialized than the size of the array, extra items are ignored
+8216   The string literal will be truncated as it is longer than the receiving alpha variable
+8217   A numeric constant was expected when initializing a numeric variable
+8218   A string literal was expected when initializing an alpha variable
+8222   The repeating array formulation requires three dots to be written consecutively: ...
+8224   The declared variables in the repeated array will not repeat the same number of times across the array
+8225   Arrays cannot have more than %d cells
+8226   The dimension must be specified when using a multidimensional array
+
+/* --- GPS */
+8251   Invalid first argument to the GPS function. Common arguments include: open, close, read, latitude, longitude
+8252   The readDuration argument can only be used when using baseMap := None
+
+/* --- Paradata + SqlQuery */
+8272   You can only use one- or two-dimensional arrays with the SqlQuery/Paradata functions
+8273   You can only use records in working storage dictionaries with the SqlQuery/Paradata functions
+8274   With Paradata(concat), you must specify at least two filenames, the output filename and at least one input filename
+8275   With Paradata(concat), the output filename cannot be a string List
+
+/* --- Group functions */
+8300   Record, group or multiple item name expected
+8301   Cannot specify a subscript
+8302   Invalid subscript (must be between 1 and %d)
+8303   %s should have a subscript - you may get error messages when you run this application
+8304   Cannot insert a single required record
+8305   Cannot delete a single required record
+8306   Using variable should be in the group
+8307   Cannot sort records with maximum 1 occurrence
+8308   "'Notappl' subscript is not allowed"
+8309   Cannot swap records with maximum 1 occurrence
+8310   The variable %s has already been used in this call to sort
+8311   Separate additional subscripts with a comma
+
+/* --- List functions */
+8350   A multiply occurring record must specify a subscript if not used in a for or group statement
+8352   The shorthand (*) can only be used for items on multiply occurring records
+
+/* --- Unit */
+8400   UNIT clause allowed only in TABLE declarations
+8401   Repeating item, value-set, record, relation or group name expected
+8402   Var name expected in subtable definition
+8403   Invalid dimension in subtable definition
+8404   Item not found in coordinate expression in subtable definition
+8405   Sequence number is invalid. Check coordinate expressions
+8406   Subtable specification is ambiguous. More than 1 sub-table was found
+8407   Subtable specification for the row is invalid
+8408   Subtable specification for the column is invalid
+8409   Subtable specification for the layer is invalid
+8411   Subtable specification invalid. No sub-tables found
+8415   A subtable was already used in a unit
+8416   The subtable '%s' was already used
+8420   Some members of a subtable are not related. Multiple elements must be asociated with a relation
+8421   Some members of the subtable '%s' are not related. Multiple elements must be asociated with a relation
+8430   Equal sign unexpected
+8432   Integer constant or numeric variable expected
+8434   ENDUNIT clause expected
+
+/* --- Stats */
+8500   Item name expected in Stat specifier
+8501   Invalid keyword in Stat list of CrossTab
+8510   STAT must appear before UNIT specification
+8512   The crosstab WEIGHT, SELECT or TABLOGIC must appear before UNIT specification
+8520   STAT clause allowed only in TABLE declarations
+8532   Invalid PERCENT type. CELL/ROW/COLUMN/TOTAL expected
+8534   Invalid PERCENT type. LAYER expected
+8536   Invalid PERCENT type. TABLE/SUBTABLE expected
+8538   Invalid PROPORTION type. TOTAL/PERCENT/PCT/% expected
+8540   Invalid PTILE argument. Integer constant expected between 2 and 10
+8542   Item not found in coordinate expression in STAT definition
+8544   Invalid PROPORTION type. Argument is duplicated
+8546   Invalid MEDIAN/PTILE type. LOWER/UPPER expected
+8550   STAT only allowed in CROSSTAB
+8552   UNIT only allowed in CROSSTAB
+8554   FREQ stat can only be specified once for a coordinate
+8556   LEVEL is only allowed in CROSSTAB declaration in GLOBAL procedure
+8558   Level name greater than 0 expected
+8560   Level specified can't be lower than the coordinates level
+8562   Invalid TOTAL type. PERCENT/PCT/% expected
+
+/* --- TabLogic */
+8602   ENDLOGIC expected
+
+/* --- Other messages related with Crosstab */
+8700   No subtable has been included in crosstab/xtab command
+8710   Auxiliar table for statistic already exist. Change the table name.
+8720   Item (%s) in table (%s) has overlapping ranges.
+
+/* --- Special Functions */
+9111   The has operator must be used with a repeating item
+9112   To work properly, the special function must be written with this case: '%s'
+
+9220   Repeated WHERE/TITLE argument
+9222   Item list expected
+
+/* --- EXPORT messages */
+31000  The item (or record) level number is lower than the export level number.
+31001  No memory for Export internal tables
+31002  Export accepted only in EXPORT applications
+31003  Export statement must be coded in Level Proc
+31005  Too many elements for the Export operation
+31006  CASE_ID clause cannot appear twice
+31007  The dictionary %s's settings prohibit its use to export data
+31024  Can only specify names of variables in CASE_ID list
+31025  Too many variables specified in CASE_ID list
+
+31028  Case id too long
+31029  SubItems are not allowed in CASE_ID
+
+31030  Single record doesn't support occurrences
+
+31034  A multiple variable in CASE_ID can't solve all subindexes. Use explicit notation for the subindexes
+
+31045  Input dictionary expected
+
+31060  File symbol expected
+31062  "'TO' clause expected in export command"
+
+31068  The specified output program does not support using commas as decimal marks
+31069  The specified output program does not support Unicode; output will be in ANSI
+31070  Invalid export model
+
+/* --- ... new ENSEMBLED RECORD model */
+31083  Record name, item name, REC_NAME, REC_TYPE or CASE_ID expected in export command
+31085  Variable specified in INCLUDE/EXCLUDE list doesn't belong to the record
+31086  INCLUDE/EXCLUDE list must specify at least one object
+31092  Character expression defining record name or record type exprected in REC_NAME or REC_TYPE option
+31094  REC_NAME clause cannot appear twice
+31096  REC_TYPE clause cannot appear twice
+31098  CASE_ID, REC_NAME and REC_TYPE must appear before item list
+
+31100  Empty item list. At least one item must be included in the export
+
+31110  Duplicated name in export
+
+/* --- for a work-var in Group */
+33000  Group name expected
+33001  Too many 'for' loops - maximum allowed is 10
+33003  Too many subscripts
+33004  Only multiple groups are allowed
+33010  Not enough subscripts
+33011  Too many subscripts (unit)
+
+/* --- File */
+33054  File handler expected
+33055  File handler or alpha expresion expected
+33059  Dictionary variable or alpha expression expected
+
+/* --- Relation */
+33102  Base symbol for relation is not valid
+33103  Related symbol for relation is not valid
+33104  Cannot relate to object in lower level
+33105  By keyword expected in relation
+33107  Invalid relation type (parallel, where, or linked expected)
+33109  Item name expected
+33110  Relation name expected
+33111  Record name expected
+33114  Multiple item expected
+33115  Value set name expected
+33116  Object of type '%s' expected
+33117  "'%s' is not of the type expected: '%s'"
+
+/* --- Notes */
+46500  Note functions cannot be executed on elements not part of a dictionary
+
+/* --- GetLabel */
+47001  Dictionary object expected
+47004  Item or value set name expected
+
+/* --- Value Sets */
+47169  You cannot use the dynamic value set '%s' as only dictionary value sets are valid in this operation
+47171  You can only add or assign a value set of the same type ('%s') as '%s'
+
+/* --- Pffs */
+47190  The 'load' function requires a string filename or the name of the primary form file
+47193  A Pff object can only be assigned to another Pff object
+
+/* --- Audio */
+47201  An Audio object can only be assigned a value of type Audio or Document
+
+/* --- Document */
+47221  A Document object can only be assigned a value of type Document, Audio, Geometry, or Image; or a string expression
+
+/* --- HashMap */
+47231  A HashMap object can only be assigned to another HashMap object
+47232  A HashMap dimension type must be numeric, string, or all
+47233  Only HashMap objects with values of type '%s' can be assigned to the HashMap '%s'
+47234  The dimension types of the HashMap '%s' cannot be assigned to '%s'
+47235  The HashMap '%s' cannot handle a '%s' argument for dimension %d
+47236  The default value for the HashMap '%s' must be a constant of type '%s'
+47237  The first argument to '%s.getKeys' must be a List%s
+
+/* --- Image */
+47241  An Image object can only be assigned a value of type Image or Document
+47242  The Image.load function takes either a filename or a valueset
+47243  The Image.resample function's arguments can be either width/height or maxWidth/maxHeight, not both
+
+/* --- Dictionary + Case + DataSource */
+47251  When declaring a Case object, specify the name of the dictionary in parentheses before the object name
+47252  A Case object can only be set to another Case object or to a dictionary
+47253  Because the Case object '%s' is based on '%s,' it cannot be set to a Case based on '%s'
+47254  You cannot make an assignment to Case '%s' because it belongs to a dictionary with type '%s'
+47261  When declaring a DataSource object, specify the name of the dictionary in parentheses before the object name
+47262  Because the DataSource object '%s' is based on '%s,' it cannot be set to a DataSource based on '%s'
+
+47301  You must use a dictionary name when calling this function
+47302  You must use the dictionary name '%s,' not the Case or DataSource name, when calling this function
+47303  You must use a dictionary or Case when calling this function
+47304  You cannot use the DataSource '%s' because a dictionary or Case is required for this function
+47305  You must use a dictionary or DataSource when calling this function
+47306  You cannot use the Case '%s' because a dictionary or DataSource is required for this function
+47307  You cannot use the Case '%s' to receive data from the dictionary or DataSource '%s' because it must depend on dictionary '%s'
+47308  You must provide a Case to receive or pass data from the dictionary or DataSource '%s'
+
+47311  When calling 'countcases' with a where clause, you must specify a dictionary or case to receive each case
+
+/* --- Geometry */
+47321  A Geometry object can only be assigned a value of type Geometry or Document
+47322  The first argument to the function '%s' must be of type Map. '%s' is not a Map.
+
+/* --- DeckArrays */
+47501  DeckArrays only work on numeric arrays defined in a dictionary
+47502  The size of the value set is not compatible with a DeckArray
+47503  DeckArray 'leftover' cells must be specified with (+)
+47510  PutDeck/GetDeck expect a DeckArray as the first argument
+47511  You cannot treat a normal array as if it were a DeckArray
+47513  You must specify an index for this dimension
+
+/* --- Question Text */
+48010  Starting in CSPro 7.6, you must specify the () after a function call in CAPI text; please change this from %s to %s as this will not work in a future version of CSPro.
+48011  The question text condition must consist of a single numeric expression
+48012  The question text fill must consist of a single numeric or string expression, or an object with binary data
+
+/* --- Reports */
+48101  Unbalanced ?> escapes in report on line number %d
+48102  Reached end of report while still in %s that started on line number %d
+48103  The report uses functionality that is not supported
+48104  Writing to report '%s' is only allowed within the report's logic or from a user-defined function
+
+/* --- User-Defined Function Messages */
+50000  The user-defined function '%s' expects %s
+50001  When declaring functions pointers, %s
+50002  SQL callback functions can only have numeric and string parameters
+50003  Once you specify that a function is using optional parameters (starting with '%s'), every subsequent parameter must be optional
+50004  An object of type '%s' cannot be used as an optional parameter
+50005  User-defined functions must terminate with 'end'
+
+51102  The Prompt function commands Password and Multiline cannot be used together.
+
+51111  When specifying a date, the timestamp function requires at least the year, month, and day
+
+/* --- new/adapted messages for IMSA ------------------------ */
+10050  Cannot install the Application - errors detected when installing Dictionaries and Flows
+10051  Cannot install Flow '%s' - the Application already has a Flow of same name
+10055  Cannot install Dictionary '%s' of Flow '%s' - the Application already has a Dictionary of same name
+10057  Cannot install %s Dictionary '%s' - the Application already has another member of same name
+10058  An application requires at least one logic file
+10059  Cannot install %s Dictionary '%s' - the Application doesn't support this kind of dictionary %s
+10060  Cannot install Report '%s' - the Application already has another member of same name
+
+10081  Check Flow %s: the expected number of levels (%d) does not match the maximum level found (%d)
+10082  The number of levels in Primary Flow (%d) is invalid
+10083  The number of levels in Primary Flow (%d) exceed the allowed maximum (%d)
+10084  The number of levels in Primary Flow (%d) exceeds the maximum level defined for the input Dictionary (%d)
+10085  The number of levels in Primary Flow (%d) is below the maximum level defined for the input Dictionary (%d) - upper levels will not be accesible (possible loss of nodes when modifying cases)
+
+10545  Invalid 'Enter' command - it must refer to a Secondary Flow/FormFile
+10546  Invalid 'Enter' command - it can only be used as part of a single while loop
+10547  Invalid 'Enter' command - it can only be used in a data entry application and will be ignored
+
+18000  The %s '%s' cannot be used because the application already has a symbol with the same name
+18001  The dictionary '%s' cannot be used as type '%s' because a '%s' flow must have a dictionary of type '%s'
+18002  The dictionary '%s' cannot be used as type '%s' because it is not associated with the primary flow
+
+/* --- start BUCEN messages --- */
+19000  "'%s' group must have a least one occurrence!"
+
+/* --- Save Array Messages */
+19004  Save arrays can only be declared in PROC GLOBAL
+19099  Saving arrays based on the input filename is no longer supported; use the PFF SaveArray property instead
+/* --- end BUCEN messages --- */
+
+/* --- Event messages --- */
+60000  %s already defined
+60001  %s must appear before %s
+60002  PostProc clause expected
+60003  OnOccChange only can be used in Groups
+60004  Tally only can be used in Table procedures
+60005  Tally/PostCalc only can be used in Levels and Tables procedures
+60006  Tables only allow Tally/PostCalc events
+
+/* --- New Crosstab -- */
+70000  Invalid collapsed range. Missing right bracket.
+70001  Cannot specify brackets for value-sets.
+
+/* ---  */
+90015  Invalid function call (Multiple Record/Group/Block/Item name expected)
+90018  Invalid function call (Single variable in Mult-group, or Multiple variable expected)
+
+91700  Invalid element in GetCaptureType/SetCaptureType/SetCapturePos. You must specify a Dictionary, a Form, a Group, a Block, or an Item on a Form
+91701  Invalid element in GetCaptureType. You must specify an Item on a Form
+91702  Invalid element in SetCaptureType. You must specify a Capture Type.
+
+91703  Invalid element in ChangeKeyboard. You must specify a Dictionary, a Form, a Group, a Block, or an Item on a Form
+91704  Using ChangeKeyboard to get the current keyboard ID only works if specifying an Item on a Form
+
+91710  Invalid element in RandomizeVS. You must specify a Dictionary, a Form, a Group, a Block, an Item, or a Value Set
+91711  "'Exclude' command expected in a RandomizeVS function call"
+
+91100  Unrecognized BEHAVIOR item - Path/CanEnter/Messages/SpecialValues expected
+91101  Unrecognized BEHAVIOR() CanEnter target - NotAppl/OutOfRange expected
+91102  Unrecognized BEHAVIOR() Messages target - Display/ErrMsg expected
+91103  Unrecognized BEHAVIOR condition - ON/OFF expected
+91104  Unrecognized BEHAVIOR() CanEnter(...) ON target - Confirm/NoConfirm/Show/NoShow expected
+91105  Unrecognized BEHAVIOR() MsgNumber target - Display/ErrMsg expected
+91106  Unrecognized BEHAVIOR() Export target - Data/SPSS/SAS/STATA/CSPRO/TABDELIM/COMMADELIM/SEMICOLONDELIM/R expected
+
+91107  Invalid element in SET BEHAVIOR. You must specify a Dictionary, a Form, a Group or an Item on a Form
+91108  The specified BEHAVIOR does not allow for a list of elements
+91109  Up to 100 elements can be specified in a SET BEHAVIOR
+
+91110  IMPUTE keyword expected in SKIPSTRUC behavior
+
+91113  Unrecognized BEHAVIOR() SpecialValues target - zero expected
+
+91114  Missing input variable
+91115  Repeated INCLUDE/EXCLUDE clause
+
+/* --- compiler & symbol table manipulation */
+92180  The %s of a multiline comment, %s, has no matching pair
+92181  Missing end quote (%c) in the string literal
+92182  Invalid escape sequence, %c%c, in the string literal
+
+93000  "'%s' is not a declared variable or is a misspelled dictionary entry"
+93001  The symbol '%s' exists more than once in your application so you must provide qualifiers (such as the dictionary name) to avoid ambiguity
+93002  The symbol '%s' is valid but is not of the type expected
+93003  The symbol '%s' contains no object or function named '%s'
+93004  "'%s' is the beginning of a function but you must specify the full name of the function to call"
+93005  "'%s' is the name of a function but unexpected text was found after the function name"
+93006  The case of '%s' does not match the case used to declare the symbol: '%s'
+93007  "'%s' is not a declared variable, did you mean '%s'?"
+93008  The symbol '%s' is valid but is not of the type expected: '%s'
+
+/* --- Variable compilation */
+93011  The destination variable must be a dictionary or working variable, an Array element, a Freq tally, a HashMap element, a List element, or a user-defined function
+93012  The destination variable must be of type '%s'
+93013  A user-defined function cannot be a destination variable outside of the function definition
+
+
+/* --- Generic */
+93030  Cannot insert symbol '%s'
+93031  Unknown error while inserting symbol '%s'
+93032  Illegal symbol '%s'
+
+93035  You cannot provide more titles (%d) than columns in the array (%d)
+93036  You cannot provide the column count for a one-dimensional array
+
+/* --- compiling at-symbols */
+88100  Invalid '@' name - Single, Alpha variable expected
+
+/* --- Compiling selected ENTRY commands in BATCH */
+88150  EndLevel is not implemented in Batch Mode
+
+89000  Code before the first PROC will not be executed. Those lines should be commented.
+
+90000  PROC invalid: '%s' does not exist
+90001  PROC %s can only be defined once in your application
+90002  PROC invalid: '%s' is ambiguous due to multiple variables with that name
+90003  Number of '%%' arguments passed (%d) does not match the number expected in the message text (%d).
+90004  Data type of '%%' argument #%d (%s) does not match fill value (%s).
+90005  Message number %d is not defined in the application's message file.
+
+/* --- Symbol Modifiers */
+94100  You cannot use the '%s' modifier more than once
+94101  The '%s' modifier cannot be used with a symbol of type '%s'
+94102  Compilation cannot continue because the Common Store settings file could not be opened
+94103  The setting %s was not found in the Common Store settings file
+94104  The setting %s was found in the Common Store settings file but '%s' is not a valid numeric value
+94105  You cannot create multiple persistent variables with the same name ('%s') even if in different scopes
+
+/* --- Mapping */
+94200  The argument to '%s' must be a user-defined function
+94201  Map.zoomTo expects either two arguments (latitude, longitude), 3 arguments (latitude, longitude, zoom), 4 arguments (minLatitude, minLongitude, maxLatitude, maxLongitude) or 5 arguments (minLatitude, minLongitude, maxLatitude, maxLongitude, padding)
+94202  The argument to '%s' must be a Geometry object
+
+/* --- Frequency */
+94500  Unnamed frequencies cannot be declared in PROC GLOBAL
+94501  "'%s' is not a valid frequency command"
+94502  You cannot use the frequency command '%s' more than once
+94503  The command '%s' cannot be used with named frequencies. You must use %s.tally([weight]) to control the frequencies.
+94504  Invalid breakdown value (must be 1 or greater)
+94505  When declaring a frequency in PROC GLOBAL, headings can only be string literals
+94506  Invalid number of percentiles (2 through 20 allowed)
+94507  Invalid number of decimals (1 through 5 allowed)
+94508  Invalid page length (must be 0 or greater)
+94509  Invalid sort parameter (must be ascending/descending and/or by valueset/code/label/freq)
+94510  You can only specify formatting frequency commands when using the Freq.sort and Freq.view functions
+94511  When using the command '%s' you must specify either a variable name or the name of something that contains variables (such as a dictionary record)
+94512  The occurrence number for '%s' must be a positive constant number (or * to signify all occurrences)
+94513  You cannot exclude frequency variables without including any variables
+94514  You cannot access '%s' from a PROC on level %d
+94515  There were no valid frequency variables that could be included from '%s'
+94516  You cannot specify a record occurrence for '%s' because it is not a repeating record
+94517  You can only specify a record occurrence for '%s' between 1-%d
+94518  You cannot specify occurrences for '%s' because it does not repeat
+94519  You can only specify %d occurrences for '%s'
+94520  You can only specify an item occurrence for '%s' between 1-%d
+94521  There are no frequency variables remaining after processing exclusions
+94522  You cannot access individual tallies of '%s' because it may contain more than one frequency
+94523  You can only specify dictionary value sets so '%s' is not valid
+94524  The value set '%s' is not associated with any frequency variables and will not be used
+
+/* --- Generalized compiler */
+94700  The argument '%s' must be specified in the proper case: '%s'
+94701  You cannot specify the argument '%s' more than once
+94702  The argument '%s' expects an expression of type '%s'
+94703  The argument '%s' expects an object of types: %s
+94704  The argument '%s' expects an integer expression of a value between %d - %d
+94705  The argument '%s' expects an integer expression of a value no less than %d
+94706  The argument '%s' expects an integer expression of a value no greater than %d
+94707  The argument '%s' cannot be compiled in CSPro %0.1f logic because automatic type conversions are not supported; use the @ operator to specify the type
+
+/* --- Deprecation warnings and errors */
+95001  Using the function/statement with the old name '%s' may not be supported in future versions of CSPro. Use the name '%s' instead
+95002  Using set attributes with the assisted option will not be supported in future versions of CSPro. Consider setting the capture type using field properties, or using the setproperty function with the argument CaptureType or ShowExtendedControlTitle instead
+95004  Consider using a variable-length 'string' instead of a fixed-length 'alpha' for alphanumeric variables
+95005  The Path.selectFile function may not be supported in future versions of CSPro. Use the CS.Path.selectFile function instead.
+95006  The htmlDialog function may not be supported in future versions of CSPro. Use the CS.UI.showDialog function instead.
+95011  The writecase variable list is no longer supported. Cases are written using the values stored in %s's ID items.
+95012  The set command '%s' is no longer supported in CSPro
+95014  The set command '%s' is no longer supported and will be ignored
+95015  This functionality may not be supported in future versions of CSPro. Use the setProperty function with the argument '%s' instead
+95016  This functionality may not be supported in future versions of CSPro. Use the getProperty function with the argument '%s' instead
+95017  Implicit declaration mode no longer exists so the command 'set explicit' is not required and will be ignored
+95018  Compiling code in implicit declaration mode is no longer supported in CSPro
+95019  The Array type '%s' is not longer supported in CSPro. Remove the type for a numeric Array
+95020  Creating value sets with Array objects is no longer supported. Use the ValueSet object to create dynamic value sets
+95021  This functionality may not be supported in future versions of CSPro. Use the protect function with the argument %s instead
+95022  This version of recode/box (using => instead of ->) is no longer supported in CSPro. Look at the recode helps and change your code to use the new version
+95024  Using VSET with a number may not be supported in a future version of CSPro. Use VALUESET with the value set name instead.
+95025  Use parentheses after the frequency command '%s' as this will be required in a future version of CSPro.
+95026  Use the command 'WEIGHT' as 'WEIGHTED' may not be supported in a future version of CSPro.
+95027  The ability to export to DDI 2.0 or CSPro XML is no longer supported in CSPro.
+95028  Look at the valueset.add helps to see how to used named arguments to specify an image filename. This way of specifying it will be removed in a future version of CSPro.
+95029  The reporting functions report and setreportdata are no longer supported in CSPro. Use the new reporting system introduced in CSPro 7.7 to generate reports.
+95030  Starting with CSPro 8.0, you must specify the variable type when using configuration variables. Change this to: 'config string'
+95031  The itemlist function is no longer supported in CSPro
+95032  In a future version of CSPro, using setvalueset with @ and a string literal will not be allowed
+
+/* --- Items */
+100400 A subscript for '%s' must be specified in the parentheses.
+100401 A maximum of %d subscripts can be specified for '%s'.
+100402 Subscripts for '%s' must be specified as positive integers, numeric expressions, or as a comma for an implicit occurrence.
+100403 Subscripts for '%s' must be separated by commas and finalized with a right parentheses.
+100404 The %s subscript for '%s' must be 1.
+100405 The %s subscript for '%s' must be a value between 1-%d.
+100406 The %s subscript must be specified for '%s' because no implicit subscript can be calculated.

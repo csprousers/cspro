@@ -1,0 +1,510 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>CSPro Mapping</title>
+
+    <link rel="stylesheet" href="/external/leaflet/leaflet.css" />
+    <script src="/external/leaflet/leaflet.js"></script>
+    <script src="/external/leaflet/leaflet.ajax.min.js"></script>
+
+    <style>
+        body {
+            height: 100%;
+            margin: 0px;
+            position: relative;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        #mapid {
+            height: 100%;
+            z-index: 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .shown {
+            display: block;
+        }
+
+        #title {
+            font-size: 32px;
+            background-color: white;
+            color: black;
+            text-align: center;
+            position: absolute;
+            top: 0px;
+            z-index: 1;
+            transform: translateX(-50%);
+            left: 50%;
+            white-space: pre;
+        }
+
+        a {
+            white-space: pre;
+        }
+
+        #buttons {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            z-index: 1;
+            max-width: 10%;
+            white-space: pre;
+        }
+
+        button {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: background-color 0.16s ease-out;
+            color: rgb(60,60,60);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        button:hover {
+            color: rgb(30,30,30);
+        }
+
+        button:active {
+            color: black;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        .img_button {
+            height: 64px;
+            width: 64px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="title" class="hidden">CSPro Mapping</div>
+    <div id="mapid"></div>
+    <div id="buttons"></div>
+</body>
+
+</html>
+
+<script>
+    var csmap;
+    var markers;
+    var geometries;
+    var currentLoc;
+    var tileLayer;
+
+    function initMap() {
+        csmap = L.map('mapid', {
+            maxBounds: L.latLngBounds([-85.06, -180], [85.06, 180]),
+            maxBoundsViscosity: 1
+        });
+        csmap.on('click', handleMapClick);
+        markers = L.layerGroup().addTo(csmap);
+        geometries = L.layerGroup().addTo(csmap);
+    }
+
+    window.onload = function () {
+        initMap();
+        window.chrome.webview.postMessage({ "action": "document_loaded" });
+    }
+
+    function clearMarkers() {
+        markers.clearLayers();
+    }
+
+    function clearButtons() {
+        var buttonsEl = document.getElementById("buttons");
+        while (buttonsEl.lastChild) {
+            if (buttonsEl.lastChild.id == "buttonLocation") {
+                break;
+            }
+            buttonsEl.removeChild(buttonsEl.lastChild);
+        }
+    }
+
+    function handleMarkerClick(e, id) {
+        var camera_latLng = csmap.getCenter();
+        var markerClickJson = {
+            "action" : "marker_click",
+            "id": id,
+            "camera_lat": camera_latLng.lat,
+            "camera_lng": camera_latLng.lng,
+            "camera_zoom": csmap.getZoom()
+        };
+        window.chrome.webview.postMessage(markerClickJson);
+    }
+
+    function handleMarkerDrag(e, id) {
+        var latLng = e.target.getLatLng();
+        var camera_latLng = csmap.getCenter();
+        var markerDragJson = {
+            "action": "marker_drag",
+            "id": id,
+            "marker": markers.getLayerId(e.target),
+            "latitude": latLng.lat,
+            "longitude": latLng.lng,
+            "camera_lat": camera_latLng.lat,
+            "camera_lng": camera_latLng.lng,
+            "camera_zoom": csmap.getZoom()
+        };
+        window.chrome.webview.postMessage(markerDragJson);
+    }
+
+    function handlePopupClick(id) {
+        var camera_latLng = csmap.getCenter();
+        var popupClickJson = {
+            "action": "popup_click",
+            "id": id,
+            "camera_lat": camera_latLng.lat,
+            "camera_lng": camera_latLng.lng,
+            "camera_zoom": csmap.getZoom()
+        };
+        window.chrome.webview.postMessage(popupClickJson);
+    }
+
+    function handleMapClick(e) {
+        var latLng = e.latlng
+        var camera_latLng = csmap.getCenter();
+        var mapClickJson = {
+            "action": "map_click",
+            "latitude": latLng.lat,
+            "longitude": latLng.lng,
+            "camera_lat": camera_latLng.lat,
+            "camera_lng": camera_latLng.lng,
+            "camera_zoom": csmap.getZoom()
+        };
+        window.chrome.webview.postMessage(mapClickJson);
+    }
+
+    function handleButtonClick(e, id) {
+        var camera_latLng = csmap.getCenter();
+        var buttonClickJson = {
+            "action": "button_click",
+            "id": id,
+            "camera_lat": camera_latLng.lat,
+            "camera_lng": camera_latLng.lng,
+            "camera_zoom": csmap.getZoom()
+        };
+        window.chrome.webview.postMessage(buttonClickJson);
+    }
+
+    function handleMarkerMouseover(e) {
+        var marker = e.target;
+        marker.openPopup();
+    }
+
+    function removeMarker(leaflet_id) {
+        var marker = markers.getLayer(leaflet_id);
+        marker.removeFrom(markers);
+    }
+
+    function setDraggable(leaflet_id) {
+        var marker = markers.getLayer(leaflet_id);
+        marker.dragging.enable();
+    }
+
+    function setDescription(id, leaflet_id, popup_callback, description) {
+        var marker = markers.getLayer(leaflet_id);
+        marker.unbindPopup();
+        if (description) {
+            let elem;
+            if (popup_callback >= 0) {
+                elem = document.createElement('a');
+                elem.setAttribute('href', 'javascript:void(0);');
+                elem.setAttribute('onclick', `handlePopupClick(${id});`);
+            }
+            else {
+                elem = document.createElement('div');
+                elem.style.whiteSpace = "pre";
+            }
+            elem.appendChild(document.createTextNode(description));
+            marker.bindPopup(elem);
+        }
+    }
+
+    function setText(leaflet_id, text, background_color, text_color) {
+        var marker = markers.getLayer(leaflet_id);
+        marker.unbindTooltip();
+        if (text) {
+            var tooltip = document.createElement('div');
+            tooltip.setAttribute('style', `background-color: ${background_color}; color: ${text_color}; white-space: pre;`);
+            tooltip.appendChild(document.createTextNode(text));
+            marker.bindTooltip(tooltip, {
+                permanent: true,
+                direction: 'bottom',
+                offset: [-15, 0]
+            });
+        }
+    }
+
+    function addTextButton(content, id) {
+        let buttonsEl = document.getElementById("buttons");
+        let button = document.createElement("button");
+        button.setAttribute("id", `button${id}`);
+        button.appendChild(document.createTextNode(content));
+        button.addEventListener('click', (e) => handleButtonClick(e, id));
+        buttonsEl.appendChild(button);
+    }
+
+    function addImageButton(image_link, id) {
+        let buttonsEl = document.getElementById("buttons");
+        let button = document.createElement("button");
+        button.setAttribute("id", `button${id}`);
+        let image = document.createElement("img");
+        image.setAttribute("src", image_link);
+        image.classList.add("img_button");
+        button.appendChild(image);
+        button.addEventListener('click', (e) => handleButtonClick(e, id));
+        buttonsEl.appendChild(button);
+    }
+
+    function removeButton(id) {
+        let buttonEl = document.getElementById(`button${id}`);
+        if (buttonEl) {
+            buttonEl.remove();
+        }
+    }
+
+    function addMarker(latitude, longitude, drag_callback, popup_callback, id, description, text, background_color, text_color, image_url) {
+        var marker = L.marker(L.latLng(latitude, longitude), {
+            draggable: drag_callback >= 0
+        }).addTo(markers);
+        marker.on('click', (e) => handleMarkerClick(e, id));
+        marker.on('dragend', (e) => handleMarkerDrag(e, id));
+        marker.on('mouseover', handleMarkerMouseover);
+        if (description) {
+            let elem;
+            if (popup_callback >= 0) {
+                elem = document.createElement('a');
+                elem.setAttribute('href', 'javascript:void(0);');
+                elem.setAttribute('onclick', `handlePopupClick(${id});`);
+            }
+            else {
+                elem = document.createElement('div');
+                elem.style.whiteSpace = "pre";
+            }
+            elem.appendChild(document.createTextNode(description));
+            marker.bindPopup(elem);
+        }
+        if (text) {
+            var tooltip = document.createElement('div');
+            tooltip.setAttribute('style', `background-color: ${background_color}; color: ${text_color}; white-space: pre;`);
+            tooltip.appendChild(document.createTextNode(text));
+            marker.bindTooltip(tooltip, {
+                permanent: true,
+                direction: 'bottom',
+                offset: [-15, 0]
+            });
+        }
+        if (image_url) {
+            var icon = L.icon({
+                iconUrl: image_url,
+                iconSize: [64, 64]
+            });
+            marker.setIcon(icon);
+        }
+        window.chrome.webview.postMessage({
+            "action": "marker_placed",
+            "id": id,
+            "leaflet_id": markers.getLayerId(marker)
+        });
+    }
+
+    function setMarkerImage(image_url, leaflet_id) {
+        var marker = markers.getLayer(leaflet_id);
+        if (image_url) {
+            var icon = L.icon({
+                iconUrl: image_url,
+                iconSize: [64, 64]
+            });
+            marker.setIcon(icon);
+        }
+        else {
+            marker.setIcon(L.Icon.Default);
+        }
+    }
+
+    function moveMarker(latitude, longitude, leaflet_id) {
+        var marker = markers.getLayer(leaflet_id);
+        marker.setLatLng([latitude, longitude]);
+    }
+
+    function setTitle(title) {
+        var titleEl = document.getElementById("title");
+        if (title) {
+            titleEl.classList.remove("hidden");
+            titleEl.classList.add("shown");
+            titleEl.innerHTML = title;
+        }
+        else {
+            titleEl.classList.remove("shown");
+            titleEl.classList.add("hidden");
+        }
+    }
+
+    function fitPoints() {
+        if (Object.entries(markers._layers).length == 0) {
+            csmap.fitWorld();
+            return;
+        }
+        var minLat = 90;
+        var maxLat = -90;
+        var minLong = 180;
+        var maxLong = -180;
+        markers.eachLayer((marker) => {
+            var latLng = marker.getLatLng();
+            if (latLng.lat < minLat) {
+                minLat = latLng.lat;
+            }
+            if (latLng.lat > maxLat) {
+                maxLat = latLng.lat;
+            }
+            if (latLng.lng < minLong) {
+                minLong = latLng.lng;
+            }
+            if (latLng.lng > maxLong) {
+                maxLong = latLng.lng;
+            }
+        });
+        csmap.fitBounds(L.latLngBounds(L.latLng(minLat, minLong), L.latLng(maxLat, maxLong)));
+    }
+
+    function setView(latitude, longitude, zoom) {
+        if (zoom > 0) {
+            csmap.setView([latitude, longitude], zoom);
+        }
+        else {
+            csmap.panTo([latitude, longitude]);
+        }
+    }
+
+    function fitBounds(minLat, minLong, maxLat, maxLong, paddingPercent) {
+        var boundsOptions = {};
+        if (paddingPercent > 0) {
+            var paddingPx = Math.round(paddingPercent * window.innerWidth);
+            var maxPadding = Math.round(window.innerWidth / 2) - 8; // this seems to work
+            paddingPx = paddingPx < maxPadding ? paddingPx : maxPadding;
+            boundsOptions = {
+                padding: [paddingPx, 0]
+            };
+        }
+        csmap.fitBounds(L.latLngBounds([minLat, minLong], [maxLat, maxLong]), boundsOptions);
+    }
+
+    function showCurrentLocation(latitude, longitude) {
+        //invalid coords, only set if we encountered an error before
+        if (latitude < -90 || longitude < -180) {
+            alert("Geolocation failed! Check your Internet connection.");
+        }
+        else if (!currentLoc) {
+            currentLoc = L.circleMarker([latitude, longitude], locMarkerOptions)
+                .bindTooltip("Current Location")
+                .bindPopup("Current location based on IP address geolocation. This may be very inaccurate, especially while using a VPN.")
+                .addTo(csmap);
+            let buttonsEl = document.getElementById("buttons");
+            let button = document.createElement("button");
+            let image = document.createElement("img");
+            button.setAttribute("id", "buttonLocation");
+            image.setAttribute("src", "current-location.png");
+            image.classList.add("img_button");
+            button.appendChild(image);
+            button.addEventListener('click', viewCurrentLocation);
+            buttonsEl.prepend(button);
+        }
+    }
+
+    function viewCurrentLocation() {
+        if (currentLoc) {
+            csmap.setView(currentLoc._latlng, 15);
+        }
+    }
+
+    function hideCurrentLocation() {
+        if (currentLoc) {
+            currentLoc.remove();
+            removeButton("Location");
+        }
+        currentLoc = undefined;
+    }
+
+    function resetBaseMap() {
+        if (tileLayer) {
+            tileLayer.remove();
+            tileLayer = undefined;
+        }
+    }
+
+    var esriLeafletJsLoaded = false;
+
+    async function setEsriBaseMap(layer, token) {
+        if (!esriLeafletJsLoaded) {
+            await import("https://unpkg.com/esri-leaflet/dist/esri-leaflet.js");
+            esriLeafletJsLoaded = true;
+        }
+
+        resetBaseMap();
+        tileLayer = L.esri.basemapLayer(layer, {
+            token: token
+        }).addTo(csmap);
+    }
+
+    function setMapboxBaseMap(layer, token) {
+        resetBaseMap();
+        tileLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{layer}/tiles/{z}/{x}/{y}?access_token={token}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 23,
+            minZoom: 1,
+            layer: layer,
+            tileSize: 512,
+            zoomOffset: -1,
+            token: token
+        }).addTo(csmap);
+    }
+
+    function setOfflineBaseMap(url, options) {
+        resetBaseMap();
+        tileLayer = L.tileLayer(url, JSON.parse(options)).addTo(csmap);
+    }
+
+    function addGeometry(id, geojsonUrl) {
+        var geojson = new L.GeoJSON.AJAX(geojsonUrl);
+        var geometry = geojson.addTo(geometries);
+        window.chrome.webview.postMessage({
+            "action": "geometry_placed",
+            "id": id,
+            "leaflet_id": geometries.getLayerId(geometry)
+        });
+    }
+
+    function removeGeometry(leaflet_id) {
+        var geometry = geometries.getLayer(leaflet_id);
+        geometry.removeFrom(geometries);
+    }
+
+    function clearGeometry() {
+        geometries.clearLayers();
+    }
+
+    var locMarkerOptions = {
+        "radius": 8,
+        "fillColor": "#3b6dd9",
+        "color": "white",
+        "weight": 2,
+        "opacity": 1,
+        "fillOpacity": 1
+    }
+</script>

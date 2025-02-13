@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- disable state. -->
+<item android:state_enabled="false">
+  <shape android:shape="rectangle">
+    <corners android:radius="6dp" />
+    <solid android:color="@color/signature_text_bckgrnd_enabled" />
+    <stroke android:width="2dp" android:color="@color/signature_text_bckgrnd" />
+  </shape>
+</item>
+
+<!--released state. -->
+<item android:state_pressed="false">
+  <shape android:shape="rectangle">
+    <corners android:radius="6dp" />
+    <solid android:color="@color/signature_text_bckgrnd_enabled" />
+    <stroke android:width="2dp" android:color="@color/signature_text_bckgrnd" />
+  </shape>
+</item>
+
+<!--pressed state. -->
+<item android:state_pressed="true">
+  <shape android:shape="rectangle">
+    <corners android:radius="6dp" />
+    <solid android:color="@color/signature_text_bckgrnd" />
+    <stroke android:width="2dp" android:color="@color/dark" />
+  </shape>
+</item>
+
+</selector>

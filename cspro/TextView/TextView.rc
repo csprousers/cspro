@@ -1,0 +1,663 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#include ""afxprint.rc""       // printing/print preview resources\r\n"
+    "#endif\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_QUICK_QUIT
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_CLOSE
+    SEPARATOR
+    BUTTON      ID_FILE_SAVE_AS
+    SEPARATOR
+    BUTTON      ID_FILE_OPEN_IN_DATA_VIEWER
+    BUTTON      ID_FILE_PAGE_SETUP
+    BUTTON      ID_FILE_PRINT_PREVIEW
+    BUTTON      ID_FILE_PRINT
+    SEPARATOR
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_COPY_SS
+    SEPARATOR
+    BUTTON      ID_EDIT_FIND
+    BUTTON      ID_VIEW_GOTOLINE
+    BUTTON      ID_VIEW_RULER
+    SEPARATOR
+    BUTTON      ID_FORMAT_FONT
+    SEPARATOR
+    BUTTON      ID_WINDOW_CASCADE
+    BUTTON      ID_WINDOW_TILE_HORZ
+    BUTTON      ID_WINDOW_TILE_VERT
+    BUTTON      ID_WINDOW_PREV
+    BUTTON      ID_WINDOW_NEXT
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "Text Viewer"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "TextView"
+            VALUE "OriginalFilename", "TextView.EXE"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DLG_FIND, DIALOG
+    BEGIN
+    END
+
+    IDD_DLG_GOTO, DIALOG
+    BEGIN
+    END
+
+    IDD_SAVEAS_SEL, DIALOG
+    BEGIN
+    END
+
+    IDD_DLG_FONT_SIZE, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 85
+        TOPMARGIN, 1
+        BOTTOMMARGIN, 94
+    END
+
+    IDD_DATA_VIEWER_QUERY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 296
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 79
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "W",            ID_CLOSE_WINDOW,        VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_EDIT_FIND_NEXT,      VIRTKEY, NOINVERT
+    VK_F3,          ID_EDIT_FIND_PREV,      VIRTKEY, CONTROL, NOINVERT
+    "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE_AS,        VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_PLUS,    ID_FONT_BIGGER,         VIRTKEY, CONTROL, NOINVERT
+    VK_ADD,         ID_FONT_BIGGER2,        VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_MINUS,   ID_FONT_SMALLER,        VIRTKEY, CONTROL, NOINVERT
+    VK_SUBTRACT,    ID_FONT_SMALLER2,       VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
+    "G",            ID_VIEW_GOTOLINE,       VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_VIEW_RULER,          VIRTKEY, CONTROL, NOINVERT
+    "J",            ID_WINDOW_CASCADE,      VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "K",            ID_WINDOW_TILE_HORZ,    VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "L",            ID_WINDOW_TILE_VERT,    VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "D",            ID_FILE_OPEN_IN_DATA_VIEWER, VIRTKEY, CONTROL, NOINVERT
+END
+
+IDR_VIEWTYPE ACCELERATORS
+BEGIN
+    VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
+    VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DLG_FIND DIALOGEX 25, 25, 207, 59
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find Text"
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    LTEXT           "&Find What:",IDC_STATIC,7,7,40,9
+    COMBOBOX        IDC_SEARCH_TEXT,7,18,138,56,CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Match Case",IDC_CASE_SENSITIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,43,65,10
+    DEFPUSHBUTTON   "&Next",ID_NEXT,154,5,50,14
+    PUSHBUTTON      "&Previous",ID_PREV,154,23,50,14
+    PUSHBUTTON      "&Close",8,82,41,50,14
+    PUSHBUTTON      "&Help",ID_HELP,154,41,50,14
+END
+
+IDD_DLG_GOTO DIALOGEX 0, 0, 181, 53
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Go To "
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "&Line Number:",IDC_STATIC,38,11,45,9
+    EDITTEXT        IDC_GOTO_LINE_NUMBER,86,10,45,12
+    DEFPUSHBUTTON   "OK",IDOK,8,32,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,65,32,50,14
+    PUSHBUTTON      "Help",ID_HELP,122,32,50,14
+END
+
+IDD_SAVEAS_SEL DIALOGEX 0, 0, 148, 57
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Save As - Text Selected"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    CONTROL         "&All",IDC_ALL,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,15,45,10
+    CONTROL         "&Selection",IDC_SELECTION,"Button",BS_AUTORADIOBUTTON,15,30,45,10
+    DEFPUSHBUTTON   "OK",IDOK,91,5,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,91,22,50,14
+    PUSHBUTTON      "Help",ID_HELP,91,39,50,14
+    GROUPBOX        "Save",IDC_STATIC,5,3,70,43
+END
+
+IDD_DLG_FONT_SIZE DIALOGEX 0, 0, 88, 98
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Change Font Size"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "&Size:",IDC_STATIC,2,1,24,8
+    COMBOBOX        IDC_FONT_SIZE,2,11,24,83,CBS_SIMPLE | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,45,11,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,45,30,40,14
+END
+
+IDD_DATA_VIEWER_QUERY DIALOGEX 0, 0, 303, 86
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Open in Data Viewer?"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Continue",IDOK,238,56,50,14
+    CONTROL         "Open in Data Viewer",IDC_OPEN_IN_DATA_VIEWER_RADIOBUTTON,
+                    "Button",BS_AUTORADIOBUTTON,18,23,81,10
+    CONTROL         "Continue Opening in Text Viewer",IDC_OPEN_IN_TEXT_VIEWER_RADIOBUTTON,
+                    "Button",BS_AUTORADIOBUTTON,18,38,121,10
+    CONTROL         "Remember this Setting?",IDC_REMEMBER_DATA_VIEWER_SETTING_CHECKBOX,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,60,91,10
+    LTEXT           "The file that you are opening is a CSPro DB file and does not display well in Text Viewer.",IDC_STATIC,7,7,282,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "RES\\TEXTVIEW.ICO"
+
+IDR_VIEWTYPE            ICON                    "RES\\TEXTVIEW.ICO"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics",                ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About Text Viewer",          ID_APP_ABOUT
+    END
+END
+
+IDR_VIEWTYPE MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close\tCtrl+F4",             ID_FILE_CLOSE
+        MENUITEM "Save &As...\tCtrl+S",         ID_FILE_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "Open in &Data Viewer\tCtrl+D", ID_FILE_OPEN_IN_DATA_VIEWER
+        MENUITEM SEPARATOR
+        MENUITEM "Page Set&up...",              ID_FILE_PAGE_SETUP
+        MENUITEM "Print S&etup...",             ID_FILE_PRINT_SETUP
+        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
+        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "Select A&ll\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM "&Copy \tCtrl+C",              ID_EDIT_COPY
+        MENUITEM "Copy for a &Spreadsheet",     ID_EDIT_COPY_SS
+        MENUITEM SEPARATOR
+        MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
+        MENUITEM "Find &Next\tF3",              ID_EDIT_FIND_NEXT
+        MENUITEM "Find &Previous\tCtrl+F3",     ID_EDIT_FIND_PREV
+        MENUITEM SEPARATOR
+        MENUITEM "&Goto Line...\tCtrl+G",       ID_VIEW_GOTOLINE
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Ruler\tCtrl+R",              ID_VIEW_RULER
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "Change &Font Size...",        ID_FORMAT_FONT
+        MENUITEM "&DOS Line Draw Font",         ID_OPTIONS_LINEDRAW
+        MENUITEM "&Copy Thousands Separators",  ID_OPTIONS_COMMAS
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade\tCtrl+Shift+J",      ID_WINDOW_CASCADE
+        MENUITEM "&Tile Top to Bottom\tCtrl+Shift+K", ID_WINDOW_TILE_HORZ
+        MENUITEM "Tile &Side by Side\tCtrl+Shift+L", ID_WINDOW_TILE_VERT
+        MENUITEM SEPARATOR
+        MENUITEM "&Next\tCtrl+F6",              ID_WINDOW_NEXT
+        MENUITEM "&Previous\tCtrl+Shift+F6",    ID_WINDOW_PREV
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About Text Viewer",          ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_DLG_FONT_SIZE DLGINIT
+BEGIN
+    IDC_FONT_SIZE, 0x403, 2, 0
+0x0037, 
+    IDC_FONT_SIZE, 0x403, 2, 0
+0x0038, 
+    IDC_FONT_SIZE, 0x403, 2, 0
+0x0039, 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3031, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3131, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3231, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3431, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3631, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3831, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3032, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3232, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3432, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3632, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3832, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3633, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3834, "\000" 
+    IDC_FONT_SIZE, 0x403, 3, 0
+0x3237, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DLG_FIND AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DATA_VIEWER_QUERY AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "CSPro Text Viewer"
+    IDR_VIEWTYPE            "\nTextVi\nTextVi\nIMPS Tables Files (*.tbl)\n.tbl\nCSProTextView.Document\nCSPro Text Viewer Document"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "CSPro Text Viewer"
+    AFX_IDS_IDLEMESSAGE     "For Help, press F1"
+    AFX_IDS_HELPMODEMESSAGE "Select an object on which to get Help"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+    ID_FILE_PAGE_SETUP      "Change the page margins, headers and footers\nPage Setup"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
+    ID_FILE_PRINT           "Print the active document\nPrint"
+    ID_FILE_PRINT_PREVIEW   "Preview the printing of the active document\nPrint Preview"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application\nExit"
+    ID_HELP_INDEX           "Opens Help\nHelp Topics"
+    ID_HELP_FINDER          "Show help contents and index\nHelp Topics"
+    ID_HELP_USING           "Display instructions about how to use help\nHelp"
+    ID_CONTEXT_HELP         "Display help for clicked on buttons, menus and windows\nHelp"
+    ID_HELP                 "Display help for current task or command\nHelp"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade"
+    ID_WINDOW_TILE_HORZ     "Arrange windows top to bottom\nTile Top to Bottom"
+    ID_WINDOW_TILE_VERT     "Arrange windows side by side\nTile Side by Side"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToolBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nStatusBar"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_MDICHILD        "Activate this window"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_PREVIEW_CLOSE   "Close print preview mode\nCancel Preview"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ERR01               "Search aborted, item not found"
+    IDS_ERR03               "Text was not found:  "
+    IDS_ERR04               "Line number out of range."
+    IDS_ERR05               "Invalid line number"
+    IDS_ERR06               "Cannot open file:  "
+    IDS_ERR07               "Error writing file:  "
+    IDS_ERR08               "Error closing file:  "
+    IDS_ERR09               "File not found:  "
+END
+
+STRINGTABLE
+BEGIN
+    IDS_WAIT01              "Scanning file ... please wait"
+    IDS_WAIT02              "Searching for '%s'"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_WARN01              "File is not standard or too wide; cannot view."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSG01               "Pos"
+    IDS_MSG02               "Sel"
+    IDS_MSG03               "All Files (*.*)|*.*|Listing Files (*.lst)|*.lst|Text Files (*.txt)|*.txt||"
+    IDS_MSG04               " bytes"
+    IDS_MSG05               "Size: "
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_RULER           "Show or hide horizontal and vertical ruler\nRuler"
+    ID_VIEW_GOTOLINE        "Move to a specified line number\nGo to line number"
+    ID_QUICK_QUIT           "Click here when you are done viewing\nQuit viewing"
+    ID_EDIT_COPY_SS         "Copy the selected text and put in on the Clipboard for use in a spreadsheet\nCopy for Spreadsheet"
+    ID_OPTIONS_COMMAS       "Copy thousands separators within numbers for use in spreadsheet\nCopy thousands separators"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FORMAT_FONT          "Change size of font\nFont Size"
+END
+
+STRINGTABLE
+BEGIN
+    ID_OPTIONS_LINEDRAW     "Use DOS Line Draw Font instead of ANSI characters\nDOS Line Draw Font"
+    ID_EDIT_FIND_NEXT       "Find next occurrence of search text"
+    ID_EDIT_FIND_PREV       "Find previous occurrence of search text"
+    ID_WINDOW_NEXT          "Switch to the next window\nNext Window"
+    ID_WINDOW_PREV          "Switch back to the previous window\nPrevious Window"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_OPEN_IN_DATA_VIEWER 
+                            "Open the current file in Data Viewer\nOpen in Data Viewer"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif
+#include "afxres.rc"         // Standard components
+#include "afxprint.rc"       // printing/print preview resources
+#endif
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="librdata">
+      <UniqueIdentifier>{689a2755-6f60-404b-bbd4-53260d04dd02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ReadStat">
+      <UniqueIdentifier>{265de10f-ce0c-4268-88a5-6a013078e632}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ReadStat\SPSS">
+      <UniqueIdentifier>{21187cef-891c-4417-977b-69b86a5fee20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="librdata+ReadStat">
+      <UniqueIdentifier>{1a8f79ca-0b93-4c9c-8f08-71ce25f0c5f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ReadStat\SAS">
+      <UniqueIdentifier>{e34165a4-ee56-4362-aa98-0cb8f079b880}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ReadStat\Stata">
+      <UniqueIdentifier>{293950e1-d8e8-4324-bc52-fbe5ec6069d0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DelimitedTextExportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportDefinitions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcelExportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\librdata\rdata_error.c">
+      <Filter>librdata</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\librdata\rdata_io_unistd.c">
+      <Filter>librdata</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\librdata\rdata_parser.c">
+      <Filter>librdata</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\librdata\rdata_write.c">
+      <Filter>librdata</Filter>
+    </ClCompile>
+    <ClCompile Include="RExportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportWriterBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSProExportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_error.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_io_unistd.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_malloc.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_metadata.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_parser.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_value.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_variable.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\readstat_writer.c">
+      <Filter>ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\spss\readstat_sav_write.c">
+      <Filter>ReadStat\SPSS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\spss\readstat_spss.c">
+      <Filter>ReadStat\SPSS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\spss\readstat_spss_parse.c">
+      <Filter>ReadStat\SPSS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\spss\readstat_sav_compress.c">
+      <Filter>ReadStat\SPSS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\librdata+ReadStat\CKHashTable.c">
+      <Filter>librdata+ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\librdata+ReadStat\readstat_bits.c">
+      <Filter>librdata+ReadStat</Filter>
+    </ClCompile>
+    <ClCompile Include="SpssExportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SingleRecordExportWriterBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\sas\ieee.c">
+      <Filter>ReadStat\SAS</Filter>
+    </ClCompile>
+    <ClCompile Include="SasTransportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SasExportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EncodedTextWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StataExportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\stata\readstat_dta_write.c">
+      <Filter>ReadStat\Stata</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\ReadStat\stata\readstat_dta.c">
+      <Filter>ReadStat\Stata</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadStatExportWriterBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DelimitedTextExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportDefinitions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcelExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportWriterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSProExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpssExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SingleRecordExportWriterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SasTransportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SasExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EncodedTextWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StataExportWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadStatExportWriterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zExportO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportPropertiesValuesProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

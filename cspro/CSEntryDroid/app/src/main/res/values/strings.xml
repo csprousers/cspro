@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <string name="app_no_valid_applications">There are no applications on your device. Choose \"Add Application\" from the menu to add one.</string>
+  <string name="applications_title">Entry Applications</string>
+  <string name="app_cannot_run_multiple_programs">CSEntry is already running another application. You can only run one application at a time.</string>
+  <string name="menu_applications_list_about">About CSEntry</string>
+  <string name="menu_applications_list_help">Help</string>
+  <string name="menu_applications_add_application">Add Application</string>
+  <string name="menu_applications_update_applications">Update Installed Applications</string>
+  <string name="menu_applications_settings">Settings</string>
+  <string name="preferences_show_hidden_applications_title">Show Hidden Applications</string>
+  <string name="preferences_show_hidden_applications_summary">Some applications are rarely used or are only intended for advanced users. Enabling this option will show hidden applications.</string>
+  <string name="preferences_clear_credentials_title">Clear Credentials</string>
+  <string name="preferences_clear_credentials_summary">CSEntry saves login credentials to synchronization servers as well as passwords to Encrypted CSPro DB files. Clearing credentials will reset all saved credentials.</string>
+  <string name="menu_cases_list_new_case">New Case</string>
+  <string name="menu_cases_list_synchronize">Synchronize</string>
+  <string name="menu_cases_list_view_questionnaire">View \&quot;%1$s\&quot;</string>
+  <string name="menu_cases_list_delete_case">Delete \&quot;%1$s\&quot;</string>
+  <string name="menu_cases_list_insert_case">Insert Case After \&quot;%1$s\&quot;</string>
+  <string name="menu_cases_list_delete_case_success">\&quot;%1$s\&quot; was successfully deleted.</string>
+  <string name="menu_cases_list_delete_case_error">There was an error deleting \&quot;%1$s.\&quot;</string>
+  <string name="menu_cases_list_delete_case_prompt">Are you sure that you want to delete \&quot;%1$s?\&quot;</string>
+  <string name="menu_cases_list_sort">Sort Alphabetically</string>
+  <string name="menu_cases_list_show_partials">Show Incomplete Cases Only</string>
+  <string name="menu_cases_list_case_labels">Show Case Labels</string>
+  <string name="menu_casetree_list_show_labels">Show Labels</string>
+  <string name="menu_casetree_list_show_names">Show Names</string>
+  <string name="menu_casetree_list_hide_skipped">Hide Skipped Fields</string>
+  <string name="menu_casetree_list_show_skipped">Show Skipped Fields</string>
+  <string name="menu_casetree_list_add_occ">Add Occurrence</string>
+  <string name="menu_casetree_list_insert_occ">Insert Occurrence</string>
+  <string name="menu_casetree_list_delete_occ">Delete Occurrence</string>
+  <string name="menu_help_invalid_url">There was an error displaying the help topic %1$s.</string>
+  <string name="drawer_open">Open navigation drawer</string>
+  <string name="drawer_close">Close navigation drawer</string>
+  <string name="modal_dialog_helper_cancel_text">Cancel</string>
+  <string name="modal_dialog_helper_ok_text">OK</string>
+  <string name="modal_dialog_helper_yes_text">Yes</string>
+  <string name="modal_dialog_helper_no_text">No</string>
+  <string name="modal_dialog_helper_clear_text">Clear</string>
+  <string name="save">Save</string>
+  <string name="operator_id_dialog_title">Operator ID</string>
+  <string name="operator_id_prompt">Enter Your Operator ID</string>
+  <string name="operator_id_blank">You cannot enter a blank operator ID.</string>
+  <string name="app_startup_failure_msg_title">Application Startup Error</string>
+  <string name="app_startup_failure_msg">There was an error and CSEntry could not open %1$s.</string>
+  <string name="app_startup_failure_case_missing">The case specified for modifying, %1$s, was not located in the data file.</string>
+  <string name="app_startup_modify_locked">You do not have permission to modify cases.</string>
+  <string name="app_startup_caselisting_locked">With the case listing locked, you must specify what case to work with in the PFF file\'s StartMode or Key attribute.</string>
+  <string name="app_startup_failure_start_mode_missing">When launching CSEntry from an external application, you must specify the StartMode in either the Intent or the PFF File.</string>
+  <string name="menu_questionnaire_change_language">Change Language</string>
+  <string name="menu_questionnaire_partial_save">Partial Save</string>
+  <string name="menu_questionnaire_edit_field_note">Edit Field Note</string>
+  <string name="menu_questionnaire_edit_case_note">Edit Case Note</string>
+  <string name="menu_questionnaire_show_refusals">Show Refusal Options</string>
+  <string name="menu_questionnaire_review_notes">Review Notes</string>
+  <string name="menu_questionnaire_end_group">End Group</string>
+  <string name="menu_questionnaire_end_level">End Level</string>
+  <string name="menu_questionnaire_advance_to_end">Advance to End</string>
+  <string name="menu_questionnaire_previous_persistent">Previous Persistent</string>
+  <string name="menu_questionnaire_userbar">Userbar</string>
+  <string name="menu_questionnaire_hide_nav_controls">Hide Navigation Controls</string>
+  <string name="menu_questionnaire_show_nav_controls">Show Navigation Controls</string>
+  <string name="menu_questionnaire_hide_casetree">Hide Case Tree</string>
+  <string name="menu_questionnaire_show_casetree">Show Case Tree</string>
+  <string name="menu_questionnaire_view_questionnaire">View Questionnaire</string>
+  <string name="menu_questionnaire_styles">Style Options</string>
+  <string name="title_case_listing_plural">%1$s - %2$d Cases</string>
+  <string name="title_case_listing_single">%1$s - %2$d Case</string>
+  <string name="engine_gps_dialog_title">Obtaining GPS Location</string>
+  <string name="engine_gps_waiting_message">Please wait while a GPS location is obtained. GPS locations are best obtained from an outside location with few objects (such as trees) blocking satellite signals.</string>
+  <string name="engine_gps_satellites">GPS Strength</string>
+  <string name="engine_gps_time_remaining">Time Remaining</string>
+  <string name="gps_capturing">CAPTURING GPS...</string>
+  <string name="gps_capture_current_location">Capture current GPS location</string>
+  <string name="gps_capture_selected_location">Capture selected location</string>
+  <string name="gps_capture_tap_prompt">TAP TO CAPTURE GPS</string>
+  <string name="gps_recapture_tap_prompt">TAP TO RECAPTURE GPS</string>
+  <string name="gps_labels_with_accuracy">Latitude\nLongitude\nAccuracy</string>
+  <string name="gps_labels_no_accuracy">Latitude\nLongitude</string>
+  <string name="engine_showlist_select">Select</string>
+  <string name="searchview_prompt">Search</string>
+  <string name="about_creators">&lt;html&gt;The CSEntry application is designed by the &lt;a href=&quot;http://www.census.gov&quot;&gt;U.S. Census Bureau&lt;/a&gt;. Funding for the development of this program came from the U.S. Agency for International Development (USAID).&lt;/html&gt;</string>
+  <string name="about_disclaimer">&lt;html&gt;CSEntry is the Android runtime engine for applications created using the Census and Survey Processing System (&lt;a href=&quot;https://www.census.gov/data/software/cspro.html&quot;&gt;CSPro&lt;/a&gt;). Any content in user-created applications is the property of the creating user. The CSEntry application developers are not liable for any surveys implemented using this Android application, or for any consequences, intended or unintended, of this Android application.&lt;/html&gt;</string>
+  <string name="about_csentry_globe_icon_desc">Visit CSPro Website</string>
+  <string name="about_version">Version: %1$s (English)</string>
+  <string name="about_release_date">Release Date: %1$s</string>
+  <string name="about_android_version">Android Version: %1$s</string>
+  <string name="about_licenses">View CSEntry and Open-Source Licenses</string>
+  <string name="questionnaire_qsf_help_desc">View Help Text</string>
+  <string name="questionnaire_qsf_question_desc">View Question Text</string>
+  <string name="questionnaire_notes_label">Notes</string>
+  <string name="multibox_edittext_desc">Text Entry</string>
+  <string name="multibox_image_button_desc">Show Valid Values</string>
+  <string name="barcode_image_button_desc">Barcode read</string>
+  <string name="validation_too_many_checks">You can only select %1$d options</string>
+  <string name="select_style_title">Choose Style and Tap OK</string>
+  <string name="notes_title">Review Notes</string>
+  <string name="notes_no_notes">There are no notes to review</string>
+  <string name="notes_delete">Delete Note</string>
+  <string name="notes_goto">Go to Field</string>
+  <string name="notes_delete_prompt">Are you sure that you want to delete the note?</string>
+  <string name="refusals_none_to_show">There are no refusal options to show for the current question</string>
+  <string name="sync_login_dialog_prompt">Login to %1$s</string>
+  <string name="sync_username_hint">Username</string>
+  <string name="sync_password_hint">Password</string>
+  <string name="terms_title_text">Terms of Service</string>
+  <string name="terms_accept_button_label">Accept</string>
+  <string name="terms_instructions">Please Read Before Accepting</string>
+  <string name="generic_webview_back_desc">Back</string>
+  <string name="case_tree_back_to">to %1$s</string>
+  <string name="connect_button_label">Connect</string>
+  <string name="sync_success">Successfully synced %1$s</string>
+  <string name="sync_progress_canceling">Canceling…</string>
+  <string name="sync_choose_bluetooth_title">Choose device to sync with</string>
+  <string name="sync_searching_devices">Searching for nearby devices…\n\nMake sure that you have started synchronization on the device you wish to sync with.</string>
+  <string name="need_permissions_to_function">CSEntry requires access to the following:\n\t<b>Storage</b>: load and save data files on your device (required)\n\t<b>Location</b>: capture GPS readings (optional)\n\t<b>Camera:</b> take photos (optional)\n\t<b>Contacts:</b> read your username (optional)\n\nPlease give CSEntry these permissions to enable all of the program features.</string>
+  <string name="exit_application">Exit CSEntry</string>
+  <string name="try_again">Try again</string>
+  <string name="abort_due_to_missing_permissions">CSEntry will not function without access to storage. Since you have denied access, the program will now abort. If you wish to use this application, please uninstall and reinstall it and then grant access to storage.</string>
+  <string name="starting_application">Starting %1$s.</string>
+  <string name="sync_username_password_invalid">Invalid username/password. Try again.</string>
+  <string name="error_file_not_found">File \"%1$s\" not found.</string>
+  <string name="error_case_title">Error!</string>
+  <string name="error_barcode_length_small">Barcode value \"%1$s\" is longer than desired length of  \"%2$s\".</string>
+  <string name="error_barcode_numeric_invalid">Barcode value \"%1$s\" is not a valid number.</string>
+  <string name="bluetooth_name_change_wait_text">Changing Bluetooth name...</string>
+  <string name="bluetooth_name_change_device_not_supported">Bluetooth is not supported on this device</string>
+  <string name="bluetooth_name_change_error">Error setting the Bluetooth name: </string>
+
+  <string name="add_app_source_prompt">Where do you want to download the application from?</string>
+  <string name="add_app_source_dropbox">Dropbox</string>
+  <string name="add_app_source_csweb">CSWeb server</string>
+  <string name="add_app_source_ftp">FTP server</string>
+  <string name="add_app_source_scan">QR code</string>
+  <string name="add_app_source_example">Example application (Simple CAPI)</string>
+  <string name="add_app_server_details_prompt">Enter the URL of the server and tap connect</string>
+  <string name="add_app_uri_hint_http">http://myserver.com/csweb/api or https://myserver.com/csweb/api</string>
+  <string name="add_app_uri_hint_ftp">ftp://myserver.com or ftps://myserver.com or ftpes://myserver.com</string>
+  <string name="add_app_choose_app_prompt">Choose the application to install</string>
+  <string name="add_app_no_apps">No applications found on server. Use the Deploy Application tool to add one.</string>
+  <string name="add_app_up_to_date">Already installed</string>
+  <string name="add_app_new_version">New version available</string>
+  <string name="add_app_install">Install</string>
+  <string name="add_app_update">Update</string>
+  <string name="add_app_reinstall">Reinstall</string>
+  <string name="add_app_install_success">Successfully installed \"%1$s\"</string>
+  <string name="add_app_update_success">Successfully updated \"%1$s\"</string>
+  <string name="ask_enable_gps">Location services are not enabled on your device. They must be enabled in order to capture GPS coordinates. Would you like to go to settings to enable them now?</string>
+  <string name="title_activity_maps">Map</string>
+  <string name="error_loading_offline_map">Error loading map file \"%1$s\"</string>
+  <string name="checking_for_updates">Checking for updates…</string>
+  <string name="no_updates_available">No updates available</string>
+  <string name="following_updates_available">The following applications are ready to update:</string>
+
+  <!-- Strings related to barcode scanner -->
+  <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
+  <string name="dialog_no_camera_permission_title">Camera permission not granted</string>
+  <string name="dialog_no_camera_permission">This application cannot run because it does not have the camera permission. Please enable from settings.</string>
+
+  <!-- Strings related to Capture Image -->
+  <string name="content_desc_capture_image">Capture Image Button</string>
+  <string name="content_desc_rotate_camera">Flip Camera</string>
+
+  <!-- Media player and recorder-->
+  <string name="dialog_clear_recording_title">Do you want to discard the recording in progress?</string>
+  <string name="dialog_save_recording_title">Do you want to save the recording?</string>
+  <string name="modal_dialog_helper_audio_storage_text">Microphone permission is needed for Audio Recording</string>
+  <string name="modal_dialog_helper_audio_storage_title">Microphone permission</string>
+  <string name="start">Start</string>
+  <string name="stop">Stop</string>
+
+  <!-- Multimedia widgets -->
+  <string name="take_photo">TAKE PHOTO</string>
+  <string name="choose_photo">CHOOSE PHOTO</string>
+  <string name="clear">CLEAR</string>
+  <string name="capture_signature">SIGN</string>
+  <string name="record_audio">RECORD</string>
+  <string name="choose_audio">CHOOSE RECORDING</string>
+
+  <!-- polygon capture -->
+  <string name="polygon_not_enough_points_tapped">You must add at least three points. Tap the map to add points.</string>
+  <string name="polygon_not_enough_points_walked">You must add at least three points. Tap the add button to add a point at your current location.</string>
+  <string name="polygon_discard_confirm">Do you want to discard the polygon you have traced?</string>
+
+  <!-- file share -->
+  <string name="file_share_security_error">Invalid path in ZIP file.</string>
+</resources>

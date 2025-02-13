@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="3dException.h" />
+    <ClInclude Include="Apl.h" />
+    <ClInclude Include="Batdrv.h" />
+    <ClInclude Include="BATIFAZ.H" />
+    <ClInclude Include="BinaryStorageFor80.h" />
+    <ClInclude Include="BREAKID.H" />
+    <ClInclude Include="calcifaz.h" />
+    <ClInclude Include="CBorder.h" />
+    <ClInclude Include="ChainedSymbol.h" />
+    <ClInclude Include="citer.h" />
+    <ClInclude Include="COMMONIN.H" />
+    <ClInclude Include="Comp.h" />
+    <ClInclude Include="CompCTab.h" />
+    <ClInclude Include="COMPILAD.H" />
+    <ClInclude Include="CompilerCreator.h" />
+    <ClInclude Include="COMPUTIL.H" />
+    <ClInclude Include="DefaultParametersOnlyUserFunctionArgumentEvaluator.h" />
+    <ClInclude Include="EngineFloatingPointMath.h" />
+    <ClInclude Include="EngineObjectTransporter.h" />
+    <ClInclude Include="EngineQuestionnaireViewer.h" />
+    <ClInclude Include="EngineStringComparer.h" />
+    <ClInclude Include="FrequencyDriver.h" />
+    <ClInclude Include="ImputationDriver.h" />
+    <ClInclude Include="EngineExecutor.h" />
+    <ClInclude Include="InterpreterAccessor.h" />
+    <ClInclude Include="InterpreterMessageIssuer.h" />
+    <ClInclude Include="LogicStackSaver.h" />
+    <ClInclude Include="Preprocessor.h" />
+    <ClInclude Include="ProgramControl.h" />
+    <ClInclude Include="Ctab.h" />
+    <ClInclude Include="Ctab_Helper.h" />
+    <ClInclude Include="CtDef.h" />
+    <ClInclude Include="ctterm.h" />
+    <ClInclude Include="CtUnit.h" />
+    <ClInclude Include="Defines.h" />
+    <ClInclude Include="DEFLD.H" />
+    <ClInclude Include="DEPROG.H" />
+    <ClInclude Include="Dict.h" />
+    <ClInclude Include="Dicx.h" />
+    <ClInclude Include="dimens.h" />
+    <ClInclude Include="Engarea.h" />
+    <ClInclude Include="Engdrv.h" />
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="Entdrv.h" />
+    <ClInclude Include="Exappl.h" />
+    <ClInclude Include="EXENTRY.H" />
+    <ClInclude Include="Export.h" />
+    <ClInclude Include="ExpresC_Include.h" />
+    <ClInclude Include="flddef.h" />
+    <ClInclude Include="Form2.h" />
+    <ClInclude Include="GPSThreadInfo.h" />
+    <ClInclude Include="helper.h" />
+    <ClInclude Include="IntDrive.h" />
+    <ClInclude Include="INTERPRE.H" />
+    <ClInclude Include="QuestionTextParamCache.h" />
+    <ClInclude Include="ScopeChangeNodeIterator.h" />
+    <ClInclude Include="SelectDlgHelper.h" />
+    <ClInclude Include="StrictCompilerErrors.h" />
+    <ClInclude Include="VariableWorker.h" />
+    <ClInclude Include="ITEMDATA.H" />
+    <ClInclude Include="Memctrl.h" />
+    <ClInclude Include="Messages.h" />
+    <ClInclude Include="NODES.H" />
+    <ClInclude Include="ParadataDriver.h" />
+    <ClInclude Include="ParameterManager.h" />
+    <ClInclude Include="RangeFunctions.h" />
+    <ClInclude Include="ReadyFlags.h" />
+    <ClInclude Include="RELATION.H" />
+    <ClInclude Include="relt.h" />
+    <ClInclude Include="runmodes.h" />
+    <ClInclude Include="SECX.H" />
+    <ClInclude Include="SelcaseManager.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="StandardSystemIncludes.h" />
+    <ClInclude Include="subtable.h" />
+    <ClInclude Include="SyncListener.h" />
+    <ClInclude Include="Tables.h" />
+    <ClInclude Include="TBDIFAZ.H" />
+    <ClInclude Include="Tbd_save.h" />
+    <ClInclude Include="trace_macros.h" />
+    <ClInclude Include="ttype.h" />
+    <ClInclude Include="VarT.h" />
+    <ClInclude Include="VARX.h" />
+    <ClInclude Include="VTSTRUCT.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{9be94f2e-69da-483f-9a82-293bd8b8ed1a}</ProjectGuid>
+    <RootNamespace>engine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Link>
+      <SubSystem>
+      </SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link>
+      <SubSystem>
+      </SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

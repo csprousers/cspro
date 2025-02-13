@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<SwitchPreference
+  android:key="@string/preferences_show_hidden_applications"
+  android:title="@string/preferences_show_hidden_applications_title"
+  android:summary="@string/preferences_show_hidden_applications_summary"
+  android:defaultValue="false"/>
+
+<Preference
+  android:key="@string/preferences_clear_credentials"
+  android:title="@string/preferences_clear_credentials_title"
+  android:summary="@string/preferences_clear_credentials_summary"/>
+</PreferenceScreen>

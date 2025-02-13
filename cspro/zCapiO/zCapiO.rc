@@ -1,0 +1,252 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "FileDescription", "zCapiO DLL"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "zCapiO"
+            VALUE "OriginalFilename", "zCapiO.DLL"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+
+IDD_SELECT_DLG DIALOGEX 0, 0, 95, 90
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Select Case"
+FONT 10, "Courier New", 0, 0, 0x0
+BEGIN
+    PUSHBUTTON      "OK",IDOK,60,3,32,24,BS_ICON
+    PUSHBUTTON      "Cancel",IDCANCEL,60,31,32,24,BS_ICON
+    PUSHBUTTON      "Invert",IDC_INVERTMARKS_BTN,60,59,32,24,BS_ICON
+    PUSHBUTTON      "Find",IDC_FIND_BTN,60,61,32,24,BS_ICON
+    EDITTEXT        IDC_SEARCHBOX_EDIT,3,62,54,12,ES_AUTOHSCROLL
+    CONTROL         "List1",IDC_CASELIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,3,3,54,52
+END
+
+IDD_EXTENDEDCONTROL DIALOGEX 0, 0, 186, 95
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    PUSHBUTTON      "",IDC_BUTTON_PREVIOUS_FIELD,0,73,16,16,BS_ICON
+    EDITTEXT        IDC_EDIT_SEARCH_TEXT,24,75,94,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "",IDC_BUTTON_SEARCH,129,73,16,16,BS_ICON
+    PUSHBUTTON      "",IDC_BUTTON_NEXT_FIELD,155,73,16,16,BS_ICON
+END
+
+IDD_CAPICONTROL DIALOGEX 0, 0, 320, 200
+STYLE DS_SETFONT | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+END
+
+IDD_QSFVIEW DIALOG 0, 0, 38, 21
+STYLE DS_SETFONT | WS_CHILD | WS_BORDER
+FONT 8, "MS Shell Dlg"
+BEGIN
+CONTROL         "", IDC_HTML_VIEW, "Static", WS_BORDER | 0x11c4, 7, 7, 23, 12
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CANCEL              ICON                    "res\\CANCEL.ICO"
+
+IDI_FIND                ICON                    "res\\FIND.ICO"
+
+IDI_INVERT              ICON                    "res\\INVERT.ICO"
+
+IDI_NEXT                ICON                    "res\\next.ico"
+
+IDI_OK                  ICON                    "res\\OK.ICO"
+
+IDI_PREVIOUS            ICON                    "res\\prev.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+
+    IDD_SELECT_DLG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 92
+        BOTTOMMARGIN, 85
+    END
+
+    IDD_EXTENDEDCONTROL, DIALOG
+    BEGIN
+        TOPMARGIN, 2
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_CAPICONTROL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 313
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
+    END
+
+
+    IDD_QSFVIEW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 31
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 14
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_SELECT_DLG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_TOOLTIP_OKBTN       "Accept selection"
+    IDS_TOOLTIP_CANCELBTN   "Cancel selection"
+    IDS_TOOLTIP_INVERTBTN   "Invert selections"
+    IDS_TOOLTIP_FINDBTN     "Find tokens"
+    IDS_TOOLTIP_SEARCH      "Search"
+    IDS_TOOLTIP_NEXT        "Next question"
+    IDS_TOOLTIP_PREV        "Previous question"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

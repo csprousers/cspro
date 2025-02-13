@@ -1,0 +1,1163 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "../zDesignerF/resource_shared.h"
+#include "../zTableF/resource_shared.h"
+#include "../zUToolO/resource_shared.h"
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""../zTableF/resource_shared.h""\r\n"
+    "#include ""../zUToolO/resource_shared.h""\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res/CSPro.rc2""     // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#include ""afxprint.rc""       // printing/print preview resources\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "Res\\idr_main.ico"
+
+IDI_QSF_FILE            ICON                    "Res\\qsf_file.ico"
+
+IDI_XTS_FILE            ICON                    "Res\\xts_file.ico"
+
+IDI_BCH_FILE            ICON                    "Res\\bch_file.ico"
+
+IDI_XTB_FILE            ICON                    "Res\\xtb_file.ico"
+
+IDI_ICON_FILLER06       ICON                    "Res\\iconAssociationFiller.ico"
+
+IDI_FILE_OPEN           ICON                    "Res\\open.ico"
+
+IDI_FILE_NEW            ICON                    "Res\\New.ico"
+
+IDI_DCF_FILE            ICON                    "Res\\ico00001.ico"
+
+IDI_FRM_FILE            ICON                    "Res\\ico00002.ico"
+
+IDI_ORD_FILE            ICON                    "Res\\ord_file.ico"
+
+IDI_ENT_FILE            ICON                    "Res\\ent_file.ico"
+
+IDI_MGF_FILE            ICON                    "Res\\mgf_file.ico"
+
+IDI_ENT_FILE_CAPI       ICON                    "Res\\ent_file_capi.ico"
+
+IDI_ICON_FILLER01       ICON                    "Res\\iconAssociationFiller.ico"
+
+IDI_ICON_FILLER02       ICON                    "Res\\iconAssociationFiller.ico"
+
+IDI_ICON_FILLER03       ICON                    "Res\\iconAssociationFiller.ico"
+
+IDI_ICON_FILLER04       ICON                    "Res\\iconAssociationFiller.ico"
+
+IDI_ICON_FILLER05       ICON                    "Res\\iconAssociationFiller.ico"
+
+IDI_ENC_FILE            ICON                    "Res\\encfile.ico"
+
+IDI_RESOURCE_FOLDER     ICON                    "Res\\Resource Folder.ico"
+
+IDI_CSDBE_FILE          ICON                    "Res\\csdbe_file.ico"
+
+IDI_ENT_FILE_OPERATIONAL_CONTROL ICON                    "Res\\ent_file_operational_control.ico"
+
+IDI_ENT_FILE_ALL_TYPES  ICON                    "Res\\ent_file_all_types.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "Res\\Toolbar.bmp"
+
+IDB_ABOUT_LOGO          BITMAP                  "Res\\AboutBoxLogo.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 16
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    SEPARATOR
+    BUTTON      ID_HELP_FINDER
+    BUTTON      ID_TOOLS_DATAVIEWER
+    BUTTON      ID_TOOLS_TEXTVIEW
+    BUTTON      ID_TOOLS_TABLEVIEW
+    BUTTON      ID_TOOLS_FREQ
+    BUTTON      ID_TOOLS_DEPLOY
+    BUTTON      ID_TOOLS_PACK
+    BUTTON      ID_TOOLS_COMPARE
+    BUTTON      ID_TOOLS_CONCAT
+    BUTTON      ID_TOOLS_EXCEL2CSPRO
+    BUTTON      ID_TOOLS_EXPORT
+    BUTTON      ID_TOOLS_INDEX
+    BUTTON      ID_TOOLS_REFORMAT
+    BUTTON      ID_TOOLS_SORT
+    BUTTON      ID_TOOLS_PARADATAVIEWER
+    BUTTON      ID_TOOLS_PARADATACONCAT
+    BUTTON      ID_TOOLS_CSCODE
+    BUTTON      ID_TOOLS_CSDOCUMENT
+    BUTTON      ID_TOOLS_CSVIEW
+    BUTTON      ID_TOOLS_PFFEDITOR
+    BUTTON      ID_TOOLS_PRODUCTIONRUNNER
+    BUTTON      ID_TOOLS_OPERATORSTATSVIEWER
+    BUTTON      ID_TOOLS_SAVEARRAYVIEWER
+    BUTTON      ID_TOOLS_TEXTCONVERTER
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New...\tCtrl+N",             ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "CSPro Settings",              ID_FILE_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Data Viewer",                ID_TOOLS_DATAVIEWER
+        MENUITEM "&Text Viewer",                ID_TOOLS_TEXTVIEW
+        MENUITEM "Ta&ble Viewer",               ID_TOOLS_TABLEVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Tabulate &Frequencies",       ID_TOOLS_FREQ
+        MENUITEM SEPARATOR
+        MENUITEM "Deploy Application",          ID_TOOLS_DEPLOY
+        MENUITEM "&Pack Application",           ID_TOOLS_PACK
+        MENUITEM SEPARATOR
+        MENUITEM "&Compare Data",               ID_TOOLS_COMPARE
+        MENUITEM "Conc&atenate Data",           ID_TOOLS_CONCAT
+        MENUITEM "Excel to CSPro",              ID_TOOLS_EXCEL2CSPRO
+        MENUITEM "&Export Data",                ID_TOOLS_EXPORT
+        MENUITEM "&Index Data",                 ID_TOOLS_INDEX
+        MENUITEM "&Reformat Data",              ID_TOOLS_REFORMAT
+        MENUITEM "&Sort Data",                  ID_TOOLS_SORT
+        MENUITEM SEPARATOR
+        MENUITEM "Paradata Concatenator",       ID_TOOLS_PARADATACONCAT
+        MENUITEM "Paradata Viewer",             ID_TOOLS_PARADATAVIEWER
+        MENUITEM SEPARATOR
+        MENUITEM "CSCode",                      ID_TOOLS_CSCODE
+        MENUITEM "CSDocument",                  ID_TOOLS_CSDOCUMENT
+        MENUITEM "CSView",                      ID_TOOLS_CSVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "PFF Editor",                  ID_TOOLS_PFFEDITOR
+        MENUITEM "Production Runner",           ID_TOOLS_PRODUCTIONRUNNER
+        MENUITEM "Operator Statistics Viewer",  ID_TOOLS_OPERATORSTATSVIEWER
+        MENUITEM "Save Array Viewer",           ID_TOOLS_SAVEARRAYVIEWER
+        MENUITEM "Text Encoding Converter",     ID_TOOLS_TEXTCONVERTER
+        MENUITEM SEPARATOR
+        POPUP "Preferences"
+        BEGIN
+            MENUITEM "Fonts",                       ID_PREFERENCES_FONTS
+        END
+        MENUITEM "Beta Version Shifter",        ID_TOOLS_VERSION_SHIFTER
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "What's &New in CSPro?",       ID_HELP_WHAT_IS_NEW
+        MENUITEM "&Examples Folder",            ID_HELP_EXAMPLES
+        MENUITEM SEPARATOR
+        MENUITEM "Mailing &List Signup",        ID_HELP_MAILING_LIST
+        POPUP "&Troubleshooting"
+        BEGIN
+            MENUITEM "&Technical Support",          ID_HELP_TROUBLESHOOTING
+            MENUITEM "&Sync.log file",              ID_HELP_SHOW_SYNC_LOG
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Android CS&Entry App",        ID_HELP_GOOGLEPLAY
+        MENUITEM SEPARATOR
+        MENUITEM "&About CSPro",                ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    VK_NUMLOCK,     ID_ABOUT1,              VIRTKEY, SHIFT, CONTROL, ALT, NOINVERT
+    "T",            ID_CHANGE_TAB,          VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "J",            ID_VIEW_FULLSCREEN,     VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_CHANGE_LANGUAGE,     VIRTKEY, CONTROL, ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDR_MAINFRAME DIALOG 0, 0, 330, 16
+STYLE DS_SETFONT | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "",IDC_STATIC,12,4,300,8
+END
+
+IDD_DIALOGBAR DIALOGEX 0, 0, 173, 182
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CONTROL         "Tree1",IDC_FORMTREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,3,2,167,173,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+    CONTROL         "Tree1",IDC_ORDERTREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,3,2,167,173,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+    CONTROL         "Tab1",IDC_MEASURETAB,"SysTabControl32",TCS_BOTTOM | TCS_RAGGEDRIGHT | TCS_TOOLTIPS,3,175,167,7
+    CONTROL         "Tree1",IDC_DICTTREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,3,2,167,173,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+    CONTROL         "Tree1",IDC_OBJTREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,3,2,167,173,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+    CONTROL         "Tree1",IDC_TABLETREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,3,2,167,173,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+END
+
+IDD_SELECT_DOCS DIALOGEX 0, 0, 349, 151
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LISTBOX         IDC_DOCS_LIST,7,7,335,114,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,38,130,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,112,130,50,14
+    PUSHBUTTON      "&Select All",IDC_SELECTALL,186,130,50,14
+    PUSHBUTTON      "&Help",ID_HELP,260,130,50,14
+END
+
+IDD_SELECT_APP DIALOGEX 0, 0, 235, 121
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select Application to Run"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LISTBOX         IDC_APPLIST,2,2,231,100,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,14,104,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,92,104,50,14
+    PUSHBUTTON      "&Help",ID_HELP,170,105,50,14
+END
+
+IDD_DICTTYPE DIALOGEX 0, 0, 186, 126
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dictionary Types"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    CONTROL         "&Main",IDC_DICTTYPE,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,42,23,100,10
+    CONTROL         "&External",IDC_RADIOEXT,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,42,42,102,11
+    CONTROL         "&Working",IDC_RADIOWKG,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,42,62,43,10
+    CONTROL         "&Special Output",IDC_RADIOOUTPUT,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,42,81,63,10
+    DEFPUSHBUTTON   "OK",IDOK,7,109,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,67,109,50,14
+    PUSHBUTTON      "&Help",ID_HELP,129,109,50,14
+    GROUPBOX        "Dictionary Types",IDC_STATIC,7,4,172,97
+END
+
+IDD_START DIALOGEX 0, 0, 416, 249
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Start CSPro"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_FILE_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,7,62,402,159
+    DEFPUSHBUTTON   "OK",IDOK,120,228,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,183,228,50,14
+    PUSHBUTTON      "&Help",ID_HELP,246,228,50,14
+    CONTROL         "&Create a new application",IDC_CREATE_NEW,"Button",BS_AUTORADIOBUTTON | BS_NOTIFY | WS_GROUP | WS_TABSTOP,36,14,95,10
+    CONTROL         "&Open an existing application",IDC_OPEN_EXISTING,"Button",BS_AUTORADIOBUTTON | BS_NOTIFY | WS_TABSTOP,36,39,106,10
+    ICON            "",IDC_FILE_NEW,7,7,21,20
+    ICON            "",IDC_FILE_OPEN,7,33,21,20
+END
+
+IDD_APLFILEASSOCIATIONSDLG DIALOGEX 0, 0, 488, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Define File Associations"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    CTEXT           "",IDC_NEWGRID,7,7,471,100,SS_CENTERIMAGE | SS_SUNKEN
+    PUSHBUTTON      "OK",IDOK,137,129,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,219,129,50,14
+    PUSHBUTTON      "&Help",ID_HELP,301,129,50,14
+    CONTROL         "Working Storage Dictionary",IDC_WORKING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,112,471,10
+END
+
+IDD_TROUBLESHOOTING DIALOGEX 0, 0, 324, 163
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CSPro Technical Support"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,133,142,50,14
+    LTEXT           "For customer and technical assistance, please contact:",IDC_STATIC,7,7,176,11
+    LTEXT           "cspro@lists.census.gov",IDC_TROUBLESHOOTING_EMAIL,185,7,86,8,SS_NOTIFY
+    LTEXT           "If submitting a question or if you have a problem with your application, use the\ntool to create a single file of your application that can be easily emailed to the support team.",IDC_STATIC,7,22,303,19
+    LTEXT           "You can also visit the CSPro Users forum, a place to ask questions of and exchange ideas with other users of CSPro from all around the world:",IDC_STATIC,7,44,293,18
+    LTEXT           "https://www.csprousers.org/forum/",IDC_TROUBLESHOOTING_CSPROUSERS,176,52,116,8,SS_NOTIFY
+    LTEXT           "International Programs\nUnited States Census Bureau\nWashington, DC 20233\n+1 301-763-1451",IDC_STATIC,48,83,184,34
+    LTEXT           "https://www.census.gov/data/software/cspro.html",IDC_TROUBLESHOOTING_WEBSITE,48,120,210,8,SS_NOTIFY
+    GROUPBOX        "The Census and Survey Processing System (CSPro) is distributed by:",IDC_STATIC,33,70,239,66
+    LTEXT           "Pack Application",IDC_TROUBLESHOOTING_PACK,261,22,52,8,SS_NOTIFY
+END
+
+IDD_NEW_ABOUT DIALOGEX 0, 0, 387, 166
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,168,147,50,14
+END
+
+IDD_FONTPREFDLG DIALOGEX 0, 0, 286, 66
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Designer Font Preferences"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_ZOOMCMB,51,18,54,66,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FONT_CMB,163,17,103,200,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,25,45,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,87,45,50,14
+    PUSHBUTTON      "Reset",IDC_RESET_BTN,149,45,50,14
+    PUSHBUTTON      "&Help",ID_HELP,211,45,50,14
+    LTEXT           "Zoom:",IDC_STATIC,23,20,21,8
+    LTEXT           "Font Name:",IDC_STATIC,121,19,38,8
+    GROUPBOX        "Designer Fonts",IDC_STATIC,14,7,257,30
+END
+
+IDD_VERSION_SHIFTER DIALOGEX 0, 0, 183, 93
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CSPro Version Shifter"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_ELIGIBLE_VERSIONS,48,46,87,118,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,36,72,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,97,72,50,14
+    LTEXT           "Select the version of CSPro that you would like\nto use when opening files in Windows Explorer.\nUse caution when moving back and forth between\nversions of CSPro.",IDC_STATIC,7,7,169,35
+END
+
+IDD_PROPERTIES_PARADATA DIALOGEX 0, 0, 438, 288
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Paradata"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Paradata Collection",IDC_STATIC,0,0,235,60
+    CONTROL         "All events",IDC_PARADATA_EVENTS_ALL,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,13,14,47,10
+    CONTROL         "Some events",IDC_PARADATA_EVENTS_SOME,"Button",BS_AUTORADIOBUTTON,13,28,57,10
+    CONTROL         "No events",IDC_PARADATA_EVENTS_NO,"Button",BS_AUTORADIOBUTTON,13,42,49,10
+    LISTBOX         IDC_PARADATA_EVENTS,9,79,219,133,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Field values",IDC_PARADATA_RECORD_ENTERED_VALUES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,256,14,53,10
+    CONTROL         "GPS coordinates",IDC_PARADATA_RECORD_COORDINATES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,256,27,68,10
+    CONTROL         "Cases loaded via logic loops",IDC_PARADATA_RECORD_ITERATOR_LOAD_CASES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,256,40,105,10
+    CONTROL         "Initial property values",IDC_PARADATA_RECORD_INITIAL_PROPERTY_VALUES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,256,53,86,10
+    EDITTEXT        IDC_PARADATA_DEVICE_STATE_MINUTES,321,110,27,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PARADATA_GPS_LOCATION_MINUTES,321,130,27,14,ES_AUTOHSCROLL
+    GROUPBOX        "Partial Collection Options",IDC_STATIC,244,0,142,71
+    GROUPBOX        "Background Events",IDC_STATIC,244,75,142,78
+    GROUPBOX        "Paradata Events to Collect",IDC_STATIC,0,66,235,153
+    LTEXT           "Device state",IDC_STATIC,256,113,41,8
+    LTEXT           "Enter the number of minutes between collection (or 0 to disable):",IDC_STATIC,256,86,123,17
+    LTEXT           "GPS location",IDC_STATIC,256,133,40,8
+END
+
+IDD_CAPI_MACROS DIALOGEX 0, 0, 333, 169
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Question Text Macros"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Close",IDOK,141,148,50,14
+    CONTROL         "Include blocks",IDC_CAPI_INCLUDE_BLOCKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,39,19,61,10
+    CONTROL         "Include protected fields",IDC_CAPI_INCLUDE_PROTECTED_FIELDS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,108,19,91,10
+    PUSHBUTTON      "Audit Undefined Text",IDC_CAPI_AUDIT_UNDEFINED_TEXT,217,7,109,14
+    PUSHBUTTON      "Remove Unused Text",IDC_CAPI_REMOVE_UNUSED_TEXT,217,37,109,14
+    PUSHBUTTON      "Initialize as Dictionary Label",IDC_CAPI_INITIALIZE_FROM_DICTIONARY_LABEL,217,67,109,14
+    PUSHBUTTON      "Paste from Clipboard",IDC_PASTE_FROM_CLIPBOARD,217,97,109,14
+    LTEXT           "View list of fields and blocks without defined question text.",IDC_STATIC,7,7,198,11
+    LTEXT           "Remove previously added question text linked to nonexistent fields or blocks.",IDC_STATIC,7,37,198,20
+    LTEXT           "Use the dictionary label to fill in the question text for fields without defined text.",IDC_STATIC,7,67,198,20
+    LTEXT           "Paste question text from the clipboard in one of the following formats:",IDC_STATIC,7,97,198,20
+    LTEXT           "NAME<tab>Question Text",IDC_STATIC,24,118,86,8
+    LTEXT           "NAME<tab>LANGUAGE_NAME<tab>Question Text",IDC_STATIC,24,131,166,8
+END
+
+IDD_COMMON_STORE DIALOGEX 0, 0, 317, 278
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "User and Configuration Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT_COMMON_STORE_ATTRIBUTE,41,194,212,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_COMMON_STORE_VALUE,41,213,212,32,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
+    PUSHBUTTON      "Add",IDC_BUTTON_COMMON_STORE_MODIFY,260,194,50,14
+    PUSHBUTTON      "Delete",IDC_BUTTON_COMMON_STORE_DELETE,260,213,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,102,256,50,14
+    PUSHBUTTON      "&Help",ID_HELP,161,256,50,14
+    COMBOBOX        IDC_COMBO_COMMON_STORE_TYPE,213,7,97,68,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_LIST_COMMON_STORE,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,36,303,136
+    CONTROL         "Add Setting",IDC_RADIO_COMMON_STORE_ADD,"Button",BS_AUTORADIOBUTTON,41,177,53,10
+    CONTROL         "Modify Setting",IDC_RADIO_COMMON_STORE_MODIFY,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,101,177,62,10
+    LTEXT           "Value",IDC_STATIC,7,214,18,8
+    LTEXT           "Attribute",IDC_STATIC,7,196,30,8
+    LTEXT           "User settings are retrieved with the loadsetting function and are modified with the savesetting function. Configuration settings are accessed using the config variable type.",IDC_STATIC,7,7,199,29
+END
+
+IDD_SYMBOL_ANALYSIS DIALOGEX 0, 0, 673, 344
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Symbol Analysis"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,616,323,50,14
+    CONTROL         "",IDC_SYMBOL_ANALYSIS_TREE,"SysTreeView32",WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,20,107,317
+    EDITTEXT        IDC_SYMBOL_ANALYSIS_USES,124,20,542,117,ES_MULTILINE | WS_VSCROLL
+    EDITTEXT        IDC_SYMBOL_ANALYSIS_CONTEXT,124,158,542,156,ES_MULTILINE | WS_VSCROLL
+    LTEXT           "Uses",IDC_SYMBOL_ANALYSIS_USES_LABEL,124,7,146,8
+    LTEXT           "Symbols",IDC_SYMBOL_ANALYSIS_SYMBOLS_LABEL,7,7,94,8
+    LTEXT           "Context",IDC_STATIC,124,144,27,8
+END
+
+IDD_REPORT_PROPERTIES DIALOGEX 0, 0, 303, 74
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Report Properties"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_REPORT_NAME,39,27,254,14,ES_UPPERCASE | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,58,53,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,126,53,50,14
+    PUSHBUTTON      "&Help",ID_HELP,194,53,50,14
+    EDITTEXT        IDC_REPORT_FILENAME,39,7,254,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    LTEXT           "File:",IDC_STATIC,7,10,14,8
+    LTEXT           "Name:",IDC_STATIC,7,30,22,8
+END
+
+IDD_PROPERTIES_MAPPING DIALOGEX 0, 0, 438, 288
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Mapping"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Decimal",IDC_DECIMAL,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,14,40,10
+    CONTROL         "DMS (Degrees, Minutes, and Seconds)",IDC_DMS,"Button",BS_AUTORADIOBUTTON,18,29,139,10
+    COMBOBOX        IDC_BASE_MAP,18,72,183,90,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Select Offline Map",IDC_SELECT_OFFLINE_MAP,212,71,73,14
+    CONTROL         "Esri",IDC_ESRI,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,121,27,10
+    CONTROL         "Mapbox",IDC_MAPBOX,"Button",BS_AUTORADIOBUTTON,18,138,41,10
+    GROUPBOX        "Coordinate Display",IDC_STATIC,0,0,307,46
+    GROUPBOX        "Tile Provider (on Windows)",IDC_STATIC,0,106,307,51
+    GROUPBOX        "Default Base Map",IDC_STATIC,0,55,307,41
+    LTEXT           "<...>",IDC_COORDINATE_DISPLAY_EXAMPLE,168,14,124,8
+    PUSHBUTTON      "Preview Map",IDC_PREVIEW_MAP,334,0,76,14
+END
+
+IDD_PROPERTIES_MAPPING_TILE_PROVIDER DIALOGEX 0, 0, 438, 288
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Mapping Tile Provider"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_ACCESS_TOKEN,72,0,229,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_TILE_LAYERS,"MfcPropertyGrid",WS_TABSTOP | 0x100,0,22,301,60
+    LTEXT           "Access token",IDC_ACCESS_TOKEN_TEXT,0,3,43,8
+    PUSHBUTTON      "Preview Map",IDC_PREVIEW_MAP,334,0,76,14
+END
+
+IDD_PROPERTIES DIALOGEX 0, 0, 579, 348
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Application Properties"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_PROP_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_TRACKSELECT | TVS_NOSCROLL | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,8,116,311
+    PUSHBUTTON      "Reset Section Properties",IDC_RESET_PROPERTIES,7,327,116,14
+    DEFPUSHBUTTON   "OK",IDOK,373,327,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,447,327,50,14
+    PUSHBUTTON      "Help",ID_HELP,521,327,50,14
+    LTEXT           "Caption",IDC_PAGE_CAPTION,133,7,438,18
+    GROUPBOX        "Page Controls",IDC_PAGE_PLACEHOLDER,133,30,438,288
+END
+
+IDD_PROPERTIES_ADVANCED_FEATURES DIALOGEX 0, 0, 438, 288
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Advanced Features"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Use HTML dialogs",IDC_USE_HTML_DIALOGS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,0,0,71,10
+    CONTROL         "Use HTML components even when native version exists",IDC_USE_COMPONENTS_INSTEAD_OF_NATIVE_VERSIONS,
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,0,14,193,10
+END
+
+IDD_ONKEY_CHAR_MAP DIALOGEX 0, 0, 270, 112
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "OnKey Character Map"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,110,91,50,14,NOT WS_TABSTOP
+    LTEXT           "Enter a keystroke to identify the OnKey and OnChar parameters to trap:",IDC_STATIC,7,7,234,8
+    GROUPBOX        "OnKey",IDC_STATIC,7,20,92,85
+    LTEXT           "Character",IDC_STATIC,14,33,33,8
+    EDITTEXT        IDC_ONKEY_CHAR,53,31,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Control",IDC_STATIC,14,49,24,8
+    CONTROL         "",IDC_ONKEY_CONTROL,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_DISABLED | WS_TABSTOP,48,48,13,10
+    LTEXT           "Alt",IDC_STATIC,14,61,10,8
+    CONTROL         "",IDC_ONKEY_ALT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_DISABLED | WS_TABSTOP,50,60,11,10
+    LTEXT           "Shift",IDC_STATIC,14,73,16,8
+    CONTROL         "",IDC_ONKEY_SHIFT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_DISABLED | WS_TABSTOP,52,72,9,10
+    LTEXT           "Code",IDC_STATIC,14,87,18,8
+    EDITTEXT        IDC_ONKEY_CODE,53,85,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    GROUPBOX        "OnChar",IDC_STATIC,171,20,92,85
+    LTEXT           "Character",IDC_STATIC,179,47,33,8
+    EDITTEXT        IDC_ONKEY_UNICODE_CHAR,216,45,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Code",IDC_STATIC,179,68,18,8
+    EDITTEXT        IDC_ONKEY_UNICODE_CODE,216,67,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "&Help",ID_HELP,110,70,50,14
+END
+
+IDD_NEW_FILE DIALOGEX 0, 0, 427, 145
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "New File"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_NEW_FILE_TYPES,"SysListView32",LVS_LIST | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,108,18,135,97
+    DEFPUSHBUTTON   "OK",IDOK,116,124,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,187,124,50,14
+    PUSHBUTTON      "&Help",ID_HELP,261,124,50,14
+    CONTROL         "",IDC_NEW_FILE_CATEGORIES,"SysListView32",LVS_LIST | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,18,90,97
+    LTEXT           "...",IDC_NEW_FILE_DESCRIPTION,260,22,152,82
+    LTEXT           "Category",IDC_STATIC,7,6,31,8
+    GROUPBOX        "",IDC_STATIC,254,14,167,101
+    LTEXT           "Type",IDC_STATIC,108,7,17,8
+    LTEXT           "Description",IDC_STATIC,254,7,36,8
+END
+
+IDD_PROPERTIES_CSPROPS_FILE DIALOGEX 0, 0, 438, 288
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Application Properties File"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Save properties to application:",IDC_SAVE_PROPERTIES_TO_APPLICATION,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,0,34,114,10
+    CONTROL         "Use Application Properties file:",IDC_SAVE_PROPERTIES_TO_CSPROPS,
+                    "Button",BS_AUTORADIOBUTTON,0,58,113,10
+    EDITTEXT        IDC_APPLICATION_FILENAME,116,32,279,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    EDITTEXT        IDC_CSPROPS_FILENAME,116,56,279,14,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    PUSHBUTTON      "...",IDC_SELECT_CSPROPS_FILE,405,56,29,14
+    LTEXT           "Properties can be saved as part of this application, or can be externalized to an Application Properties file that can be shared among several applications.",IDC_STATIC,0,0,434,23
+END
+
+IDD_PROPERTIES_JSON DIALOGEX 0, 0, 438, 288
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "JSON Serialization"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_JSON_FORMAT,74,33,145,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_JSON_ARRAY,74,55,145,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_JSON_HASHMAP,74,77,145,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_JSON_BINARY_CONTENT,74,99,145,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "These advanced properties allow you to control how symbols are serialized to JSON by default. See the help documentation for more details on how these settings will impact your program.",IDC_STATIC,0,0,436,24
+    LTEXT           "Array symbols:",IDC_STATIC,0,57,49,8
+    LTEXT           "HashMap symbols:",IDC_STATIC,0,79,60,8
+    LTEXT           "Binary content:",IDC_STATIC,0,101,50,8
+    LTEXT           "JSON format:",IDC_STATIC,0,35,44,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 8,0,1,0
+ PRODUCTVERSION 8,0,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "U.S. Census Bureau"
+            VALUE "FileDescription", "CSPro Designer"
+            VALUE "FileVersion", "8.0.1.0"
+            VALUE "InternalName", "CSPro"
+            VALUE "OriginalFilename", "CSPro.EXE"
+            VALUE "ProductName", "CSPro 8.0"
+            VALUE "ProductVersion", "8.0.1.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDR_MAINFRAME, DIALOG
+    BEGIN
+    END
+
+    IDD_DIALOGBAR, DIALOG
+    BEGIN
+    END
+
+    IDD_SELECT_DOCS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 342
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+
+    IDD_SELECT_APP, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 233
+        TOPMARGIN, 2
+        BOTTOMMARGIN, 118
+    END
+
+    IDD_DICTTYPE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        BOTTOMMARGIN, 123
+    END
+
+    IDD_START, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 409
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 242
+    END
+
+    IDD_APLFILEASSOCIATIONSDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 478
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 143
+    END
+
+    IDD_TROUBLESHOOTING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 317
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 156
+    END
+
+    IDD_NEW_ABOUT, DIALOG
+    BEGIN
+    END
+
+    IDD_FONTPREFDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 279
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 59
+    END
+
+    IDD_VERSION_SHIFTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+    END
+
+    IDD_PROPERTIES_PARADATA, DIALOG
+    BEGIN
+        VERTGUIDE, 235
+        VERTGUIDE, 244
+    END
+
+    IDD_CAPI_MACROS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 326
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_COMMON_STORE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 310
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 270
+    END
+
+    IDD_SYMBOL_ANALYSIS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 666
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 337
+    END
+
+    IDD_REPORT_PROPERTIES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 293
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 67
+    END
+
+    IDD_PROPERTIES_MAPPING, DIALOG
+    BEGIN
+    END
+
+    IDD_PROPERTIES_MAPPING_TILE_PROVIDER, DIALOG
+    BEGIN
+    END
+
+    IDD_PROPERTIES, DIALOG
+    BEGIN
+        RIGHTMARGIN, 571
+        VERTGUIDE, 133
+        BOTTOMMARGIN, 341
+    END
+
+    IDD_PROPERTIES_ADVANCED_FEATURES, DIALOG
+    BEGIN
+    END
+
+    IDD_ONKEY_CHAR_MAP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 263
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 105
+    END
+
+    IDD_NEW_FILE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 420
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 138
+    END
+
+    IDD_PROPERTIES_CSPROPS_FILE, DIALOG
+    BEGIN
+    END
+
+    IDD_PROPERTIES_JSON, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_PROPERTIES_PARADATA AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_CAPI_MACROS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_COMMON_STORE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_SYMBOL_ANALYSIS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_REPORT_PROPERTIES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPERTIES_MAPPING AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPERTIES_MAPPING_TILE_PROVIDER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPERTIES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPERTIES_ADVANCED_FEATURES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_SELECT_DOCS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ONKEY_CHAR_MAP AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_NEW_FILE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPERTIES_CSPROPS_FILE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPERTIES_JSON AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_COMMON_STORE DLGINIT
+BEGIN
+    IDC_COMBO_COMMON_STORE_TYPE, 0x403, 14, 0
+0x7355, 0x7265, 0x5320, 0x7465, 0x6974, 0x676e, 0x0073, 
+    IDC_COMBO_COMMON_STORE_TYPE, 0x403, 23, 0
+0x6f43, 0x666e, 0x6769, 0x7275, 0x7461, 0x6f69, 0x206e, 0x6553, 0x7474, 
+0x6e69, 0x7367, "\000" 
+    0
+END
+
+IDD_PROPERTIES_MAPPING_TILE_PROVIDER DLGINIT
+BEGIN
+    IDC_TILE_LAYERS, 0x37c, 414, 0
+0x4d3c, 0x4346, 0x7250, 0x706f, 0x7265, 0x7974, 0x7247, 0x6469, 0x485f, 
+0x6165, 0x6564, 0x4372, 0x7274, 0x3e6c, 0x5254, 0x4555, 0x2f3c, 0x464d, 
+0x5043, 0x6f72, 0x6570, 0x7472, 0x4779, 0x6972, 0x5f64, 0x6548, 0x6461, 
+0x7265, 0x7443, 0x6c72, 0x3c3e, 0x464d, 0x5043, 0x6f72, 0x6570, 0x7472, 
+0x4779, 0x6972, 0x5f64, 0x6544, 0x6373, 0x6972, 0x7470, 0x6f69, 0x416e, 
+0x6572, 0x3e61, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x7250, 0x706f, 
+0x7265, 0x7974, 0x7247, 0x6469, 0x445f, 0x7365, 0x7263, 0x7069, 0x6974, 
+0x6e6f, 0x7241, 0x6165, 0x3c3e, 0x464d, 0x5043, 0x6f72, 0x6570, 0x7472, 
+0x4779, 0x6972, 0x5f64, 0x6c41, 0x6870, 0x6261, 0x7465, 0x6369, 0x6f4d, 
+0x6564, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 0x5043, 0x6f72, 0x6570, 
+0x7472, 0x4779, 0x6972, 0x5f64, 0x6c41, 0x6870, 0x6261, 0x7465, 0x6369, 
+0x6f4d, 0x6564, 0x3c3e, 0x464d, 0x5043, 0x6f72, 0x6570, 0x7472, 0x4779, 
+0x6972, 0x5f64, 0x6f4d, 0x6964, 0x6966, 0x6465, 0x7250, 0x706f, 0x7265, 
+0x6974, 0x7365, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 0x5043, 0x6f72, 
+0x6570, 0x7472, 0x4779, 0x6972, 0x5f64, 0x6f4d, 0x6964, 0x6966, 0x6465, 
+0x7250, 0x706f, 0x7265, 0x6974, 0x7365, 0x3c3e, 0x464d, 0x5043, 0x6f72, 
+0x6570, 0x7472, 0x4779, 0x6972, 0x5f64, 0x5356, 0x6f44, 0x4e74, 0x7465, 
+0x6f4c, 0x6b6f, 0x543e, 0x5552, 0x3c45, 0x4d2f, 0x4346, 0x7250, 0x706f, 
+0x7265, 0x7974, 0x7247, 0x6469, 0x565f, 0x4453, 0x746f, 0x654e, 0x4c74, 
+0x6f6f, 0x3e6b, 0x4d3c, 0x4346, 0x7250, 0x706f, 0x7265, 0x7974, 0x7247, 
+0x6469, 0x445f, 0x7365, 0x7263, 0x7069, 0x6974, 0x6e6f, 0x6f52, 0x7377, 
+0x303e, 0x2f3c, 0x464d, 0x5043, 0x6f72, 0x6570, 0x7472, 0x4779, 0x6972, 
+0x5f64, 0x6544, 0x6373, 0x6972, 0x7470, 0x6f69, 0x526e, 0x776f, 0x3e73, 
+
+    0
+END
+
+IDD_PROPERTIES_JSON DLGINIT
+BEGIN
+    IDC_JSON_FORMAT, 0x403, 8, 0
+0x6f43, 0x706d, 0x6361, 0x0074, 
+    IDC_JSON_FORMAT, 0x403, 7, 0
+0x7250, 0x7465, 0x7974, "\000" 
+    IDC_JSON_ARRAY, 0x403, 11, 0
+0x7546, 0x6c6c, 0x4120, 0x7272, 0x7961, "\000" 
+    IDC_JSON_ARRAY, 0x403, 13, 0
+0x7053, 0x7261, 0x6573, 0x4120, 0x7272, 0x7961, "\000" 
+    IDC_JSON_HASHMAP, 0x403, 13, 0
+0x7241, 0x6172, 0x2079, 0x6f46, 0x6d72, 0x7461, "\000" 
+    IDC_JSON_HASHMAP, 0x403, 14, 0
+0x624f, 0x656a, 0x7463, 0x4620, 0x726f, 0x616d, 0x0074, 
+    IDC_JSON_BINARY_CONTENT, 0x403, 18, 0
+0x7257, 0x7469, 0x2065, 0x7361, 0x4420, 0x7461, 0x2061, 0x5255, 0x004c, 
+
+    IDC_JSON_BINARY_CONTENT, 0x403, 23, 0
+0x7257, 0x7469, 0x2065, 0x7361, 0x4c20, 0x636f, 0x6c61, 0x6f68, 0x7473, 
+0x5520, 0x4c52, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_APLTYPE             "CSPro\n\nAPL\nApplication Files (*.ent;*.xtb;*.bch)\n.ent;.xtb;.bch\nCSPro.Document\nCSPro Application Document"
+    IDR_MAINFRAME           "CSPro"
+END
+
+STRINGTABLE
+BEGIN
+    ID_DICTTYPE             "Dictionary Type\nDictionary Type"
+    ID_STATUS_PANE_INDICATOR "                       "
+    ID_TOOLS_VERSION_SHIFTER 
+                            "Change the default version of CSPro\nVersion Shifter"
+END
+
+STRINGTABLE
+BEGIN
+    IDR_MEASURTYPE          "CSPro\n\nSSS\nCSPro Files (*.sss)\n.sss\nCSPro.Document\nCSPro Document"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_APPMODIFIED         "Application %1 has changed.\n\nDo you want to save the changes?"
+    IDS_CANT_RENAME_DICT_IN_FORM 
+                            "The form file %s already exists and has an existing dictionary %s.  CSPro will use the existing dictionary rather than setting the new dictionary %s that you chose."
+    IDS_FILEOPEN            "%1 is already open."
+    IDS_INVLDAPPTYPE        "Invalid Application type :APPFILE = %1"
+    IDS_LOGIC_ALREADY_IN_APP 
+                            "Unable to add the logic file %s to this application because it is already included."
+    IDS_MESSAGE_ALREADY_IN_APP 
+                            "Unable to add the message file %s to this application because it is already included."
+    IDS_OPENAPPFLD          "Opening %1 failed "
+    IDS_OVERWRITE_FILE      "The file %s already exists.  Overwrite the existing file?"
+    IDS_OVERWRITE_OPEN_FILE "The file %s is currently open by another application.  Changing the name of the file while it is open could cause serious problems.  Please choose another name."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_RESOURCE_FOLDER_ALREADY_IN_APP 
+                            "Unable to add the resource folder %s to this application because it is already included."
+    IDS_RESOURCE_FOLDER_INVALID 
+                            "The resource folder %s is not a valid folder."
+    IDS_SAVE_AS_SAVE_ERROR  "Save As: unable to save.  Error saving file %s."
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "CSPro Designer"
+    AFX_IDS_IDLEMESSAGE     "For Help, press F1"
+    AFX_IDS_HELPMODEMESSAGE "Select an object on which to get Help"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_PAGE_SETUP      "Change the printing options\nPage Setup"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
+    ID_FILE_PRINT           "Print the active document\nPrint"
+    ID_FILE_PRINT_PREVIEW   "Display full pages\nPrint Preview"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information and version number\nAbout"
+    ID_APP_EXIT             "Quit the application\nExit"
+    ID_HELP_INDEX           "Opens Help\nHelp Topics"
+    ID_HELP_FINDER          "Show help contents and index\nHelp Topics"
+    ID_HELP_USING           "Display instructions about how to use help\nHelp"
+    ID_CONTEXT_HELP         "Display help for clicked on buttons, menus and windows\nHelp"
+    ID_HELP                 "Display help for current task or command\nHelp"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_MDICHILD        "Activate this window"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_PREVIEW_CLOSE   "Select application to insert files into"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res/CSPro.rc2"     // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#include "afxprint.rc"       // printing/print preview resources
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

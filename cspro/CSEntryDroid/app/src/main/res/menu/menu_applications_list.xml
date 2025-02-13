@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+  <item
+    android:id="@+id/menu_applications_add_application"
+    android:enabled="true"
+    android:title="@string/menu_applications_add_application"></item>
+  <item
+  android:id="@+id/menu_applications_update_applications"
+  android:enabled="true"
+  android:title="@string/menu_applications_update_applications"></item>
+  <item
+    android:id="@+id/menu_applications_settings"
+    android:title="@string/menu_applications_settings"></item>
+  <item
+    android:id="@+id/menu_applications_list_help"
+    android:title="@string/menu_applications_list_help"></item>
+  <item
+    android:id="@+id/menu_applications_list_about"
+    android:title="@string/menu_applications_list_about"></item>
+
+</menu>

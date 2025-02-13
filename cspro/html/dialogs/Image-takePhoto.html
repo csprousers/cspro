@@ -1,0 +1,66 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+
+    <title>CSPro Photo Capture</title>
+</head>
+<body>
+    <p id="message" style="visibility: hidden"></p>
+    <p><img id="photo" /></p>
+
+    <p><a href="#" onclick="savePhoto(); return false;">Save</a> - <a href="#" onclick="clearPhoto(); return false;">Clear</a></p>
+
+    <script>
+        const CS = new CSProActionInvoker("55a9993fbd65fbbbcef06d29dfc7cb31");
+
+        const message = document.getElementById("message");
+        const photo = document.getElementById("photo");
+
+        // size the dialog at half the screen
+        const dimensions = CS.UI.getMaxDisplayDimensions();
+        CS.UI.setDisplayOptions({
+            width: dimensions.width / 2,
+            height: dimensions.height / 2,
+            keyboard: false
+        });
+
+        const input = CS.UI.getInputData();
+
+        // if set, display the message
+        if( input.message ) {
+            message.innerText = input.message;
+            message.style.visibility = "visible";
+        }
+
+        // if a photo already exists, show it
+        if( input.url ) {
+            // TODO
+            photo.src = input.url;
+        }
+
+        function savePhoto() {
+            // TODO ... make sure not blank
+            // https://stackoverflow.com/questions/934012/get-image-data-url-in-javascript
+            const canvas = document.createElement("canvas");
+            canvas.width = photo.width;
+            canvas.height = photo.height;
+
+             // Copy the image contents to the canvas
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(photo, 0, 0);
+
+            CS.UI.closeDialog({ result: { url: canvas.toDataURL() } });
+        }
+
+        function clearPhoto() {
+            // TODO
+            photo.removeAttribute("src");
+        }
+    </script>
+</body>
+</html>

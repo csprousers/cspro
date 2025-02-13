@@ -1,0 +1,246 @@
+﻿{
+  "assets": [
+    {
+      "domain": "build-tools", 
+      "sourceName": "Licenses/Licenses.html"
+    }, 
+    {
+      "domain": "cspro", 
+      "sourceName": "CSPro*.mgf", 
+      "build": "desktop"
+    }, 
+    {
+      "domain": "cspro", 
+      "sourceName": "zAction/action-definitions.json", 
+      "build": "desktop"
+    }, 
+    {
+      "domain": "cspro", 
+      "sourceName": "zReportO/Reports/CSPro Reports.csrs", 
+      "destinationDirectory": "Reports"
+    }, 
+    {
+      "domain": "cspro", 
+      "sourceName": "html/", 
+      "destinationDirectory": "html", 
+      "exclusions": [
+        {
+          "sourceName": "Update Android HTML Assets.bat"
+        }, 
+        {
+          "sourceName": "css/case-view.css", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "dialogs/Image-captureSignature.html"
+        }, 
+        {
+          "sourceName": "dialogs/Image-takePhoto.html"
+        }, 
+        {
+          "sourceName": "dialogs/sample-inputs.json"
+        }, 
+        {
+          "sourceName": "document/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "external/bootstrap/bootstrap.bundle.min.js.map"
+        }, 
+        {
+          "sourceName": "external/bootstrap/bootstrap.min.css.map"
+        }, 
+        {
+          "sourceName": "external/codemirror/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "external/chartjs/chart.umd.js.map"
+        }, 
+        {
+          "sourceName": "external/leaflet/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "external/jquery/jquery.min.map"
+        }, 
+        {
+          "sourceName": "external/sprintf/sprintf.min.js.map"
+        }, 
+        {
+          "sourceName": "external/summernote/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "external/summernote/summernote-lite.min.js.map"
+        }, 
+        {
+          "sourceName": "external/summernote-rtl-plugin/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "html-editor/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "mapping/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "templates/", 
+          "build": "nonDesktop"
+        }, 
+        {
+          "sourceName": "utilities/", 
+          "build": "nonDesktop"
+        }
+      ]
+    }
+  ], 
+  "tools": [
+    {
+      "directory": "CSPro Production Runner", 
+      "solution": "CSProProductionRunner"
+    }, 
+    {
+      "directory": "Operator Statistics Viewer"
+    }
+  ], 
+  "helps": [
+    "CSBatch", 
+    "CSCode", 
+    "CSConcat", 
+    "CSDeploy", 
+    "CSDiff", 
+    "CSDocument", 
+    "CSEntry", 
+    "CSExport", 
+    "CSFreq", 
+    "CSIndex", 
+    "CSPack", 
+    "CSPro", 
+    "CSReFmt", 
+    "CSSort", 
+    "CSTab", 
+    "CSView", 
+    "CSWeb", 
+    "DataViewer", 
+    "Excel2CSPro", 
+    "GetStart", 
+    "ParadataConcat", 
+    "ParadataViewer", 
+    "TblView", 
+    "TextView"
+  ], 
+  "bin": [
+    "CSBatch.exe", 
+    "CSCode.exe", 
+    "CSConcat.exe", 
+    "CSDeploy.exe", 
+    "CSDiff.exe", 
+    "CSDocument.exe", 
+    "CSEntry.exe", 
+    "CSExport.exe", 
+    "CSFreq.exe", 
+    "CSIndex.exe", 
+    "CSPack.exe", 
+    "CSPro.exe", 
+    "CSReFmt.exe", 
+    "CSSort.exe", 
+    "CSTab.exe", 
+    "CSView.exe", 
+    "DataViewer.exe", 
+    "DropboxAuth.exe", 
+    "Excel2CSPro.exe", 
+    "libcurl.dll", 
+    "libmp4v2.dll", 
+    "ParadataConcat.exe", 
+    "ParadataViewer.exe", 
+    "PFF Editor.exe", 
+    "rtf2html_dll.dll", 
+    "runpff.exe", 
+    "runwait.exe", 
+    "Save Array Viewer.exe", 
+    "SQLite.dll", 
+    "tbdview.exe", 
+    "TblView.exe", 
+    "TextConverter.exe", 
+    "TextView.exe", 
+    "UriHandler.exe", 
+    "yaml-cpp.dll", 
+    "zAction.dll", 
+    "zAppO.dll", 
+    "zBatchF.dll", 
+    "zBatchO.dll", 
+    "zBridgeO.dll", 
+    "zCapiO.dll", 
+    "zCaseO.dll", 
+    "zCaseTreeF.dll", 
+    "zConcatO.dll", 
+    "zDataCLR.dll", 
+    "zDataO.dll", 
+    "zDesignerF.dll", 
+    "zDictCLR.dll", 
+    "zDictF.dll", 
+    "zDictO.dll", 
+    "zDiffO.dll", 
+    "zEdit2O.dll", 
+    "zEngineCLR.dll", 
+    "zEngineF.dll", 
+    "zEngineO.dll", 
+    "zEntryO.dll", 
+    "zExcelO.dll", 
+    "zExTab.dll", 
+    "zFormatterO.dll", 
+    "zFormF.dll", 
+    "zFormO.dll", 
+    "zFreqO.dll", 
+    "zGrid2O.dll", 
+    "zGridO.dll", 
+    "zHelp.dll", 
+    "zHtml.dll", 
+    "zIndexO.dll", 
+    "zInterfaceF.dll", 
+    "zJavaScript.dll", 
+    "zJson.dll", 
+    "zlib.dll", 
+    "zListingO.dll", 
+    "zLogicCLR.dll", 
+    "zLogicO.dll", 
+    "zMapping.dll", 
+    "zMessageO.dll", 
+    "zMultimediaO.dll", 
+    "zNetwork.dll", 
+    "zOrderF.dll", 
+    "zPackO.dll", 
+    "zParadataCLR.dll", 
+    "zParadataO.dll", 
+    "zReformatO.dll", 
+    "zReportO.dll", 
+    "zScintilla.dll", 
+    "zSortO.dll", 
+    "zSrcMgrO.dll", 
+    "zSyncCLR.dll", 
+    "zSyncF.dll", 
+    "zSyncO.dll", 
+    "zTableF.dll", 
+    "zTableO.dll", 
+    "zTbdO.dll", 
+    "zToolsO.dll", 
+    "zUtilCLR.dll", 
+    "zUtilF.dll", 
+    "zUtilO.dll", 
+    "zUtoolO.dll", 
+    "zZipo.dll", 
+    "~~~ for WebView2 ~~~", 
+    "WebView2Loader.dll", 
+    "Microsoft.Web.WebView2.Core.dll", 
+    "Microsoft.Web.WebView2.WinForms.dll", 
+    "~~~ for CSDeploy + DataViewer + PFF Editor ~~~", 
+    "Microsoft.WindowsAPICodePack.dll", 
+    "Microsoft.WindowsAPICodePack.Shell.dll", 
+    "Microsoft.WindowsAPICodePack.ShellExtensions.dll", 
+    "~~~ for Paradata Viewer ~~~", 
+    "Newtonsoft.Json.dll"
+  ]
+}

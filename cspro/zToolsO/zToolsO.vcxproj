@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FB0E28EC-927D-41D0-996C-01C21A7A346B}</ProjectGuid>
+    <RootNamespace>zToolsO</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZTOOLSO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZTOOLSO_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="acum.cpp" />
+    <ClCompile Include="base64.cpp" />
+    <ClCompile Include="BinaryGen.cpp" />
+    <ClCompile Include="bzlib.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="CSProException.cpp" />
+    <ClCompile Include="DateTime.cpp" />
+    <ClCompile Include="DelimitedTextCreator.cpp" />
+    <ClCompile Include="DirectoryLister.cpp" />
+    <ClCompile Include="Encoders.cpp" />
+    <ClCompile Include="Encryption.cpp" />
+    <ClCompile Include="ErrorMessageDisplayer.cpp" />
+    <ClCompile Include="FileIO.cpp" />
+    <ClCompile Include="FuzzyWuzzy.cpp" />
+    <ClCompile Include="md5.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Memctrl.cpp" />
+    <ClCompile Include="Hash.cpp" />
+    <ClCompile Include="NumberToString.cpp" />
+    <ClCompile Include="ObjectTransporter.cpp" />
+    <ClCompile Include="PortableFunctions.cpp" />
+    <ClCompile Include="ProcessRunner.cpp" />
+    <ClCompile Include="rijndael\rijndael-alg-fst.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Screen.cpp" />
+    <ClCompile Include="scrypt\insecure_memzero.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="scrypt\sha256.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Serializer.cpp" />
+    <ClCompile Include="Special.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="StringOperations.cpp" />
+    <ClCompile Include="ImsaStrMem.cpp" />
+    <ClCompile Include="TextConverterAnsi.cpp" />
+    <ClCompile Include="Tools.cpp" />
+    <ClCompile Include="Utf8Convert.cpp" />
+    <ClCompile Include="Utf8FileStream.cpp" />
+    <ClCompile Include="uuid.cpp" />
+    <ClCompile Include="VarFuncs.cpp" />
+    <ClCompile Include="WinClipboard.cpp" />
+    <ClCompile Include="WinRegistry.cpp" />
+    <ClCompile Include="WinSettings.cpp" />
+    <ClCompile Include="zToolsO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="acum.h" />
+    <ClInclude Include="ApiKeys.h" />
+    <ClInclude Include="TextConverter.h" />
+    <ClInclude Include="EscapesAndLogicOperators.h" />
+    <ClInclude Include="HandleHolder.h" />
+    <ClInclude Include="MemoryStream.h" />
+    <ClInclude Include="NewlineSubstitutor.h" />
+    <ClInclude Include="ObjectCacher.h" />
+    <ClInclude Include="ObjectTransporter.h" />
+    <ClInclude Include="assert_cast.h" />
+    <ClInclude Include="base64.h" />
+    <ClInclude Include="ConstantConserver.h" />
+    <ClInclude Include="CSProException.h" />
+    <ClInclude Include="DateTime.h" />
+    <ClInclude Include="DelimitedTextCreator.h" />
+    <ClInclude Include="DirectoryLister.h" />
+    <ClInclude Include="Encoders.h" />
+    <ClInclude Include="Encryption.h" />
+    <ClInclude Include="EnumHelpers.h" />
+    <ClInclude Include="ErrorMessageDisplayer.h" />
+    <ClInclude Include="FileIO.h" />
+    <ClInclude Include="FloatingPointMath.h" />
+    <ClInclude Include="FuzzyWuzzy.h" />
+    <ClInclude Include="md5.h" />
+    <ClInclude Include="NullTerminatedString.h" />
+    <ClInclude Include="NumberConverter.h" />
+    <ClInclude Include="Hash.h" />
+    <ClInclude Include="NumberToString.h" />
+    <ClInclude Include="OperatingSystem.h" />
+    <ClInclude Include="PenSerializer.h" />
+    <ClInclude Include="PointerClasses.h" />
+    <ClInclude Include="PointerType.h" />
+    <ClInclude Include="PortableFunctions.h" />
+    <ClInclude Include="ProcessRunner.h" />
+    <ClInclude Include="RaiiHelpers.h" />
+    <ClInclude Include="Range.h" />
+    <ClInclude Include="rijndael\rijndael-alg-fst.h" />
+    <ClInclude Include="Screen.h" />
+    <ClInclude Include="scrypt\insecure_memzero.h" />
+    <ClInclude Include="scrypt\sha256.h" />
+    <ClInclude Include="scrypt\sysendian.h" />
+    <ClInclude Include="span.h" />
+    <ClInclude Include="StandardTemplates.h" />
+    <ClInclude Include="VariantVisitOverload.h" />
+    <ClInclude Include="VectorIterators.h" />
+    <ClInclude Include="WindowsDesktopMessage.h" />
+    <ClInclude Include="Serializer.h" />
+    <ClInclude Include="bzlib.h" />
+    <ClInclude Include="SerializerHelper.h" />
+    <ClInclude Include="SharedPointerHelpers.h" />
+    <ClInclude Include="SharedSettings.h" />
+    <ClInclude Include="Special.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="StringNoCase.h" />
+    <ClInclude Include="StringOperations.h" />
+    <ClInclude Include="StringPos.h" />
+    <ClInclude Include="StringView.h" />
+    <ClInclude Include="VectorHelpers.h" />
+    <ClInclude Include="TextFormatter.h" />
+    <ClInclude Include="TimeAgoConverter.h" />
+    <ClInclude Include="TOOLS.H" />
+    <ClInclude Include="Utf8Convert.h" />
+    <ClInclude Include="Utf8FileStream.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="ValueConserver.h" />
+    <ClInclude Include="VarFuncs.h" />
+    <ClInclude Include="WinClipboard.h" />
+    <ClInclude Include="WinRegistry.h" />
+    <ClInclude Include="WinSettings.h" />
+    <ClInclude Include="CommonObjectTransporter.h" />
+    <ClInclude Include="zToolsO.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

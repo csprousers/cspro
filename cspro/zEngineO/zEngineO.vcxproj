@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{45DADBF6-072A-4A5F-94B3-39FB607807F2}</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>zEngineO</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_USRDLL;ZENGINEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)zEngineO;$(SolutionDir)external;$(SolutionDir)external/mp4v2;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_USRDLL;ZENGINEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)zEngineO;$(SolutionDir)external;$(SolutionDir)external/mp4v2;$(SolutionDir)external/geometry.hpp/include;$(SolutionDir)external/variant/include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ApplicationBuilder.cpp" />
+    <ClCompile Include="Array.cpp" />
+    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="BinarySymbol.cpp" />
+    <ClCompile Include="BinarySymbolData.cpp" />
+    <ClCompile Include="Block.cpp" />
+    <ClCompile Include="Compiler\ActionInvokerCC.cpp" />
+    <ClCompile Include="Compiler\ArgumentSpecificationCompiler.cpp" />
+    <ClCompile Include="Compiler\ArrayCC.cpp" />
+    <ClCompile Include="Compiler\AudioCC.cpp" />
+    <ClCompile Include="Compiler\CaseCC.cpp" />
+    <ClCompile Include="Compiler\CompilerHelper.cpp" />
+    <ClCompile Include="Compiler\ControlFlowCC.cpp" />
+    <ClCompile Include="Compiler\DataAccessCC.cpp" />
+    <ClCompile Include="Compiler\DocumentCC.cpp" />
+    <ClCompile Include="Compiler\EngineDictionaryCC.cpp" />
+    <ClCompile Include="Compiler\ExpressionsCC.cpp" />
+    <ClCompile Include="Compiler\FileCC.cpp" />
+    <ClCompile Include="Compiler\FreqCC.cpp" />
+    <ClCompile Include="Compiler\DictionaryCC.cpp" />
+    <ClCompile Include="Compiler\FunctionsGenericCC.cpp" />
+    <ClCompile Include="Compiler\FunctionsVariousCC.cpp" />
+    <ClCompile Include="Compiler\GeometryCC.cpp" />
+    <ClCompile Include="Compiler\GpsCC.cpp" />
+    <ClCompile Include="Compiler\HashMapCC.cpp" />
+    <ClCompile Include="Compiler\ImageCC.cpp" />
+    <ClCompile Include="Compiler\ImputeCC.cpp" />
+    <ClCompile Include="Compiler\ItemCC.cpp" />
+    <ClCompile Include="Compiler\JsonCC.cpp" />
+    <ClCompile Include="Compiler\ListCC.cpp" />
+    <ClCompile Include="Compiler\LogicCompiler.cpp" />
+    <ClCompile Include="Compiler\MapCC.cpp" />
+    <ClCompile Include="Compiler\MessagesCC.cpp" />
+    <ClCompile Include="Compiler\BarcodeCC.cpp" />
+    <ClCompile Include="Compiler\NextTokenCC.cpp" />
+    <ClCompile Include="Compiler\NodeCreationCC.cpp" />
+    <ClCompile Include="Compiler\NumbersCC.cpp" />
+    <ClCompile Include="Compiler\OptionalNamedArgumentsCompiler.cpp" />
+    <ClCompile Include="Compiler\PathCC.cpp" />
+    <ClCompile Include="Compiler\PffCC.cpp" />
+    <ClCompile Include="Compiler\QueryCC.cpp" />
+    <ClCompile Include="Compiler\ReportCC.cpp" />
+    <ClCompile Include="Compiler\StringsCC.cpp" />
+    <ClCompile Include="Compiler\SwitchCC.cpp" />
+    <ClCompile Include="Compiler\SymbolsCC.cpp" />
+    <ClCompile Include="Compiler\SyncCC.cpp" />
+    <ClCompile Include="Compiler\SystemAppCC.cpp" />
+    <ClCompile Include="Compiler\TokenCC.cpp" />
+    <ClCompile Include="Compiler\TraceCC.cpp" />
+    <ClCompile Include="Compiler\UserbarCC.cpp" />
+    <ClCompile Include="Compiler\UserInterfaceCC.cpp" />
+    <ClCompile Include="Compiler\UserFunctionCC.cpp" />
+    <ClCompile Include="Compiler\ValueSetCC.cpp" />
+    <ClCompile Include="Compiler\VariableCC.cpp" />
+    <ClCompile Include="Document.cpp" />
+    <ClCompile Include="EngineCase.cpp" />
+    <ClCompile Include="EngineData.cpp" />
+    <ClCompile Include="EngineDataRepository.cpp" />
+    <ClCompile Include="EngineDictionary.cpp" />
+    <ClCompile Include="EngineRecord.cpp" />
+    <ClCompile Include="File.cpp" />
+    <ClCompile Include="FileApplicationLoader.cpp" />
+    <ClCompile Include="Flow.cpp" />
+    <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="HashMap.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="Imputation.cpp" />
+    <ClCompile Include="List.cpp" />
+    <ClCompile Include="LogicByteCode.cpp" />
+    <ClCompile Include="LoopStack.cpp" />
+    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="NamedFrequency.cpp" />
+    <ClCompile Include="PenReaderApplicationLoader.cpp" />
+    <ClCompile Include="PenWriterApplicationLoader.cpp" />
+    <ClCompile Include="PersistentVariableProcessor.cpp" />
+    <ClCompile Include="Pff.cpp" />
+    <ClCompile Include="PffExecutor.cpp" />
+    <ClCompile Include="PreinitializedVariable.cpp" />
+    <ClCompile Include="ProcType.cpp" />
+    <ClCompile Include="Report.cpp" />
+    <ClCompile Include="ReportTokenizer.cpp" />
+    <ClCompile Include="ResponseProcessor.cpp" />
+    <ClCompile Include="RunnableSymbol.cpp" />
+    <ClCompile Include="RuntimeEvent.cpp" />
+    <ClCompile Include="SaveArrayFile.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="SymbolCalculator.cpp" />
+    <ClCompile Include="EngineItem.cpp" />
+    <ClCompile Include="SystemApp.cpp" />
+    <ClCompile Include="UserFunction.cpp" />
+    <ClCompile Include="UserFunctionArgumentChecker.cpp" />
+    <ClCompile Include="UserFunctionLocalSymbolsManager.cpp" />
+    <ClCompile Include="ValueSet.cpp" />
+    <ClCompile Include="Versioning.cpp" />
+    <ClCompile Include="WorkString.cpp" />
+    <ClCompile Include="WorkVariable.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AllSymbolDeclarations.h" />
+    <ClInclude Include="AllSymbols.h" />
+    <ClInclude Include="ApplicationBuilder.h" />
+    <ClInclude Include="ApplicationLoader.h" />
+    <ClInclude Include="Array.h" />
+    <ClInclude Include="Audio.h" />
+    <ClInclude Include="BinarySymbol.h" />
+    <ClInclude Include="BinarySymbolData.h" />
+    <ClInclude Include="Block.h" />
+    <ClInclude Include="Compiler\ArgumentSpecificationCompiler.h" />
+    <ClInclude Include="Compiler\CommonStoreCompilerHelper.h" />
+    <ClInclude Include="Compiler\CompilationExtendedInformation.h" />
+    <ClInclude Include="Compiler\CompilerHelper.h" />
+    <ClInclude Include="Compiler\CompilerMessageIssuer.h" />
+    <ClInclude Include="Compiler\ImputeAutomaticStatCompilerHelper.h" />
+    <ClInclude Include="Compiler\IncludesCC.h" />
+    <ClInclude Include="Compiler\LogicCompiler.h" />
+    <ClInclude Include="Compiler\LoopStackCompilerHelper.h" />
+    <ClInclude Include="Compiler\NodeCreationCC.h" />
+    <ClInclude Include="Compiler\OptionalNamedArgumentsCompiler.h" />
+    <ClInclude Include="Compiler\PublishDateCompilerHelper.h" />
+    <ClInclude Include="Compiler\SymbolCompilerModifier.h" />
+    <ClInclude Include="Compiler\TokenHelper.h" />
+    <ClInclude Include="DeprecatedSymbol.h" />
+    <ClInclude Include="Document.h" />
+    <ClInclude Include="EngineAccessor.h" />
+    <ClInclude Include="EngineCaseConstructionReporter.h" />
+    <ClInclude Include="EngineCase.h" />
+    <ClInclude Include="EngineData.h" />
+    <ClInclude Include="EngineDataRepository.h" />
+    <ClInclude Include="EngineDictionary.h" />
+    <ClInclude Include="EngineDictionaryFactory.h" />
+    <ClInclude Include="EngineRecord.h" />
+    <ClInclude Include="File.h" />
+    <ClInclude Include="FileApplicationLoader.h" />
+    <ClInclude Include="Flow.h" />
+    <ClInclude Include="Geometry.h" />
+    <ClInclude Include="HashMap.h" />
+    <ClInclude Include="Image.h" />
+    <ClInclude Include="Imputation.h" />
+    <ClInclude Include="List.h" />
+    <ClInclude Include="LogicByteCode.h" />
+    <ClInclude Include="LoopStack.h" />
+    <ClInclude Include="Map.h" />
+    <ClInclude Include="Messages\EngineMessages.h" />
+    <ClInclude Include="Messages\MessageIssuer.h" />
+    <ClInclude Include="NamedFrequency.h" />
+    <ClInclude Include="Nodes\Barcode.h" />
+    <ClInclude Include="Nodes\BaseNodes.h" />
+    <ClInclude Include="Nodes\ControlFlow.h" />
+    <ClInclude Include="Nodes\DataAccess.h" />
+    <ClInclude Include="Nodes\Date.h" />
+    <ClInclude Include="Nodes\Dictionaries.h" />
+    <ClInclude Include="Nodes\Encryption.h" />
+    <ClInclude Include="Nodes\File.h" />
+    <ClInclude Include="Nodes\Frequency.h" />
+    <ClInclude Include="Nodes\GeneralizedFunction.h" />
+    <ClInclude Include="Nodes\GPS.h" />
+    <ClInclude Include="Nodes\Impute.h" />
+    <ClInclude Include="Nodes\Messages.h" />
+    <ClInclude Include="Nodes\Path.h" />
+    <ClInclude Include="Nodes\Query.h" />
+    <ClInclude Include="Nodes\Report.h" />
+    <ClInclude Include="Nodes\Set.h" />
+    <ClInclude Include="Nodes\Strings.h" />
+    <ClInclude Include="Nodes\Switch.h" />
+    <ClInclude Include="Nodes\Trace.h" />
+    <ClInclude Include="Nodes\UserFunction.h" />
+    <ClInclude Include="Nodes\UserInterface.h" />
+    <ClInclude Include="Nodes\Various.h" />
+    <ClInclude Include="OnKeyMapping.h" />
+    <ClInclude Include="PenReaderApplicationLoader.h" />
+    <ClInclude Include="PenWriterApplicationLoader.h" />
+    <ClInclude Include="PersistentVariableProcessor.h" />
+    <ClInclude Include="Pff.h" />
+    <ClInclude Include="PffExecutor.h" />
+    <ClInclude Include="PreinitializedVariable.h" />
+    <ClInclude Include="ProcType.h" />
+    <ClInclude Include="Report.h" />
+    <ClInclude Include="ReportTokenizer.h" />
+    <ClInclude Include="ResponseProcessor.h" />
+    <ClInclude Include="RunnableSymbol.h" />
+    <ClInclude Include="RuntimeEvent.h" />
+    <ClInclude Include="SaveArrayFile.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SubscriptText.h" />
+    <ClInclude Include="SymbolCalculator.h" />
+    <ClInclude Include="SymbolReference.h" />
+    <ClInclude Include="SymbolSerializerHelper.h" />
+    <ClInclude Include="EngineItem.h" />
+    <ClInclude Include="SystemApp.h" />
+    <ClInclude Include="Userbar.h" />
+    <ClInclude Include="UserFunction.h" />
+    <ClInclude Include="UserFunctionArgumentChecker.h" />
+    <ClInclude Include="UserFunctionLocalSymbolsManager.h" />
+    <ClInclude Include="ValueSet.h" />
+    <ClInclude Include="Versioning.h" />
+    <ClInclude Include="WorkString.h" />
+    <ClInclude Include="WorkVariable.h" />
+    <ClInclude Include="zEngineO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+      <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseO\zCaseO.vcxproj">
+      <Project>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zConcatO\zConcatO.vcxproj">
+      <Project>{78a5f1e5-5216-4097-a207-2d4161c073cc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDataO\zDataO.vcxproj">
+      <Project>{dde177b0-a6ae-4d1f-b707-8fb50d1b5644}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDiffO\zDiffO.vcxproj">
+      <Project>{af611dfb-978a-46b4-a264-9702f41ef4f0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFormO\zFormO.vcxproj">
+      <Project>{0837641d-6f03-4f33-9eb5-c03d2ca8edb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zFreqO\zFreqO.vcxproj">
+      <Project>{48f0cbb2-b1bb-42a0-bebb-899ce2479f64}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zIndexO\zIndexO.vcxproj">
+      <Project>{7aef3dcc-6117-4029-9bde-5ed800332e29}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
+      <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMapping\zMapping.vcxproj">
+      <Project>{bb03b600-1ccf-4875-9300-26ad969e8d80}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
+      <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zMultimediaO\zMultimediaO.vcxproj">
+      <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zPackO\zPackO.vcxproj">
+      <Project>{9e5e9d64-f6da-11ec-b939-0242ac120002}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">
+      <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zReformatO\zReformatO.vcxproj">
+      <Project>{da3b5649-1c4a-4935-bc9b-4908879adec9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSortO\zSortO.vcxproj">
+      <Project>{d4ca666c-f10e-4bc1-bc08-ba291052c1d9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

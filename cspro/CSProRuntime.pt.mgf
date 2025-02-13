@@ -1,0 +1,448 @@
+﻿/* --- CSPro Runtime Messages - Portuguese */
+
+Language=PT
+
+/* --- Common Messages Used by CSEntry */
+
+/* --- Out of Range */
+88888  ADVERTÊNCIA: Fora de faixa! Aceita esse valor para %s%s?
+88889  ADVERTÊNCIA: Fora de faixa! Por favor digite um valor válido para %s%s
+
+89201  FORA DE FAIXA
+89202  FORA DE SEQUÊNCIA
+89203  Digite um valor válido.
+89204  "Digite um valor válido\nou Aperte F2 para forçar."
+89205  Digite um valor correto.
+89206  Aperte F8 para limpar
+
+/* --- Go To Field */
+89211  Item não encontrado
+89212  Valor da ocorrência inválido
+
+/* --- Partial Save */
+89221  Salvamento Parcial
+89222  Este é um questionário que foi salvo parcialmente. Você quer ir para a última posição onde parou?
+89223  Você não pode mudar para ver um questionário salvo parcialmente que não esteja em modo de modificação. Pare a modificação do questionário e depois abra o questionário.
+89224  O questionário atual foi salvo
+89225  Erro: Não foi possível salvar o questionário
+
+/* --- Interactive Edit */
+89231  Não é possível entrar em um questionário salvo parcialmente. Pare a Edição Interativa.
+89232  Você quer cancelar a Edição Interativa?
+
+/* --- Verify */
+89241  Terminado com o Modo de Verificação
+89242  ESTE CAMPO NÃO COINCIDE
+89243  Redigite o valor.
+
+/* --- Case Management */
+89251  Você quer descartar o questionário atual?
+89252  Você tem certeza de querer deletar este nodo?
+89253  Você tem certeza de querer deletar este questionário com ID '%s'?
+89254  Aceitar este questionário?
+89255  Aceitar este %s?
+
+/* --- Miscellaneous Entry */
+89261  Não é possível ir para uma ocorrência que não existe
+89263  "%s\nEste arquivo não existe.\n\nCriar o arquivo?"
+
+/* --- Entry Errors */
+89271  Falha ao iniciar o questionário em modo de Modificação.
+89272  Modo de Aplicação Inválido. Falha ao parar a aplicação de entrada de dados.
+89273  Houve um êrro ao ler o arquivo binário %s
+89274  Erro Fatal no motor da entrada de dados. A operação de entrada de dados foi abortada.
+
+/* --- Index */
+89291  O Índice não foi criado.
+89292  "Casos com identificação duplicada: '%s'\n\nno arquivo %s"
+
+/* --- Portable Messages */
+110001 OK
+110002 Cancelar
+110003 Sim
+110004 Não
+110006 Eliminar
+
+110011 Erro
+110012 Advertência
+110013 Mensagem
+110014 Abortar
+
+110041 Parar a Adição?
+110042 Parar a Edição?
+110043 Guardar Alteração
+110044 Anular modificação
+110045 Avançar para o Fim
+
+110051 Selecione um Idioma
+110052 Existe apenas um idioma definido
+
+
+/* --- ... */
+
+/* --- LevelId clause */
+77     A lista de variáveis LEVELID está vazia ou tem demasiados itens
+
+/* --- Applications execution */
+1000   Não foi possível alocar memória para a tabela %s
+1001   Não foi possível abrir o arquivo %s - por favor verifique o status do arquivo
+
+1005   Código de operação inválido
+1007   Não existe a ocorrência: %s(%d) -- %p
+1008   Subscrito inválido: %s(%s) -- %p
+1009   Tabela %s não será produzida - não há memória disponível
+1010   Erro na aplicação: campo protegido %s está fora de faixa - valor é %f
+1011   Erro na aplicação: campo protegido %s está fora de faixa
+
+1026   Nem todos os campos de ID estão preenchidos, por favor redigitar
+
+1031   Expressão de tabela ignorada - dimensão vazia em %s tabela %s
+1032   Expressão de tabela ignorada - dimensões não estão de acordo na tabela esquerda %s e na tabela direita %s
+1033   Expressão de tabela ignorada - tabela esquerda %s deveria ter uma dimensão a menos que a tabela direita %s
+1034   Expressão de tabela ignorada - tabela esquerda %s deveria ter a mesma dimensão que a tabela direita %s
+
+1044   A identificação do questionário não pode ser modificada porque a aplicação tem algum comando de Exportação, Cruzamento/Tabela ou Frequência
+1046   Comando de Exportação, Cruzamento/Tabela ou Frequência não pode ser usado porque a identificação do questionário está sendo modificada pela aplicação
+
+1081   Não pode inserir; subscrito inválido: %s(%d) -- %p
+1082   Não pode inserir: subscrito %s(%d), ocs = %d -- %p
+1083   Não pode inserir; alcançado o máximo de ocorrências: %s, occs = %d -- %p
+1085   Não pode deletar; ocorrência não existe: %s(%d), ocs = %d -- %p
+1086   Não pode deletar; é necessária uma ocorrência: %s(1) -- %p
+1088   Subscrito inválido: %s(%f) -- %p
+1089   Subscrito inválido na troca: %s(%d e %d), ocs = %d -- %p
+
+1100   O parâmetro %s é inválido
+1101   O parâmetro %s não comporta %d argumentos
+
+1102   A propriedade %s é somente de leitura e não pode ser modificada
+1103   Usando a função GETPROPERTY você só pode acessar %s nos itens
+1104   Usando a função GETPROPERTY você só pode acessar %s nos campos
+1105   Você não pode acessar a propriedade %s do item ou do campo sem especificar um símbolo de dicionário
+1107   A propriedade '%s' não comporta o valor '%s'
+
+2001   Não é possível abrir o arquivo %s
+2013   Ocorrências de Registros %s para o registro %s
+2014   Ocorrências de Seções %s para a seção %s porque não existe informação no nível correspondente
+
+2017   Arquivo novo %s
+2018   Não foi possível criar um novo arquivo de índices '%s' para um arquivo de dados existente
+2019   Não existe um arquivo de dados para um arquivo de índices existente '%s'
+2020   Arquivo de dados para o dicionário de entrada está vazio (NULL)
+
+/* --- Html */
+2036   %s não é uma cor valida. Usa a cor padrão de HTML como "red" ou "green" ou código de cor como HTML"#FFF00".
+
+/* --- CsCalc */
+2300   Não é possível carregar a fatia %s para a tabela '%s' no arquivo '%s'. Os dados da tabela serão zerados
+2302   Fatia %s inválida para a tabela '%s' no arquivo '%s'. Os dados da tabela serão zerados
+2304   Fatia %s não encontrada para a tabela '%s' no arquivo '%s'. Os dados da tabela serão zerados
+
+/* --- External dictionary operations */
+4017   Erro desconhecido ao processar '%s' - falha
+4018   Não é possível usar um dicionário especial de saída para esta função
+
+/* --- IsPartial */
+8050   SAVEPARTIAL não pode ser executado desde PROCs com Nível 0
+8052   Você não pode executar SAVEPARTIAL antes de entrar com todos os itens de identificação
+
+/* --- Paradata + SqlQuery + Reports */
+8291   Erro de concatenação de PARADATA%s: %s
+8292   Erro SQLQUERY%s: %s
+8293   O atributo %s de Relatório não é um nome válido
+8294   Erro na criação do Relatório: %s
+
+/* --- List functions */
+8351   Um subscrito inválido foi passado como parâmetro para a função COUNTNONSPECIAL: %s(%d), todos os registros serão examinados -- %p
+
+/* --- Select Dialog */
+9010   Número de elementos (%d) excede o número máximo permitido: %d. Use a cláusula WHERE.
+9011   Número de colunas (%d) excede o número máximo permitido: %d.
+
+/* --- Special Functions */
+9100   Skip/Advance/Reenter/Move/NoInput/EndSect/EndGroup/EndLevel/Enter/Stop não pode ser executado desde as funções On_Focus ou OnSystemMessage
+
+9190   EndSect/EndGroup não é permitido em Group Postproc/KillFocus ou em procedimentos LEVEL. A instrução será ignorada.
+9192   Stop/EndLevel não é permitido em Grupo ou items de dicionários externos
+9194   EndLevel não é permitido em nivel 0 de KillFocus/PostProc
+
+/* --- executors - common messages */
+10000  Não foi possível abrir o executor de arquivo de relatório
+10001  Não foi possível abrir o arquivo de dados de entrada - nenhum processo foi executado
+10004  Não foi possível carregar a aplicação %s (%s)
+10006  Demasiadas ocorrências para o Registro ou Grupo %s (Questionário: '%s')
+10008  Registro ou Grupo %s não encontrado
+10010  %s: %d erros de sintaxe detetados
+
+10014  Linha de comando inválida (falta "=")
+10015  Nome no dicionário inválido %s na linha
+
+10102  Não foi possível abrir a fonte de origem %s: %s
+10103  Houve um erro ao ler a fonte de origem: %s
+10104  Houve um erro ao gravar a fonte de origem: %s
+10105  Houve um erro ao acessar a fonte de origem: %s
+10106  Devido a erros a fonte de origem %s foi posta como vazia
+10108  A fonte de origem conectada a %s não comporta todas as facilidades usadas no programa.
+
+14010  Disco cheio!
+14012  O arquivo de texto não está codificado em um formato aceito pelo CSPro: %s
+14013  Erro ao concatenar questionários do arquivo %s: %s. Os questionários restantes neste arquivo serão ignorados.
+
+29005  O arquivo de saída %s não pode ser aberto: %s
+29006  A função SETOUTPUT pode ser usada somente em aplicações tipo batch
+29007  A função SETOUTPUT não pode abrir %s: %s
+
+/* --- EXPORT messages */
+31040  Não foi possível gerar o dicionário de CSPro '%s' (%s)
+31050  O EXPORT solicitado será ignorado porque os subitens especificados não seguem a mesma ordem do dicionário de entrada
+31055  O EXPORT solicitado será ignorado porque contém um nome de item duplicado
+31056  O EXPORT solicitado será ignorado porque contém um tipo de registro duplicado
+31058  O EXPORT solicitado será ignorado porque contém um nome de registro inválido (%s)
+
+/* --- ... multi-exports */
+31072  Não foi possível gerar o arquivo '%s' de EXPORT porque está em conflito com outro comando EXPORT (seq # %d). Somente um único tipo de registro pode ser usado nesta modalidade.
+31073  O EXPORT solicitado será ignorado porque não possível abrir o arquivo '%s'
+31074  O EXPORT solicitado será ignorado porque não foi possível criar o espaço para o(s) registro(s) de exportação
+31075  O EXPORT solicitado será ignorado porque os itens de identificação do questionário não correspondem aos itens especificados em uma exportação anterior
+31076  O EXPORT solicitado será ignorado porque o tamanho do campo de tipo de registro não corresponde ao tamanho do campo do tipo de registro especificado em uma exportação anterior
+31077  O EXPORT solicitado será ignorado porque a modalidade de exportação não corresponde à modalidade de exportação especificada em uma exportação anterior
+31078  O EXPORT solicitado será ignorado porque o nome do registro já foi especificado em uma exportação anterior
+31079  O EXPORT solicitado será ignorado porque as modalidades CSPro/TabDelim/CommaDelim/SemiColonDelim não permitem que outras modalidades sejam ativadas
+31080  O EXPORT solicitado será ignorado porque o nível de exportação é incompatível com o nível de exportação em uma exportação anterior. A exportação deve ser executada ordenada por nível. Talvez movendo o EXPORT para o PREPROC resolva o problema
+31081  O EXPORT solicitado será ignorado porque o item '%s' já existe nesta ou em uma exportação anterior
+31082  O EXPORT solicitado será ignorado porque o tipo de exportação (ItemOnly/SubItemOnly/ItemSubItem) não corresponde ao especificado em uma exportação anterior
+
+/* --- ... new ENSEMBLED RECORD model */
+31090  Dimensão inválida especificada para o item '%s' no comando de exportação
+
+/* --- File */
+33056  Expressão com curinga (wildcard) não pode ser usada para um arquivo ou diretório
+33057  Diretório '%s' especificado é inválido ou não existe
+
+/* --- Relation Run-Time */
+33108  Uma Relação Múltipla somente pode ser usada em tabelas/crosstab em %p
+33200  O índice para a variável %s é resolvido por uma relação múltipla em %p. Será usado o valor de NOTAPPL para o índice.
+
+/* --- 3-dim messages */
+34008  Subscrito inválido: %s(%d) -- %p
+34088  Subscrito inválido: %s(%d) -- %p
+34089  Subscrito inválido: %s(%d) -- %p
+34090  Não pode assignar o valor %s não tem registros no questionário -- %p
+34091  Não existem índices suficientes para calcular o valor da expressão perto de %s
+36000  Exceção 3d fatal: Código de erro %d
+
+/* --- TBD execution */
+46000  Encontrou String vazio
+
+/* --- Notes */
+46501  A função NOTE não será executada. A PROC atual ou função é inválida para o elemento
+46511  Revisar Notas
+46512  Não existem Notas para Revisar
+46513  Ir a Campo
+
+/* --- Value Sets */
+47110  Número inválido (%d). Deve ser entre 1 e %d
+47156  Array alfabético esperado
+47158  Array numérico esperado
+
+48000  Expressão inválida (%s) no texto CAPI
+48001  Função com argumentos definida pelo usuário (%s) não pode ser usada no texto CAPI
+48002  Subscrito inválido (%s) no texto CAPI
+
+/* --- New Crosstab -- */
+90545  Não foi possível entrar em ( %s ) - este Fluxo já foi entrado antes
+
+91200  Não foi possível 'REENTER %s' - nome de símbolo desconhecido {em %p}
+91201  Não foi possível 'REENTER %s' - nenhum campo foi ingressado ainda {em %p}
+91204  Não foi possível 'REENTER %s' - ocorrência fora dos limites estruturais {em %p}
+91205  Não foi possível 'REENTER %s' - é um campo que nunca foi ingressado {em %p}
+91206  Não foi possível 'REENTER %s' - é um campo que foi saltado com SKIP {em %p}
+91209  Não foi possível 'REENTER %s' - está depois do campo atual {em %p}
+91402  Não foi possível 'SKIP TO %s' - não pode ser usado como alvo {em %p}
+91404  Não foi possível 'SKIP TO %s' - ocorrência fora dos limites estruturais {em %p}
+91406  Não foi possível 'SKIP TO %s' - é um campo que foi saltado com SKIP {em %p}
+91407  Não foi possível 'SKIP TO %s' - é um campo realçado {em %p}
+91409  Não foi possível 'SKIP TO %s' - está antes do campo atual {em %p}
+91500  Não foi possível 'ADVANCE TO %s' - nome de símbolo desconhecido {em %p}
+91502  Não foi possível 'ADVANCE TO %s' - não pode ser usado como alvo {em %p}
+91504  Não foi possível 'ADVANCE TO %s' - ocorrência fora dos limites estruturais {em %p}
+91506  Não foi possível 'ADVANCE TO %s' - é um campo que foi saltado com SKIP {em %p}
+91507  Não foi possível 'ADVANCE TO %s' - é um campo realçado {em %p}
+91509  Não foi possível 'ADVANCE TO %s' - está antes do campo atual {em %p}
+
+91601  Ignorando ENDLEVEL pelo operador - a chave de ENDLEVEL está desativada
+91602  Ignorando ENDLEVEL pelo operador - um NEXTLEVEL %d (significando "parar a seção") foi solicitado. Uma ordem de parar-seção somente pode ser solicitada quando um novo questionário for iniciado!
+91603  Ignorando ENDLEVEL pelo operador - um NEXTLEVEL %d foi solicitado, mas está fora dos %d Níveis disponíveis!
+91604  Ignorando ENDLEVEL pelo operador - um NEXTLEVEL %d foi solicitado dentro do Nível %d. Por favor, lembre-se que Níveis intermediários não podem ser saltados ('skip')!
+91605  Ignorando ENDLEVEL pelo operador - 'no-write' foi solicitado para um nodo do Nível atual %s. Este nodo está sendo modificado e vem desde o arquivo de dados!
+91606  Ignorando ENDLEVEL pelo operador - 'no-write' foi solicitado para um nodo do Nível atual %s ao mesmo tempo que se está abrindo um Nível %s nodo-filho. Esta é uma solicitação inconsistente!
+91607  Ignorando ENDLEVEL pelo operador - este nodo de Nível %s já tem filhos gravados!
+91608  Ignorando ENDLEVEL pelo operador - este nodo de Nível %s tem Nível %s e nodo-filho %s sendo processado!
+91612  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-irmão depois de abandonar o Nível nodo atual
+91613  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-pai depois de abandonar o Nível nodo %s atual
+91614  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-ascendente depois de abandonar o Nível nodo %s atual
+91621  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-filho depois de completar o Nível nodo %s atual
+91622  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-irmão depois de completar o Nível nodo atual
+91623  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-pai depois de completar o Nível nodo %s atual
+91624  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-ascendente depois de completar o Nível nodo %s atual
+91631  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-filho depois de avançar para o final do Nível nodo %s atual
+91632  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-irmão depois de avançar para o final do Nível nodo atual
+91633  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-pai depois de avançar para o final do Nível nodo %s atual
+91634  ENDLEVEL pelo Operador pede que se comece um novo Nível %s nodo-ascendente depois de avançar para o final do Nível nodo %s atual
+
+91111  Não foi possível executar o comando 'SET BEHAVIOR' %s - permitido somente no Level-0 PreProc
+91112  Não foi possível executar o comando 'SET BEHAVIOR' %s - permitido somente em ambientes 'Path OFF'
+
+91118  Idioma '%s' não encontrado. 'SET LANGUAGE' ignorado.
+
+/* --- CsDriver updated messages for skip/advance/move/reenter */
+91159  Não é possível executar 'SKIP TO %s' - item-alvo é o próprio item {em %p}
+91160  Não é possível executar 'SKIP TO %s' - alvo inválido {em %p}
+91161  Não é possível executar 'SKIP TO %s' - grupo-alvo não está especificado em um 'Form' {em %p}
+91162  Não é possível executar 'SKIP TO %s' - item-alvo não tem nenhum campo {em %p}
+91164  Não é possível executar 'SKIP TO %s' - ocorrência do item-alvo ultrapassa o valor máximo definido para o grupo que o contém {em %p}
+91165  Não é possível executar 'SKIP TO %s' - grupo-alvo está localizado antes no fluxo {em %p}
+91166  Não é possível executar 'SKIP TO %s' - item-alvo está localizado antes no fluxo {em %p}
+91167  Não é possível executar 'SKIP TO %s' - campo do item-alvo é um campo realçado {em %p}
+91168  Não é possível executar 'SKIP TO %s' - campo do item-alvo é um campo saltado (com SKIP) {em %p}
+91169  Não é possível executar 'SKIP TO %s' - por favor informe o problema ao pessoal do CSPro {em %p}
+
+91170  Não é possível executar 'ADVANCE TO %s' - alvo inválido {em %p}
+91171  Não é possível executar 'ADVANCE TO %s' - grupo-alvo não está especificado em um 'Form' {em %p}
+91172  Não é possível executar 'ADVANCE TO %s' - item-alvo não tem nenhum campo {em %p}
+91174  Não é possível executar 'ADVANCE TO %s' - ocorrência do item-alvo ultrapassa o valor máximo definido para o grupo que o contém {em %p}
+91175  Não é possível executar 'ADVANCE TO %s' - grupo-alvo está localizado antes no fluxo {em %p}
+91176  Não é possível executar 'ADVANCE TO %s' - item-alvo está localizado antes no fluxo {em %p}
+91177  Não é possível executar 'ADVANCE TO %s' - campo do item-alvo é um campo realçado {em %p}
+91178  Não é possível executar 'ADVANCE TO %s' - campo do item-alvo é um campo saltado (com SKIP) {em %p}
+91179  Não é possível executar 'ADVANCE TO %s' - por favor informe o problema ao pessoal do CSPro {em %p}
+
+91180  Não é possível executar 'REENTER %s' - alvo inválido {em %p}
+91181  Não é possível executar 'REENTER %s' - grupo-alvo não está especificado em um 'Form' {em %p}
+91182  Não é possível executar 'REENTER %s' - item-alvo não tem nenhum campo {in %p}
+91184  Não é possível executar 'REENTER %s' - ocorrência do item-alvo ultrapassa o valor máximo definido para o grupo que o contém {em %p}
+91185  Não é possível executar 'REENTER %s' - grupo-alvo está localizado antes no fluxo {em %p}
+91186  Não é possível executar 'REENTER %s' - item-alvo está localizado antes no fluxo {em %p}
+91187  Não é possível executar 'REENTER %s' - campo do item-alvo é um campo realçado {em %p}
+91188  Não é possível executar 'REENTER %s' - campo do item-alvo é um campo saltado (com SKIP) {em %p}
+91189  Não é possível executar 'REENTER %s' - por favor informe o problema ao pessoal do CSPro {em %p}
+
+91190  O nodo requisitado não está mais disponível, provavelmente devido a um comando 'ENDLEVEL' executado pela aplicação
+
+92000  Não foi informado um nome de arquivo %s para o Dicionário %s - o processo será cancelado
+92001  No %s Dicionário %s, não foi encontrado o arquivo IDX para o arquivo DAT %s existente - o processo será cancelado
+92002  No %s Dicionário %s, não foi encontrado o arquivo DAT para o arquivo IDX %s existente - o processo será cancelado
+92003  No %s Dicionário %s, não foi encontrado o arquivo DAT %s nem o arquivo IDX %s - o processo será cancelado
+92004  No %s Dicionário %s, não foi possível abrir o arquivo IDX %s existente - o processo será cancelado
+92005  No %s Dicionário %s, não foi possível criar o arquivo IDX %s - o processo será cancelado
+92006  No %s Dicionário %s, não foi possível abrir o arquivo DAT %s existente - o processo será cancelado
+92007  No %s Dicionário %s, não foi possível criar o arquivo DAT %s - o processo será cancelado
+92008  No %s Dicionário %s, não foi possível abrir o arquivo DAT %s nem o arquivo IDX %s existentes - o processo será cancelado
+92009  No %s Dicionário %s, não foi possível criar o arquivo DAT %s nem o arquivo IDX %s - o processo será cancelado
+
+92101  A identificação do questionário '%s' é uma duplicata de um questionário existente! As identificações de questionários tem que ser únicas.
+92102  A identificação de um novo questionário '%s' é uma duplicata de um questionário existente! As identificações de questionários tem que ser únicas. As identificações antigas são '%s'.
+92103  Nova identificação '%s'. Antiga identificação '%s'.
+
+/* --- solving at-references at execution time */
+88111  Ignorando 'SKIP TO @%s': o alvo referido '%s' é um SYMBOL%s desconhecido {%p}
+88112  Ignorando 'SKIP TO NEXT @%s': Var referida '%s' não é de múltipla-ocs%s {%p}
+88113  Ignorando 'SKIP TO NEXT @%s' (Var referida '%s'): não foi emitido desde uma proc%s Var {%p}
+88114  Ignorando 'SKIP TO NEXT @%s': Var referida '%s' não está no mesmo Grupo que a fonte do SKIP%s {%p}
+88115  Ignorando 'SKIP TO @%s': o alvo referido '%s' não é uma Var ou um Grupo%s {%p}
+
+88121  Ignorando 'REENTER @%s': o alvo referido '%s' é um símbolo%s desconhecido {%p}
+88125  Ignorando 'REENTER @%s': o alvo referido '%s' não é uma Var {%p}
+
+88131  Ignorando 'ADVANCE @%s': o alvo referido '%s' é um símbolo%s desconhecido {%p}
+88135  Ignorando 'ADVANCE @%s': o alvo referido '%s' não é uma Var {%p}
+
+88141  Ignorando 'MOVE TO @%s': o alvo referido '%s' é um símbolo%s desconhecido {%p}
+88142  Ignorando comando 'MOVE'. Especificação inválida
+88145  Ignorando 'MOVE TO @%s': o alvo referido '%s' não é uma Var nem um Grupo%s {%p}
+
+88151  Ignorando '%s' porque ele ocorre em um procedimento (PROC) inválido
+
+/* --- executing selected ENTRY commands in BATCH */
+88180  %s
+88182  %s
+88184  Detectado um campo inconsistente
+88190  Detectado um campo inconsistente depois do comando %s em %s
+88200  %d campos inconsistentes detetados depois de um comando 'SKIP TO' em %p
+88201  %d campos inconsistentes detetados depois de um comando 'SKIP TO %s' (Grupo) em %p
+88202  %d campos inconsistentes detetados depois de um comando 'SKIP TO NEXT %s' em %p
+88203  %d campos inconsistentes detetados depois de um comando 'SKIP TO %s' em %p
+88204  %d campos inconsistentes detetados depois de um comando 'SKIP TO %s(%d)' em %p
+88205  %d campos inconsistentes detetados depois de um comando 'SKIP TO %s(índice inválido)' em %p
+88206  %d campos inconsistentes detetados depois de um comando 'ENDSECT/ENDGROUP' em %p
+88207  %d campos inconsistentes detetados depois de um comando 'ENDLEVEL' em %p {not implemented yet}
+88211  ... Grupo %s não deveria existir (mas atualmente tem ocorrências)
+
+88212  ... %s deveria estar em branco (atualmente está '%s')
+88213  ... %s(%d) deveria estar em branco (atualmente está '%s')
+88214  ... %s deveria estar em branco (atualmente está '%s'). Será assignado %s.
+88215  ... %s(%d) deveria estar em branco (atualmente está '%s'). Será assignado %s.
+
+88221  ... %s não é um campo saltado, mas está com NOTAPPL
+88222  ... %s(%d) não é um campo saltado, mas está com NOTAPPL
+88223  ... %s não é um campo saltado, mas está com NOTAPPL. Será assignado %s.
+88224  ... %s(%d) não é um campo saltado, mas está com NOTAPPL. Será assignado %s.
+
+88225  ... SKIP TO %s encontrado mas o questionário tem somente %d ocorrências para este grupo em %p
+88226  ... SKIP TO %s(%d) encontrado mas o questionário tem somente %d ocorrências para este grupo em  %p
+
+88230  Comando 'REENTER' inesperado em %p
+88231  Comando 'REENTER %s' inesperado em %p
+88232  Comando 'REENTER %s(%d)' inesperado em %p
+
+/* --- auto-detecting out of range in batch environment */
+88870  Valor '%s' fora de faixa - verifique %s%s
+
+/* --- operator actions */
+99990  O operador digitou um valor fora de faixa
+
+/* --- sync */
+100100 Falha na conexão para sincronizar com o servidor %s
+100101 Erro ao conectar com o servidor: %s
+100102 Conectando com %s...
+100103 Desconectando...
+100104 Sincronizando %s...
+100105 Aguardando conexões...
+100106 Conectado
+100107 Recebendo %s...
+100108 Transmitindo %s...
+100109 Erro ao gravar o arquivo "%s": Verifique se o passo é válido e que você tem permissão para gravar no diretório.
+100110 Erro baixando o arquivo "%s": Verifique se o arquivo existe no servidor, que o passo está correto e que você tem permissão para ler o arquivo.
+100111 Erro subindo o arquivo %s.
+100112 Erro baixando do diretório %s.
+100113 Especificação de arquivo inválida: %s
+100116 Arquivo inválido usado com %s para %s, somente arquivos tipo CSPro DB aceitam SYNC. Por favor certifique-se de que o tipo de arquivo é um CSPro DB e que ele não está fechado na aplicação CsPro.
+100117 Arquivo "%s" é muito grande para sncronizar. Não são permitidos arquivos maiores que 2GB.
+100118 Erro ao ler o arquivo %s para subir. Certifique-se de que o passo do arquivo no dispositivo local está correto.
+100119 Erro ao conectar-se ao servidor de sincronização: %s.
+100120 %s não é um endereço URL válido para executar um SYNCCONECT de WEB. O endereço deve começar com http:// ou https://.
+100121 Erro: não foi possível ler a resposta do servidor. Veja o arquivo LOG para mais detalhes.
+100122 Sincronização cancelada.
+100123 Deletando %s...
+100124 Operação não implementada para este tipo de servidor
+100125 %s não é um endereço URL válido para executar um SYNCCONECT de FTP. O endereço deve começar com ftp://, ftps://, ou ftpes://.
+100126 Nome de usuário e senha inválidos.
+100127 Erro baixando o arquivo "%s": O arquivo baixado está incompleto ou corrompido. Verifique sua conexão de rede e tente de novo.
+100128 Baixando a lista de arquivos de dados...
+100129 Erro baixando a lista de arquivos de dados. %s
+100130 Erro baixando o dicionário. %s
+100131 O servidor de CSWeb está usando uma versão do software que não é compatíve com esta versão do CSPro. Favor atualizar este dispositivo para casar com o servidor, ou atualizar o servidor paa casar com este dispositivo.
+100132 Primeiro é preciso chamar a função SYNCCONECT() antes de usar SYNCDATA() ou SYNCFILE().
+100133 Erro na base de dados durante a sincronização: %s
+100134 Erro de leitura do arquivo durante a sincronização. Certifique-se de que o passo é válido e que o arquivo não esteja sendo usado.
+100135 Erro ao extrair a aplicação. Verifique se há espaço em disco suficiente.
+100136 Baixando a lista de aplicações...
+100137 Os dados que você está tentando baixar não podem ser lidos. Eles podem ter sido criados com uma nova versão do CSPro, ou podem estar corrompidos. Tente baixá-lo com a última versão do CSPro
+100138 Falha na compressão.
+100139 Falha na descompressão.
+100140 Erro subindo o pacote da aplicação %s.
+100141 Erro ao obter a lista de aplicações %s.
+100142 A versão deste servidor CSWeb não suporta operações de DEPLOY. Por favor atualize o software no servidor para a versão 7.1 ou superior.
+100143 Erro subindo o dicionário. %s
+100144 Recurso não encontrado no servidor %s. Verifique se o endereço de URL do servidor CSWeb está correto.
+100145 Versões de CSEntry incompatíveis.

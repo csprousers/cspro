@@ -1,0 +1,17 @@
+"CSPro" is an application made available by the U.S. Census Bureau (Census) that provides individuals and entities a tool for data processing.
+
+Census does not require individuals or entities to register or provide any personally identifiable information (PII) to Census as a condition of downloading or using CSPro. Census will not have access to any information regarding individuals or individuals’ devices using the CSPro application.
+
+The Terms of Service for use of the above application are as follows:
+
+A. CSPro is provided to You, as the user and those who may take by, through or under it, as is, without any warranty (whether express or implied) or representation whatsoever, including but not limited to any warranty of merchantability.  CSPro is taken hereunder without any right to support or to any improvements, extensions, or modifications, except as may be agreed to separately, in writing, by Census.
+
+B. You hereby and forever waive, release and discharge the United States/Department of Commerce and all its instrumentalities, including Census (together, Commerce), from any and all liabilities and obligations in connection with the use, application, sale or conveyance of CSPro.  You agree that this term should be given the broadest interpretation possible in favor of the release of Commerce under applicable law.
+
+C. You will not use the logos, emblems, or trademarks of Commerce on any product or service that is directly or indirectly related to these terms without the prior written approval of Commerce.  You will not in any way imply that Commerce endorses your use of CSPro.
+
+D. You agree to make a good faith effort to use CSPro in a way that does not cause damage, harm, or embarrassment to Commerce.  Commerce expressly reserves all rights and remedies.
+
+E. The construction, validity, performance, and effect of these terms for all purposes will be governed by Federal law of the United States.  Any disputes related to use of CSPro must be brought in an appropriate Federal court.
+
+F. You shall indemnify and hold harmless Commerce from all claims, liabilities, demands, damages, expenses, and losses arising from or in connection with your use, sale or conveyance of the CSPro application, including those who take by, through or under You whether or not You were directly involved.  This provision will survive termination of these terms and will include any and all claims or liabilities arising under intellectual property rights, such as patents, copyrights, trademarks, and trade secrets.  If You are an Executive Agency of the United States, this clause is not applicable.

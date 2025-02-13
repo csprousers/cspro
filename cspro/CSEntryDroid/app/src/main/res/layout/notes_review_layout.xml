@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="10dp" >
+
+    <TextView
+        android:id="@+id/textViewNotesTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/notes_title"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/cspro_green"
+        android:textSize="30sp" />
+
+    <ScrollView
+        android:id="@+id/scrollViewNotesScroller"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/textViewNotesTitle"
+        android:scrollbars="vertical" >
+
+        <TableLayout
+            android:id="@+id/tableLayoutNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="*" />
+    </ScrollView>
+
+</RelativeLayout>

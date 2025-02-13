@@ -1,0 +1,25 @@
+New.png
+Open.png
+Save.png
+Print - Page Setup.png
+Print - Preview.png
+Print.png
+Undo.png
+Redo.png
+Cut.png
+Copy.png
+Paste.png
+Element - Add.png
+Element - Insert.png
+Delete.png
+Notes.png
+Find.png
+Dictionary Layout.png
+Property Panel.png
+View - Dictionary.png
+View - Questionnaire.png
+Edit - Dictionary.png
+Edit - Form.png
+Edit - Order.png
+Edit - Table.png
+Help.png

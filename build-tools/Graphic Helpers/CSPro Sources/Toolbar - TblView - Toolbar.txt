@@ -1,0 +1,6 @@
+Open.png
+Save.png
+Copy.png
+Print.png
+Help.png
+Help - Context Sensitive.png

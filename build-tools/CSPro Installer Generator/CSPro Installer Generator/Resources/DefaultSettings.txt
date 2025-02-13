@@ -1,0 +1,9 @@
+C:\code\examples
+C:\code\helps
+C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe
+C:\Program Files (x86)\NSIS\makensis.exe
+
+1
+1
+1
+1

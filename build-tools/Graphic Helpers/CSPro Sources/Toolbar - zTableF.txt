@@ -1,0 +1,26 @@
+Quit.png
+New.png
+Open.png
+Save.png
+Table - Save.png
+Print - Page Setup.png
+Print - Preview.png
+Print.png
+Run.png
+Element - Add.png
+Element - Insert.png
+Delete.png
+Tally Attributes.png
+Area Names.png
+Copy.png
+Table - Previous.png
+Table - Next.png
+Edit - Dictionary.png
+Edit - Form.png
+Edit - Order.png
+Edit - Table.png
+Help.png
+Zoom - Out.png
+Placeholder.png
+Zoom - In.png
+Placeholder.png

@@ -1,0 +1,11 @@
+New-VS.png
+Open-VS.png
+Save-VS.png
+Compile-VS.png
+Undo-VS.png
+Redo-VS.png
+Cut-VS.png
+Copy-VS.png
+Paste-VS.png
+FindInFile-VS.png
+Help-VS.png

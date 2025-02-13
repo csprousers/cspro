@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/dialogs.css">
+
+    <script src="/action-invoker.js"></script>
+    <script src="/external/jquery/jquery.min.js"></script>
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="/external/mustache/mustache.min.js"></script>
+
+    <title>Note Review</title>
+
+    <style>
+        .group-title {
+            font-size: 22px;
+            padding-left: 12px;
+            padding-bottom: 4px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #76848E;
+        }
+
+        .note-body {
+            margin: 8px 0 24px 0;
+            box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+            .note-body:hover {
+                box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            }
+
+        .note-label {
+            padding: 8px 12px;
+            background: #343a40;
+            border-radius: 4px 4px 0 0;
+            color: white;
+            display: table;
+            width: 100%;
+        }
+
+        .note-content {
+            padding: 8px 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .withNewline {
+            /*white-space: pre;*/
+        }
+
+        .notes-container {
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-left: 8px;
+            padding-right: 8px;
+            margin-right: -15px;
+            margin-left: -15px;
+            /*margin-bottom: 8px;*/
+        }
+
+            .notes-container:focus {
+                outline-width:0;
+            }
+    </style>
+
+
+    <script id="noteReviewTemplate" type="text/template">
+        <div id="mWidth" style="display:inline-block;">
+            <div>
+                <span class="col withNewline" style="white-space: nowrap;padding-right:48px;">{{title}}</span>
+            </div>
+            <div style="padding-left:12px; padding-right:12px;">
+                {{#noteGroups}}
+                <div class="group-title" style="white-space: nowrap">{{groupLabel}}</div>
+                {{#notes}}
+                <div class="withNewline" style="white-space: nowrap;padding-right:120px;">{{label}}</div>
+                <div class="withNewline" style="white-space: nowrap;padding-right:48px;">{{content}}</div>
+                {{/notes}}
+                {{/noteGroups}}
+            </div>
+        </div>
+        <div id="mContainer" class="container-fluid my-dialog errmsg-dialog" style="max-width:100%">
+            <div class="row my-dialog-header" id="mTitle">
+                <div class="col withNewline">{{title}}</div>
+                <div type="button" class="btn-close my-close-button" aria-label="Close" onclick="CS.UI.closeDialog();">
+                </div>
+            </div>
+            <div id="mBody" class="notes-container">
+                {{#noteGroups}}
+                <div class="row my-dialog-body" style="background:#eee;">
+                    <div class="col">
+                        <div class="group-title">{{groupLabel}}</div>
+                        {{#notes}}
+                        <div class="note-body" id="nb{{index}}">
+                            <div class="note-label withNewline" id="nl{{index}}">
+                                <div style="display: table-cell; width: 100%; vertical-align:top;">{{label}}</div>
+                                <div style="display: table-cell; padding-left: 8px; white-space: pre !important;"><button id="d{{index}}" class="btn btn-light col-12 text-center del-button" type="button" tabindex="-1" onclick="toggleDelete({{index}});"><span class="bi bi-trash"></span> {{deleteText}}</button></div>
+                            </div>
+                            <div id="n{{index}}" class="note-content withNewline">{{content}}</div>
+                            <div class="note-content goto-button" style="padding:4px;background:white;" {{hidden}}><button id="gt{{index}}" class="btn btn-light col-12 text-center" type="button" tabindex="-1" onclick="dialogReturn({{index}});">{{gotoText}} <span class="bi bi-chevron-double-right"></span></button></div>
+                        </div>
+                        {{/notes}}
+                    </div>
+                </div>
+                {{/noteGroups}}
+            </div>
+            <div id="mFooter" class="row text-center my-dialog-footer" style="background-color: #f8f9fa; box-shadow: 0 -2px 8px rgba(0,0,0,.2);position:relative;z-index:100;">
+                <div class="col-8">
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-light col-12 text-center" id="okButton" type="button" tabindex="-1" onclick="dialogReturn(-1);">
+                        <span class="bi bi-check-lg"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        const CS = new CSProActionInvoker("bb2651445663d0c0f27ee84996a9302a");
+        var focusedIndex = 0;
+        var deletedNotesIdxs = [];
+
+        var minWidth = 320; //minimum dialog width in px
+        function setMaxWH() {
+            const maxDisplayDimensions = CS.UI.getMaxDisplayDimensions();
+
+            $("#mContainer").css("min-width", minWidth);
+            $("#mContainer").css("max-width", maxDisplayDimensions.width);
+
+            $("#mContainer").css("max-height", maxDisplayDimensions.height);
+        }
+
+        function buildDialog(input) {
+            var template = $("#noteReviewTemplate").html();
+            $("#dialogDynamicContainer").html(Mustache.render(template, input));
+        }
+
+        //Doing some stuff differently based on the OS
+        function osProfile() {
+            const onAndroid = ( navigator.userAgent.toLowerCase().indexOf("android") > -1 );
+            if (onAndroid) {
+                //hiding "x" button
+                $(".close").hide();
+
+                //hiding title if it's empty
+                if ($("#mTitle").children().first().html().trim().length == 0) {
+                    $("#mTitle").hide();
+                }
+            }
+            else {
+                minWidth = 640;
+            }
+        }
+
+        function replaceNewline() {
+            $('.withNewline').each(function (index) {
+                $(this).html($(this).html().trim().replace(/(?:\r\n|\r|\n)/g, "<br>"));
+            });
+        }
+
+        function deleteNote(idx) {
+            deletedNotesIdxs.push(idx);
+
+            $('#d' + idx).html('<span class="bi bi-reply-fill"> ' + input.restoreText);
+            $('#nl' + idx).css('background-color', 'red');
+            $('#nb' + idx).css('opacity', 0.5);
+            $('#gt' + idx).prop("disabled", true);
+        }
+
+        function restoreNote(idx) {
+            var fi = deletedNotesIdxs.findIndex(function (ei) {
+                return ei == idx;
+            });
+            var v = deletedNotesIdxs[deletedNotesIdxs.length - 1];
+            deletedNotesIdxs[deletedNotesIdxs.length - 1] = deletedNotesIdxs[fi];
+            deletedNotesIdxs[fi] = v;
+            deletedNotesIdxs.pop();
+
+            $('#d' + idx).html('<span class="bi bi-trash"> ' + input.deleteText);
+            $('#nl' + idx).css('background-color', '');
+            $('#nb' + idx).css('opacity', '');
+            $('#gt' + idx).prop("disabled", false);
+        }
+
+
+        function toggleDelete(idx) {
+            if (!deletedNotesIdxs.includes(idx)) {
+                deleteNote(idx);
+            }
+            else {
+                restoreNote(idx);
+            }
+        }
+
+        function dialogReturn(idx) {
+            //Uncomment this if you want deleted notes removed from the notes file even when clicking on "go to" button
+            /*
+            if (idx >= 0 && deletedNotesIdxs.length > 0) {
+                CS.UI.closeDialog({ result: { gotoNote: idx, deleted: deletedNotesIdxs } });
+            }
+            */
+            let result;
+            if (idx >= 0) {
+                result = { gotoNote: idx };
+            } else if (deletedNotesIdxs.length > 0) {
+                result = { deleted: deletedNotesIdxs };
+            } else {
+                result = { };
+            }
+            CS.UI.closeDialog({ result: result });
+        }
+
+        $(document).ready(function () {
+            var w = $("#mContainer").outerWidth();
+            var h = $("#mContainer").outerHeight();
+
+            CS.UI.setDisplayOptions({
+                width: w,
+                height: h,
+                keyboard: false,
+                titleBarColor: $('.my-dialog-header').css('background-color')
+            });
+
+            setTimeout(function () {
+                $('#mBody').attr('tabindex', 0);
+                $('#mBody').focus();
+            }, 100);
+        });
+
+        $(document).keydown(function (e) {
+            if (e.keyCode === 27) { //ESC
+                CS.UI.closeDialog();
+            } else if (e.keyCode === 13) { //enter
+                dialogReturn(-1);
+            } else if (e.keyCode === 9) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</head>
+<body>
+    <!--Dialog container-->
+    <div id="dialogDynamicContainer" style="position:fixed;top:0;"></div>
+
+    <script>
+        var input = CS.UI.getInputData();
+
+        //augmenting goto button visibility
+        for (i = 0; i < input.noteGroups.length; i++) {
+            for (j = 0; j < input.noteGroups[i].notes.length; j++) {
+                if (input.noteGroups[i].notes[j].canGoto) {
+                    input.noteGroups[i].notes[j]['hidden'] = '';
+                }
+                else {
+                    input.noteGroups[i].notes[j]['hidden'] = 'hidden';
+                }
+            }
+        }
+
+        //get title and default button text
+        function getMGF(number, defaultText) {
+            try {
+                return CS.Message.getText({
+                    number: number,
+                    type: "system"
+                });
+            } catch(e) {
+                return defaultText;
+            }
+        }
+        if (!input.title) {
+            input.title = getMGF(46511, "Review Notes");
+        }
+        if (!input.gotoText) {
+            input.gotoText = getMGF(46513, "Go to Field");
+        }
+        if (!input.deleteText) {
+            input.deleteText = getMGF(110006, "Delete");
+        }
+        if (!input.restoreText) {
+            input.restoreText = getMGF(110007, "Restore");
+        }
+
+        buildDialog(input);
+
+        replaceNewline();
+
+        osProfile();
+
+        setMaxWH();
+
+        $("#mContainer").css("width", $("#mWidth").outerWidth());
+
+        var titleHeight = $("#mTitle").outerHeight();
+        if (!($("#mTitle").is(":visible"))) {
+            titleHeight = 0;
+        }
+        $("#mBody").css("height", $("#mContainer").outerHeight() - titleHeight - $("#mFooter").outerHeight());
+
+        $("#mWidth").hide();
+    </script>
+</body>
+</html>

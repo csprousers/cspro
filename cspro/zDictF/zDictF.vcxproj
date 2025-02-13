@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6B536C24-A5DF-489E-AFB7-7979328BBBC5}</ProjectGuid>
+    <RootNamespace>zDictF</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
+    <Keyword>MFCProj</Keyword>
+    <SccAuxPath>SAK</SccAuxPath>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZDICTF_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZDICTF_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="BeforeAfterDlg.cpp" />
+    <ClCompile Include="CapiLDlg.cpp" />
+    <ClCompile Include="DDChWnd.CPP" />
+    <ClCompile Include="DDDoc.CPP" />
+    <ClCompile Include="DDDpTgt.CPP" />
+    <ClCompile Include="DDEdit.cpp" />
+    <ClCompile Include="DDGrid.cpp" />
+    <ClCompile Include="Ddgview.cpp" />
+    <ClCompile Include="DDLView.cpp" />
+    <ClCompile Include="DDTrCtl.CPP" />
+    <ClCompile Include="DictClipboard.cpp" />
+    <ClCompile Include="DictDialogBar.cpp" />
+    <ClCompile Include="DICTGRID.CPP" />
+    <ClCompile Include="DictTreeNode.cpp" />
+    <ClCompile Include="DictionaryMacros.cpp" />
+    <ClCompile Include="DictPropertyGridCtrl.cpp" />
+    <ClCompile Include="DictPropertyGridBaseManager.cpp" />
+    <ClCompile Include="DictPropertyGridDictionaryManager.cpp" />
+    <ClCompile Include="DictPropertyGridRecordManager.cpp" />
+    <ClCompile Include="DictPropertyGridItemManager.cpp" />
+    <ClCompile Include="DictPropertyGridValueSetManager.cpp" />
+    <ClCompile Include="DictPropertyGridValueManager.cpp" />
+    <ClCompile Include="DictPropertyGridLevelManager.cpp" />
+    <ClCompile Include="DSplWnd.cpp" />
+    <ClCompile Include="SecurityOptionsDlg.cpp" />
+    <ClCompile Include="FindDlg.cpp" />
+    <ClCompile Include="GenerateVSDlg.cpp" />
+    <ClCompile Include="ITEMGRID.CPP" />
+    <ClCompile Include="langedt.cpp" />
+    <ClCompile Include="langgrid.cpp" />
+    <ClCompile Include="LEVGRID.CPP" />
+    <ClCompile Include="OccDlg.cpp" />
+    <ClCompile Include="OccGrid.cpp" />
+    <ClCompile Include="StartPositionDlg.cpp" />
+    <ClCompile Include="PrintDlg.cpp" />
+    <ClCompile Include="RECGRID.CPP" />
+    <ClCompile Include="RelDlg.cpp" />
+    <ClCompile Include="RelGrid.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="VSLabelRenamerDlg.cpp" />
+    <ClCompile Include="zDictF.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\col.cur" />
+    <None Include="Res\colplus.cur" />
+    <None Include="Res\colstar.cur" />
+    <None Include="Res\colstarp.cur" />
+    <None Include="res\dict16.ico" />
+    <None Include="Res\itemu.ico" />
+    <None Include="Res\noteno.bmp" />
+    <None Include="Res\notenog.bmp" />
+    <None Include="Res\NoteYes.bmp" />
+    <None Include="Res\noteyesg.bmp" />
+    <None Include="Res\nodrop.cur" />
+    <None Include="Res\rel.ico" />
+    <None Include="Res\row.cur" />
+    <None Include="Res\rowplus.cur" />
+    <None Include="Res\rowstar.cur" />
+    <None Include="Res\rowstarp.cur" />
+    <None Include="Res\subitemu.ico" />
+    <None Include="RES\Toolbar.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zDictF.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BeforeAfterDlg.h" />
+    <ClInclude Include="CapiLDlg.h" />
+    <ClInclude Include="DDChWnd.H" />
+    <ClInclude Include="DDDOC.H" />
+    <ClInclude Include="DDDpTgt.H" />
+    <ClInclude Include="DDEdit.h" />
+    <ClInclude Include="DDGrid.h" />
+    <ClInclude Include="Ddgview.h" />
+    <ClInclude Include="DDLView.h" />
+    <ClInclude Include="DDTrCtl.H" />
+    <ClInclude Include="DictClipboard.h" />
+    <ClInclude Include="DictDialogBar.h" />
+    <ClInclude Include="DICTGRID.H" />
+    <ClInclude Include="DictTreeNode.h" />
+    <ClInclude Include="DictionaryMacros.h" />
+    <ClInclude Include="DictPropertyGridCtrl.h" />
+    <ClInclude Include="DictPropertyGridDictionaryManager.h" />
+    <ClInclude Include="DictPropertyGridBaseManager.h" />
+    <ClInclude Include="DictPropertyGridItemManager.h" />
+    <ClInclude Include="DictPropertyGridLevelManager.h" />
+    <ClInclude Include="DictPropertyGridRecordManager.h" />
+    <ClInclude Include="DictPropertyGridValueManager.h" />
+    <ClInclude Include="DictPropertyGridValueSetManager.h" />
+    <ClInclude Include="DSplWnd.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SecurityOptionsDlg.h" />
+    <ClInclude Include="FindDlg.h" />
+    <ClInclude Include="GenerateVSDlg.h" />
+    <ClInclude Include="ITEMGRID.H" />
+    <ClInclude Include="langedt.h" />
+    <ClInclude Include="langgrid.h" />
+    <ClInclude Include="LEVGRID.H" />
+    <ClInclude Include="OccDlg.h" />
+    <ClInclude Include="OccGrid.h" />
+    <ClInclude Include="StartPositionDlg.h" />
+    <ClInclude Include="PrintDlg.h" />
+    <ClInclude Include="RECGRID.H" />
+    <ClInclude Include="RelDlg.h" />
+    <ClInclude Include="RelGrid.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="UWM.h" />
+    <ClInclude Include="VSLabelRenamerDlg.h" />
+    <ClInclude Include="zDictF.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zAppO\zAppO.vcxproj">
+      <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+      <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zCaseO\zCaseO.vcxproj">
+      <Project>{07dbff40-0cf4-4a19-8933-bff4e8b358bc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDataO\zDataO.vcxproj">
+      <Project>{dde177b0-a6ae-4d1f-b707-8fb50d1b5644}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDesignerF\zDesignerF.vcxproj">
+      <Project>{5a7c4b2c-3c72-4c23-994f-bc647ab0a882}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zDictO\zDictO.vcxproj">
+      <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGridO\zGridO.vcxproj">
+      <Project>{7179e255-3de3-45fd-939b-cbd0a7f41761}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zInterfaceF\zInterfaceF.vcxproj">
+      <Project>{a777b4a3-a0b4-4f0e-86c4-7077630e0b54}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zJson\zJson.vcxproj">
+      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUToolO\Zutoolo.vcxproj">
+      <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

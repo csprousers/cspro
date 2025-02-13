@@ -1,0 +1,90 @@
+﻿/* --- CSPro Runtime Messages - Spanish */
+
+Language=ES
+
+/* --- Common Messages Used by CSEntry */
+
+/* --- Out of Range */
+88888  ADVERTENCIA: Fuera de rango! Aceptar este valor para %s%s?
+88889  ADVERTENCIA: Fuera de rango! Por favor ingrese un valor válido para %s%s
+
+89201  FUERA DE RANGO
+89202  FUERA DE SECUENCIA
+89203  Ingrese un valor válido.
+89204  "Ingrese un valor válido\no presione F2 para forzar."
+89205  Ingrese un valor correcto.
+89206  Presione F8 para borrar
+
+/* --- Go To Field */
+89211  Campo u Objeto no encontrado
+89212  El Valor de la ocurrencia no es válido
+
+/* --- Partial Save */
+89221  Guardado Parcial
+89222  Este es un caso guardado parcialmente. ¿Desea ir a la última posición?
+89223  No puede pasar a ver un caso parcialmente guardado que no está en modo de modificación. Deje de modificar este caso y luego abra el caso parcial.
+89224  El cuestionario actual se ha guardado
+89225  Error: No se puede guardar el cuestionario
+
+/* --- Interactive Edit */
+89231  No se puede ingresar a un caso parcialmente guardado. Deteniendo la edición interactiva.
+89232  ¿Desea cancelar la edición interactiva?
+
+/* --- Verify */
+89241  Finalizó el Modo de Verificación
+89242  ESTE CAMPO NO COINCIDE
+89243  Ingrese nuevamente el valor.
+
+/* --- Case Management */
+89251  ¿Desea descartar el cuestionario actual?
+89252  ¿Está seguro que quiere eliminar este nodo?
+89253  ¿Está seguro que quiere eliminar el caso con ID '%s'?
+89254  ¿Acepta este cuestionario?
+89255  ¿Acepta esto %s?
+89256  Aceptar caso
+
+/* --- Miscellaneous Entry */
+89261  No se puede ir a una ocurrencia que no existe
+89263  "%s\nEste archivo no existe.\n\n¿Desea crear el archivo?"
+
+/* --- Entry Errors */
+89271  No se pudo iniciar el cuestionario en modo de modificación.
+89272  Modo de aplicación inválida Error al detener la aplicación de entrada de datos.
+89273  Se produjo un error al leer el archivo binario %s
+89274  Error fatal en el motor de ingreso. Abortando la operación de entrada.
+
+/* --- Index */
+89291  No se creó el Índice.
+89292  "IDs de casos duplicados: '%s'\n\nen archivo %s"
+
+/* --- Portable Messages */
+110001 OK
+110002 Cancelar
+110003 Sí
+110004 No
+110006 Eliminar
+
+110011 Error
+110012 Advertencia
+110013 Mensaje
+110014 Abortar
+
+110041 ¿Parar la adición?
+110042 ¿Parar la edición?
+110043 Guardar Cambios
+110044 Descartar Cambios
+110045 Avanzar al final
+
+110051 Seleccione un idioma
+110052 Solamente hay un idioma definido
+
+/* --- ... */
+
+
+/* --- Html */
+2036   %s no es un color valido. Utilice colores HTML estándar como "red" o "green" o algun código HTML como "#FFFF00".
+
+/* --- Notes */
+46511  Revisar Notas
+46512  No hay Notas para Revisar
+46513  Ir a Campo
