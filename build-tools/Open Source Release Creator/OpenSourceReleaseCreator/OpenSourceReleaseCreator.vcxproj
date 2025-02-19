@@ -96,6 +96,10 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Overrides\replacement-ApiKeys.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Creator.h" />
     <ClInclude Include="GitBase.h" />
     <ClInclude Include="GitIgnoreEvaluator.h" />
@@ -118,6 +122,24 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OpenSourceReleaseCreator.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Overrides\exclusions.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\Overrides\replacement-api_keys.xml">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Overrides\replacements.json">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

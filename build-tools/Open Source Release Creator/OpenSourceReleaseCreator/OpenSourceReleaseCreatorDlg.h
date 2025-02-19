@@ -24,7 +24,11 @@ protected:
     void OnCreate()   { OnCreateValidate(true); }
     void OnValidate() { OnCreateValidate(false); }
 
+    void OnGenerateFileList();
+
 private:
+    void EnableButtons(bool enable);
+
     void OnCreateValidate(bool create);
 
     void CreateValidateWorker(bool create);

@@ -10,6 +10,7 @@ BEGIN_MESSAGE_MAP(OpenSourceReleaseCreatorDlg, ResizableDlg)
     ON_CBN_SELCHANGE(IDC_TAGS, OnTagChange)
     ON_COMMAND(IDC_CREATE, OnCreate)
     ON_COMMAND(IDC_VALIDATE, OnValidate)
+    ON_COMMAND(IDC_GENERATE_FILE_LIST, OnGenerateFileList)
     ON_MESSAGE(UWM::Ranges::ExeStart, OnCreateValidateComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
@@ -109,6 +110,13 @@ void OpenSourceReleaseCreatorDlg::OnTagChange()
 }
 
 
+void OpenSourceReleaseCreatorDlg::EnableButtons(const bool enable)
+{
+    for( const int resource_id : { IDC_CREATE, IDC_VALIDATE, IDC_GENERATE_FILE_LIST })
+        GetDlgItem(resource_id)->EnableWindow(enable);
+}
+
+
 void OpenSourceReleaseCreatorDlg::OnCreateValidate(const bool create)
 {
     UpdateData(TRUE);
@@ -123,9 +131,8 @@ void OpenSourceReleaseCreatorDlg::OnCreateValidate(const bool create)
 
         m_settingsDb.Write<std::string>(OutputDirectoryKey_sv, m_outputDirectory);
 
-        // disable the Create/Validate buttons while the thread is running
-        GetDlgItem(IDC_CREATE)->EnableWindow(FALSE);
-        GetDlgItem(IDC_VALIDATE)->EnableWindow(FALSE);
+        // disable the buttons while the thread is running
+        EnableButtons(false);
 
         m_workerThread = std::make_unique<std::thread>([&, create]() { CreateValidateWorker(create); });
     }
@@ -166,10 +173,26 @@ LRESULT OpenSourceReleaseCreatorDlg::OnCreateValidateComplete(WPARAM /*wParam*/,
 
     m_workerThread.reset();
 
-    GetDlgItem(IDC_CREATE)->EnableWindow(TRUE);
-    GetDlgItem(IDC_VALIDATE)->EnableWindow(TRUE);
+    EnableButtons(true);
 
     return 1;
+}
+
+
+void OpenSourceReleaseCreatorDlg::OnGenerateFileList()
+{
+    UpdateData(TRUE);
+
+    try
+    {
+        m_creator->Initialize(m_loggingListBox, m_outputDirectory);
+        m_creator->GenerateFileList(m_commit);
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
 }
 
 

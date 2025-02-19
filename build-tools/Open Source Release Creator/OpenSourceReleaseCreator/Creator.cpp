@@ -77,12 +77,8 @@ void Creator::Initialize(LoggingListBox& logging_list_box, const std::string& op
 }
 
 
-void Creator::CreateRelease(const cs::string_sz commit_string)
+auto Creator::LookupCommitAndGetTree(const cs::string_sz commit_string)
 {
-    ASSERT(!m_data->open_source_directory.empty());
-
-    m_data->logging_list_box->AddText(FormatText("Creating open source release from commit: %s", commit_string.c_str()));
-
     // ensure that the commit is valid
     git_oid oid;
     git_commit* commit;
@@ -106,6 +102,21 @@ void Creator::CreateRelease(const cs::string_sz commit_string)
 
     PopulateRepoPaths(tree, "");
 
+    return std::make_tuple(oid, commit, tree);
+}
+
+
+void Creator::CreateRelease(const cs::string_sz commit_string)
+{
+    ASSERT(!m_data->open_source_directory.empty());
+
+    m_data->logging_list_box->AddText(FormatText("Creating open source release from commit: %s", commit_string.c_str()));
+
+    git_oid oid;
+    git_commit* commit;
+    git_tree* tree;
+    std::tie(oid, commit, tree) = LookupCommitAndGetTree(commit_string);
+
     // remove files that should not be part of the open source release
     PruneRepoPaths();
 
@@ -128,7 +139,6 @@ void Creator::CreateRelease(const cs::string_sz commit_string)
     EnsureRepositoriesMatch(true);
 
     git_tree_free(tree);
-
     git_commit_free(commit);
 
     m_data->logging_list_box->AddText(SharableString());
@@ -142,6 +152,59 @@ void Creator::ValidateRelease()
         throw CSProException("You must create a release before you can validate it.");
 
     EnsureRepositoriesMatch(false);
+}
+
+
+void Creator::GenerateFileList(const cs::string_sz commit_string)
+{
+    m_data->logging_list_box->AddText(FormatText("Generating the file list from commit: %s", commit_string.c_str()));
+
+    git_oid oid;
+    git_commit* commit;
+    git_tree* tree;
+    std::tie(oid, commit, tree) = LookupCommitAndGetTree(commit_string);
+
+    const std::vector<std::string> all_repo_paths = m_data->repo_paths;
+
+    PruneRepoPaths();
+
+    git_tree_free(tree);
+    git_commit_free(commit);
+
+    const std::vector<std::string>& included_repo_paths = m_data->repo_paths;
+    const std::string* included_repo_paths_itr = included_repo_paths.data();
+
+    std::vector<std::string> excluded_repo_paths;
+
+    for( const std::string& repo_path: all_repo_paths )
+    {
+        if( repo_path == *included_repo_paths_itr )
+        {
+            ++included_repo_paths_itr;
+        }
+
+        else
+        {
+            excluded_repo_paths.emplace_back(repo_path);
+        }
+    }
+
+    ASSERT(all_repo_paths.size() == ( included_repo_paths.size() + excluded_repo_paths.size() ));
+
+    auto write_repo_paths = [&](const char* const type, const std::vector<std::string>& repo_paths)
+    {
+        FileIO::TextFile text_file;
+        text_file.OpenForTextWritingCreate(Path::Combine(m_data->overrides_directory, FormatText("file-listing-%s.txt", type)));
+
+        for( const std::string& repo_path : repo_paths )
+            text_file.WriteLine(repo_path);
+    };
+
+    write_repo_paths("source", all_repo_paths);
+    write_repo_paths("included", included_repo_paths);
+    write_repo_paths("excluded", excluded_repo_paths);
+
+    OpenContainingFolder(m_data->overrides_directory);
 }
 
 
@@ -477,8 +540,8 @@ void Creator::CreateSqliteWithoutSEE(const git_treeT* const tree)
         if( is_header && body.find(full_version_line) == std::string::npos )
             throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
 
-        body.insert(0, is_header ? "#pragma once\n#include <SQLite/sqlite_dll.h>\n" :
-                                   "#ifndef ANDROID\n#include <SQLite/sqlite_dll.h>\n#endif\n");
+        body.insert(0, is_header ? "#pragma once\n#include <zSql/zSql_dll.h>\n" :
+                                   "#ifndef ANDROID\n#include <zSql/zSql.h>\n#endif\n");
 
         const std::string output_file_path = Path::Combine(m_data->open_source_directory, Path::ToNativeSlash(sqlite_repo_path), filename);
 
@@ -609,6 +672,7 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
     history_file.OpenForTextWritingCreate(history_file_path);
 
     std::vector<TagCommits> tag_commits = GetReleaseTags(EarliestTag_sv);
+    std::vector<TagCommits::PullRequest> newer_than_tags_pull_requests;
 
     if( tag_commits.empty() )
         throw ProgrammingErrorException();
@@ -646,37 +710,29 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
             if( std::regex_search(commit_message, matches, commit_message_regex) )
             {
                 // determine the first tag that contains this commit
-                TagCommits* first_tag_with_commit = nullptr;
+                std::vector<TagCommits::PullRequest>* pull_requests = &newer_than_tags_pull_requests;
 
                 for( TagCommits& tc : tag_commits )
                 {
                     if( git_graph_reachable_from_any(m_data->repo, &commit_oid, &tc.commit_oid, 1) == 1 )
                     {
-                        first_tag_with_commit = &tc;
+                        pull_requests = &tc.pull_requests;
                         break;
                     }
                 }
 
-                if( first_tag_with_commit == nullptr )
-                {
-                    ASSERT(false);
-                }
+                std::string pull_request_branch_name = matches.str(1);
+                std::string pull_request_message = matches.suffix().str();
+                SO::MakeTrim(pull_request_message);
 
-                else
-                {
-                    std::string pull_request_branch_name = matches.str(1);
-                    std::string pull_request_message = matches.suffix().str();
-                    SO::MakeTrim(pull_request_message);
-
-                    first_tag_with_commit->pull_requests.emplace_back(
-                        TagCommits::PullRequest
-                        {
-                            git_oid_tostr_s(&commit_oid),
-                            git_commit_author(commit)->when.time,
-                            std::move(pull_request_branch_name),
-                            std::move(pull_request_message)
-                        });
-                }
+                pull_requests->emplace_back(
+                    TagCommits::PullRequest
+                    {
+                        git_oid_tostr_s(&commit_oid),
+                        git_commit_author(commit)->when.time,
+                        std::move(pull_request_branch_name),
+                        std::move(pull_request_message)
+                    });
             }
         }
 
@@ -690,19 +746,8 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
                            "the history of this public repository does not reveal much about CSPro development. Because of this, "
                            "this document lists information about each pull request merged into the private repository.");
 
-    for( auto tag_commits_itr = tag_commits.crbegin(); tag_commits_itr != tag_commits.crend(); ++tag_commits_itr )
+    auto write_pull_requests = [&](const std::vector<TagCommits::PullRequest>& pull_requests)
     {
-        history_file.WriteFormattedLine("\n\n## CSPro %s", tag_commits_itr->tag_name.c_str());
-
-        std::string url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
-        history_file.WriteFormattedLine("\n**Installer**: [%s](%s)", url.c_str(), url.c_str());
-
-        url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s_releasenotes.txt", tag_commits_itr->tag_name.c_str());
-        history_file.WriteFormattedLine("\n**Release notes**: [%s](%s)", url.c_str(), url.c_str());
-
-        if( tag_commits_itr->pull_requests.empty() )
-            continue;
-
         history_file.WriteLine("\n**Merged pull requests**:\n");
 
         history_file.WriteLine("| Date | Branch | Pull Request Message |");
@@ -711,7 +756,7 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
         constexpr const char* NonBreakingHyphen = "&#8209;";
         const std::string date_formatter = FormatText("%%Y%s%%m%s%%d", NonBreakingHyphen, NonBreakingHyphen);
 
-        for( const TagCommits::PullRequest& pull_request : tag_commits_itr->pull_requests )
+        for( const TagCommits::PullRequest& pull_request : pull_requests )
         {
             auto escape_for_table = [&](std::string text)
             {
@@ -724,6 +769,27 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
                                             pull_request.sha.c_str(),
                                             escape_for_table(pull_request.message).c_str());
         }
+    };
+
+    if( !newer_than_tags_pull_requests.empty() )
+    {
+        history_file.WriteLine("\n\n## CSPro (Latest Release)");
+
+        write_pull_requests(newer_than_tags_pull_requests);
+    }
+
+    for( auto tag_commits_itr = tag_commits.crbegin(); tag_commits_itr != tag_commits.crend(); ++tag_commits_itr )
+    {
+        history_file.WriteFormattedLine("\n\n## CSPro %s", tag_commits_itr->tag_name.c_str());
+
+        std::string url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
+        history_file.WriteFormattedLine("\n**Installer**: [%s](%s)", url.c_str(), url.c_str());
+
+        url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s_releasenotes.txt", tag_commits_itr->tag_name.c_str());
+        history_file.WriteFormattedLine("\n**Release notes**: [%s](%s)", url.c_str(), url.c_str());
+
+        if( !tag_commits_itr->pull_requests.empty() )
+            write_pull_requests(tag_commits_itr->pull_requests);
     }
 }
 

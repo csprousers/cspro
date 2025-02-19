@@ -19,7 +19,11 @@ public:
 
     void ValidateRelease();
 
+    void GenerateFileList(cs::string_sz commit_string);
+
 private:
+    auto LookupCommitAndGetTree(cs::string_sz commit_string);
+
     template<typename git_oidT>
     static std::string ObjectIdToString(const git_oidT* oid);
 

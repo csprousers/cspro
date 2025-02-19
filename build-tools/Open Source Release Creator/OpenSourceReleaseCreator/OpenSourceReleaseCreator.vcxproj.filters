@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Overrides">
+      <UniqueIdentifier>{518f3612-4069-4006-a277-c3b0fff8f384}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Creator.h">
@@ -39,6 +42,9 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Overrides\replacement-ApiKeys.h">
+      <Filter>Overrides</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Creator.cpp">
@@ -64,5 +70,20 @@
     <ResourceCompile Include="OpenSourceReleaseCreator.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Overrides\exclusions.txt">
+      <Filter>Overrides</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\Overrides\replacement-api_keys.xml">
+      <Filter>Overrides</Filter>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Overrides\replacements.json">
+      <Filter>Overrides</Filter>
+    </None>
   </ItemGroup>
 </Project>

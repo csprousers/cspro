@@ -26,12 +26,9 @@ cspro/CSEntryDroid/debug.keystore
 
 # exclude x64 libraries
 
-cspro/external/curl/lib/x64/libcurl.dll
-cspro/external/curl/lib/x64/libcurl.lib
-cspro/external/mp4v2/lib/x64/libmp4v2.dll
-cspro/external/mp4v2/lib/x64/libmp4v2.lib
-cspro/external/zlib/lib/x64/zlib.dll
-cspro/external/zlib/lib/x64/zlib.lib
+cspro/external/curl/lib/x64
+cspro/external/mp4v2/lib/x64
+cspro/external/zlib/lib/x64
 
 
 # exclude some build tools
@@ -50,6 +47,7 @@ cspro/external/zlib/lib/x64/zlib.lib
 /build-tools/Run Update Version.bat
 /build-tools/Update Version
 
+/build-tools/Create Open Source Release.bat
 /build-tools/Open Source Release Creator
 
 /build-tools/Stygitan
