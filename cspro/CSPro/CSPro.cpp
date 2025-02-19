@@ -25,8 +25,6 @@
 #include <zFormO/DragOptions.h>
 #include <zTableF/TabView.h>
 #include <zTableF/TabChWnd.h>
-#include <zTableF/TabView.h>
-#include <zTableF/TabChWnd.h>
 #include <zNetwork/SyncLog.h>
 #include <engine/trace_macros.h>
 #include <afxvisualmanageroffice2007.h>
@@ -86,6 +84,8 @@ BEGIN_MESSAGE_MAP(CCSProApp, CWinApp)
     ON_COMMAND(ID_HELP_MAILING_LIST, OnHelpMailingList)
     ON_COMMAND(ID_HELP_GOOGLEPLAY, OnHelpAndroidApp)
     ON_COMMAND(ID_HELP_SHOW_SYNC_LOG, OnHelpShowSyncLog)
+    ON_COMMAND(ID_HELP_CSPROUSERS_FORUM, OnHelpCSProUsersForum)
+    ON_COMMAND(ID_HELP_CSPROUSERS_GITHUB, OnHelpCSProUsersGitHub)
 
     //}}AFX_MSG_MAP
     // Standard file based document commands
@@ -3222,6 +3222,18 @@ void CCSProApp::OnHelpShowSyncLog()
     {
         ErrorMessage::Display(exception);
     }
+}
+
+
+void CCSProApp::OnHelpCSProUsersForum()
+{
+    Viewer().ViewHtmlUrl(Html::CSProUsersForumUrl);
+}
+
+
+void CCSProApp::OnHelpCSProUsersGitHub()
+{
+    Viewer().ViewHtmlUrl("https://github.com/csprousers");
 }
 
 

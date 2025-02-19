@@ -17,7 +17,7 @@ BEGIN
     ID_FILE_CSPRO_CLOSE     "Close the active document\nClose"
     ID_FILE_SETTINGS        "Modify CSPro Settings\nCSPro Settings"
 END
-	
+
 STRINGTABLE
 BEGIN
     ID_VIEW_NAMES           "Show names in tree instead of labels\nNames in Tree"
@@ -77,6 +77,8 @@ BEGIN
     ID_HELP_TROUBLESHOOTING "Learn about how to receive technical support\nTechnical Support"
     ID_HELP_SHOW_SYNC_LOG   "Show where the sync.log file is located\nSync.log File"
     ID_HELP_GOOGLEPLAY      "Download the Android application on Google Play\nGoogle Play"
+    ID_HELP_CSPROUSERS_FORUM "View the CSPro Users Forum\nCSPro Users Forum"
+    ID_HELP_CSPROUSERS_GITHUB "View the CSPro source code on GitHub\nCSPro Users GitHub"
 END
 
 /////////////////////////////////////////////////////////////////////////////

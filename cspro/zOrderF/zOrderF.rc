@@ -229,6 +229,12 @@ BEGIN
         MENUITEM "What's &New in CSPro?",       ID_HELP_WHAT_IS_NEW
         MENUITEM "&Examples Folder",            ID_HELP_EXAMPLES
         MENUITEM SEPARATOR
+        POPUP "CSPro Users"
+        BEGIN
+            MENUITEM "Forum",                       ID_HELP_CSPROUSERS_FORUM
+            MENUITEM "GitHub",                      ID_HELP_CSPROUSERS_GITHUB
+        END
+        MENUITEM SEPARATOR
         MENUITEM "Mailing &List Signup",        ID_HELP_MAILING_LIST
         POPUP "&Troubleshooting"
         BEGIN
