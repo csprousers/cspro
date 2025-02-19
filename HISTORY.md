@@ -1,14 +1,15 @@
-﻿## Overview
+## Overview
 
 Because most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), the history of this public repository does not reveal much about CSPro development. Because of this, this document lists information about each pull request merged into the private repository.
 
 
-## CSPro (Latest Release)
+## CSPro (current development)
 
 **Merged pull requests**:
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;02&#8209;19 | [open-source-creator](https://github.com/CSProDevelopment/cspro/commit/2d079ba2f9fa83ad9f6a74404ec63c5360a11cc9) | added the Open Source Release Creator tool to automate creating open source releases |
 | 2025&#8209;02&#8209;18 | [small-work-2025-02](https://github.com/CSProDevelopment/cspro/commit/57570ab425e13c7ae03c45aa38f6929f2bbe7b00) | added a CSEntry deep link handler for running applications + reworked Leaflet mapping communication to use JSON + removed old serialization routines + implemented some interpreter functionality within zEngineO |
 | 2025&#8209;01&#8209;30 | [JavaScript-integration](https://github.com/CSProDevelopment/cspro/commit/0375490139a79ab3ec47c1a7d75f554a9606df77) | implemented calling into JavaScript from CSPro logic |
 | 2025&#8209;01&#8209;10 | [curl-upgrade](https://github.com/CSProDevelopment/cspro/commit/7b0f3fbce7a51717b0383752e8f35b765e1b8271) | upgaded curl + reworked CurlHttpConnection to properly handle multiple requests |

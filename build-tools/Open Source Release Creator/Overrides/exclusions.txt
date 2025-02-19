@@ -1,0 +1,65 @@
+
+# this file, using gitignore syntax, lists files that should not be copied to the CSPro open source repository
+
+
+# do not copy the API keys
+
+/cspro/CSEntryDroid/app/src/main/res/values/api_keys.xml
+/cspro/zToolsO/ApiKeys.h
+
+
+# do not copy the SEE version of SQLite
+
+/cspro/external/SQLite
+
+
+# no need to share the console application
+
+/cspro/CSEntryConsole
+
+
+# do not copy sensitive Android files
+
+cspro/CSEntryDroid/.csentrydroidkeystore
+cspro/CSEntryDroid/CSEntry Release Process.docx
+cspro/CSEntryDroid/debug.keystore
+
+# exclude x64 libraries
+
+cspro/external/curl/lib/x64
+cspro/external/mp4v2/lib/x64
+cspro/external/zlib/lib/x64
+
+
+# exclude some build tools
+
+/build-tools/Create Installer.bat
+/build-tools/CSPro Installer Generator/*
+!/build-tools/CSPro Installer Generator/inputs.json
+!/build-tools/CSPro Installer Generator/readme.txt
+
+/build-tools/Run Update Example Files.bat
+/build-tools/Update Example Files
+
+/build-tools/Run Update SQLite Encryption Extension (SEE).bat
+/build-tools/Update SQLite Encryption Extension (SEE)
+
+/build-tools/Run Update Version.bat
+/build-tools/Update Version
+
+/build-tools/Create Open Source Release.bat
+/build-tools/Open Source Release Creator
+
+/build-tools/Stygitan
+
+
+# exclude most tools
+
+/tools/*
+!/tools/CSPro Production Runner
+!/tools/Operator Statistics Viewer
+
+
+# exclude some miscellaneous files
+
+/GITWorkflow.md

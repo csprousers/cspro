@@ -1,0 +1,10 @@
+[
+  {
+    "repoPath": "cspro/CSEntryDroid/app/src/main/res/values/api_keys.xml",
+    "replacementPath": "replacement-api_keys.xml"
+  },
+  {
+    "repoPath": "cspro/zToolsO/ApiKeys.h",
+    "replacementPath": "replacement-ApiKeys.h"
+  }
+]

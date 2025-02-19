@@ -161,7 +161,10 @@ std::string Path::ReplaceExtension(const std::string_view path_sv, const std::st
 void Path::CombineWorker(std::string& path, std::string_view append_text_sv, const char slash_char)
 {
     if( path.empty() )
+    {
         path = std::string(append_text_sv);
+        return;
+    }
 
     const int separators_used = ( IsSlashChar(path.back()) ? 1 : 0 ) +
                                 ( ( !append_text_sv.empty() && IsSlashChar(append_text_sv.front()) ) ? 1 : 0 );

@@ -160,6 +160,8 @@ protected:
     afx_msg void OnHelpMailingList();
     afx_msg void OnHelpAndroidApp();
     afx_msg void OnHelpShowSyncLog();
+    afx_msg void OnHelpCSProUsersForum();
+    afx_msg void OnHelpCSProUsersGitHub();
 
     afx_msg void OnPreferencesFonts();
 
